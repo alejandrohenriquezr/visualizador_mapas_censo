@@ -6,7 +6,9 @@ for p in root.rglob("*"):
     if not p.is_file() or ".git" in p.parts: continue
     rel=p.relative_to(root)
     low=str(rel).lower().replace("\\","/")
-    if low.startswith("backup_") or "/backup_" in low:
+    # Solo se prohíben directorios de respaldo locales. Nombres de scripts
+    # operativos como backup_postgres.py sí forman parte del repositorio.
+    if any(part.lower().startswith("backup_") for part in rel.parts[:-1]):
         errors.append(f"archivo local prohibido: {rel}")
     parts={part.lower() for part in rel.parts}
     if parts & {"venv",".venv","site-packages","dist-packages","node_modules"}:
