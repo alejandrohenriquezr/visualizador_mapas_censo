@@ -28,7 +28,7 @@ services:
     image: visor-censo-backend:${APP_VERSION:-latest}
     env_file: [.env]
     environment:
-      APP_VERSION: ${APP_VERSION:-v32.2.1}
+      APP_VERSION: ${APP_VERSION:-v32.3.0}
       BACKEND_WORKERS: ${BACKEND_WORKERS:-2}
       DATABASE_URL: postgresql://${POSTGRES_USER:-visor}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-visor_censo}
       OLLAMA_URL: http://llm:11434/api/generate
@@ -98,6 +98,9 @@ services:
       CENSO_CACHE_DIR: /app/runtime/cache
       CENSO_PRECALENTAR_GEOMETRIAS: ${CENSO_PRECALENTAR_GEOMETRIAS:-region,comuna,provincia}
       CENSO_SIMPLIFICACION: ${CENSO_SIMPLIFICACION:-0.0005}
+      CENSO_SIMPLIFICACION_REGION: ${CENSO_SIMPLIFICACION_REGION:-0.0005}
+      CENSO_SIMPLIFICACION_PROVINCIA: ${CENSO_SIMPLIFICACION_PROVINCIA:-0.0005}
+      CENSO_SIMPLIFICACION_COMUNA: ${CENSO_SIMPLIFICACION_COMUNA:-0.0005}
     volumes:
       - ${CENSO_CARTOGRAFIA_HOST:-./cartografia}:/app/cartografia:ro
       - cartography_cache:/app/runtime/cache
