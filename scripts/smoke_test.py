@@ -23,11 +23,10 @@ status,encoded,headers=get(
     {"Accept":"application/geo+json","Accept-Encoding":"gzip"},
 )
 assert status==200
-if headers.get("Content-Encoding","").lower()=="gzip":
-    body=gzip.decompress(encoded)
-else:
-    body=encoded
+assert headers.get("Content-Encoding","").lower()=="gzip", headers
+body=gzip.decompress(encoded)
 assert len(body)>1000
+assert len(encoded)<len(body)
 raw_header=int(headers.get("X-Geometry-Raw-Bytes",len(body)))
 transfer_header=int(headers.get("X-Geometry-Transfer-Bytes",len(encoded)))
 assert raw_header==len(body)
