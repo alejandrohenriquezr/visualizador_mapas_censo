@@ -218,7 +218,7 @@ def serializar_gzip(nivel, filtro_nivel=None, filtro_codigo=None):
         comprimido = _GZIP.get(clave)
     if comprimido is None:
         inicio = perf_counter()
-        comprimido = gzip.compress(contenido, compresslevel=5)
+        comprimido = gzip.compress(contenido, compresslevel=5, mtime=0)
         duracion = perf_counter() - inicio
         with _LOCK:
             _GZIP[clave] = comprimido
@@ -311,7 +311,7 @@ def geometria(
         contenido, comprimido, version = serializar_gzip(nivel, filtro_nivel, filtro_codigo)
     except (ValueError, FileNotFoundError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    etag = f'"{version}-{filtro_nivel or "pais"}-{filtro_codigo or "todos"}"'
+    etag = f'W/"{version}-{filtro_nivel or "pais"}-{filtro_codigo or "todos"}"'
     version_solicitada = request.query_params.get("v")
     acepta_gzip = "gzip" in request.headers.get("accept-encoding", "").lower()
     cuerpo = comprimido if acepta_gzip else contenido
