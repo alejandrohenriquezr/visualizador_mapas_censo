@@ -57,3 +57,13 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - name: Build image
         run: docker build -f ${{ matrix.service }}/Dockerfile -t visor-${{ matrix.service }}:ci .
+      - name: Validate cartography gzip cache
+        if: matrix.service == 'cartography'
+        run: >
+          docker run --rm visor-cartography:ci
+          python -c "import gzip,main;
+          main.serializar=lambda *a,**k:(b'{\"type\":\"FeatureCollection\",\"features\":[]}'*1000,'vtest');
+          raw,z,v=main.serializar_gzip('region');
+          assert gzip.decompress(z)==raw;
+          assert len(z)<len(raw);
+          print('cartography gzip OK',len(raw),len(z))"
