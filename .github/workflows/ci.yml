@@ -1,5 +1,4 @@
 name: CI
-
 on:
   push:
   pull_request:
@@ -16,6 +15,25 @@ jobs:
         run: python scripts/validate_repo.py .
       - name: Compile Python
         run: python -m compileall -q backend cartography scripts tests
+      - name: Install backend dependencies
+        run: python -m pip install -r backend/requirements.txt
+      - name: Release regression suite
+        working-directory: tests/backend
+        env:
+          PYTHONPATH: ../../backend
+          OLLAMA_URL: http://127.0.0.1:9/api/generate
+          OLLAMA_TIMEOUT: '1'
+        run: >
+          python -m unittest
+          test_indicadores_v24
+          test_v26_regresiones
+          test_presentacion_exportacion
+          test_migracion_interna
+          test_movilidad_laboral
+          test_v27_indicadores_censales
+          test_v28_consultas_compuestas
+          test_v29_denominadores
+          test_v30_regresiones
 
   build:
     runs-on: ubuntu-latest

@@ -62,3 +62,32 @@ python scripts\validate_repo.py .
 ```
 
 El repositorio no incluye una licencia por defecto. Defina la licencia institucional antes de hacerlo público.
+
+
+## Operación segura
+
+La versión 32.1 incorpora respaldo PostgreSQL, actualización transaccional,
+rollback automático, migraciones SQL versionadas y salud detallada.
+
+Antes del primer arranque:
+
+```cmd
+scripts\PREPARAR_VOLUMENES.cmd
+```
+
+Operación habitual:
+
+```cmd
+scripts\BACKUP.cmd
+scripts\ACTUALIZAR.cmd
+scripts\HEALTH.cmd
+```
+
+Restauración explícita:
+
+```cmd
+scripts\RESTAURAR_BACKUP.cmd backups\visor_censo_YYYYMMDD_HHMMSS.dump
+```
+
+Las migraciones se encuentran en `database/migrations/` y el backend las
+aplica antes de iniciar Uvicorn.
