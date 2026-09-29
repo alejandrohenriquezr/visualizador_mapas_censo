@@ -22,8 +22,8 @@ from fastapi.responses import Response
 LOG = logging.getLogger("uvicorn.error")
 GDB_PATH = Path(os.getenv("CENSO_CARTOGRAFIA_GDB", "/app/cartografia/Cartografia_censo2024_Pais.gdb"))
 CACHE_DIR = Path(os.getenv("CENSO_CACHE_DIR", "/app/runtime/cache"))
-SIMPLIFICACION = float(os.getenv("CENSO_SIMPLIFICACION", "0.0005"))
-if not 0 < SIMPLIFICACION < 1:
+SIMPLIFICACION_BASE = float(os.getenv("CENSO_SIMPLIFICACION", "0.0005"))
+if not 0 < SIMPLIFICACION_BASE < 1:
     raise ValueError("CENSO_SIMPLIFICACION debe estar entre 0 y 1 grado.")
 
 NIVELES = {
@@ -31,6 +31,15 @@ NIVELES = {
     "provincia": {"capa_gdb": "Provincial_CPV24", "campo_gdb": "COD_PROVINCIA", "campo_nombre": "PROVINCIA"},
     "comuna": {"capa_gdb": "Comunal_CPV24", "campo_gdb": "CUT", "campo_nombre": "COMUNA"},
 }
+SIMPLIFICACION_POR_NIVEL = {
+    nivel: float(os.getenv(f"CENSO_SIMPLIFICACION_{nivel.upper()}", str(SIMPLIFICACION_BASE)))
+    for nivel in NIVELES
+}
+for _nivel, _tolerancia in SIMPLIFICACION_POR_NIVEL.items():
+    if not 0 < _tolerancia < 1:
+        raise ValueError(
+            f"CENSO_SIMPLIFICACION_{_nivel.upper()} debe estar entre 0 y 1 grado."
+        )
 _LOCK = RLock()
 _PREWARM_LOCK = RLock()
 _CAPAS = None
@@ -79,7 +88,7 @@ def _firma(nivel):
         sorted(archivos),
         nivel,
         NIVELES[nivel],
-        SIMPLIFICACION,
+        SIMPLIFICACION_POR_NIVEL[nivel],
         gpd.__version__,
     ]
     return hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()[:24]
@@ -131,7 +140,9 @@ def _cargar(nivel):
             campos = {"geometry", info["campo_gdb"], info["campo_nombre"]}
             campos.update(v["campo_gdb"] for v in NIVELES.values())
             gdf = gdf[[c for c in gdf.columns if c in campos]].to_crs(4326)
-            gdf["geometry"] = gdf.geometry.simplify(SIMPLIFICACION, preserve_topology=True)
+            gdf["geometry"] = gdf.geometry.simplify(
+                SIMPLIFICACION_POR_NIVEL[nivel], preserve_topology=True
+            )
             _guardar(gdf, ruta)
         _GDFS[nivel] = gdf
         _FIRMAS[nivel] = firma
@@ -288,6 +299,7 @@ def salud():
         "gdb": str(GDB_PATH),
         "geometrias": estado,
         "transferencia": transferencia,
+        "simplificacion_grados": deepcopy(SIMPLIFICACION_POR_NIVEL),
     }
 
 
