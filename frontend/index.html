@@ -454,6 +454,14 @@ async function cargarGeometria(referencia){
       let error; try{ error = await respuesta.json(); }catch{}
       throw new Error(error?.detail || 'No se pudo descargar la cartografía.');
     }
+    const rawBytes = respuesta.headers.get('X-Geometry-Raw-Bytes');
+    const transferBytes = respuesta.headers.get('X-Geometry-Transfer-Bytes');
+    const reduccion = respuesta.headers.get('X-Geometry-Compression-Pct');
+    const serverTiming = respuesta.headers.get('Server-Timing');
+    console.info(
+      '[cartografia] transferencia',
+      {nivel: referencia.nivel, rawBytes, transferBytes, reduccionPct: reduccion, serverTiming}
+    );
     const geojson = await respuesta.json();
     if(geojson?.type !== 'FeatureCollection' || !Array.isArray(geojson.features)){
       throw new Error('La cartografía descargada no es válida.');
