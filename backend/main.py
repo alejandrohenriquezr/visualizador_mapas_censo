@@ -487,6 +487,84 @@ def salud():
     return {"estado": "ok", "geometrias": estado_precalentamiento()}
 
 
+
+def _salud_componente(funcion):
+    inicio = perf_counter()
+    try:
+        detalle = funcion() or {}
+        return {
+            "estado": "ok",
+            "duracion_ms": round((perf_counter() - inicio) * 1000, 1),
+            **detalle,
+        }
+    except Exception as exc:
+        return {
+            "estado": "error",
+            "duracion_ms": round((perf_counter() - inicio) * 1000, 1),
+            "error": str(exc)[:500],
+        }
+
+
+def _salud_db():
+    import psycopg
+    url = os.getenv("DATABASE_URL", "").strip()
+    if not url:
+        raise RuntimeError("DATABASE_URL no configurada")
+    with psycopg.connect(url, connect_timeout=3) as con:
+        con.execute("SELECT 1").fetchone()
+    return {}
+
+
+def _salud_llm():
+    import urllib.request
+    generate_url = os.getenv("OLLAMA_URL", "http://llm:11434/api/generate").strip()
+    tags_url = (
+        generate_url[:-len("/api/generate")] + "/api/tags"
+        if generate_url.endswith("/api/generate")
+        else generate_url.rstrip("/") + "/api/tags"
+    )
+    with urllib.request.urlopen(tags_url, timeout=5) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    return {"modelos": len(data.get("models") or [])}
+
+
+def _salud_cartografia():
+    import urllib.request
+    base = os.getenv("CARTOGRAPHY_URL", "http://cartography:8090").rstrip("/")
+    with urllib.request.urlopen(base + "/api/salud", timeout=8) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    if not data.get("gdb_existe"):
+        raise RuntimeError("La FileGDB no está disponible en cartography")
+    return {"gdb_existe": True, "geometrias": data.get("geometrias")}
+
+
+def _salud_datos():
+    directorio = Path(os.getenv("CENSO_DATOS_DIR", "/app/datos"))
+    archivos = sorted(directorio.glob("*.parquet"))
+    if not archivos:
+        raise RuntimeError(f"No se encontraron Parquet en {directorio}")
+    return {"directorio": str(directorio), "parquet": len(archivos)}
+
+
+@app.get("/api/salud/detallada")
+def salud_detallada():
+    componentes = {
+        "db": _salud_componente(_salud_db),
+        "llm": _salud_componente(_salud_llm),
+        "cartografia": _salud_componente(_salud_cartografia),
+        "datos": _salud_componente(_salud_datos),
+    }
+    correcto = all(x.get("estado") == "ok" for x in componentes.values())
+    return JSONResponse(
+        status_code=200 if correcto else 503,
+        content={
+            "estado": "ok" if correcto else "degradado",
+            "version": os.getenv("APP_VERSION", "desconocida"),
+            "componentes": componentes,
+        },
+    )
+
+
 @app.get("/api/geometrias/{nivel}")
 def geometria(nivel: str, request: Request,
               filtro_nivel: Optional[str] = None,

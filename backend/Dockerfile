@@ -6,7 +6,8 @@ RUN python -m pip install --upgrade pip && python -m pip install -r /tmp/require
 COPY backend/ /app/backend/
 COPY data/ /app/data/
 COPY resources/ /app/resources/
-RUN mkdir -p /app/datos
+COPY database/migrations/ /app/database/migrations/
+RUN mkdir -p /app/datos && chmod +x /app/backend/start.sh
 WORKDIR /app/backend
 EXPOSE 8000
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--proxy-headers"]
+CMD ["/app/backend/start.sh"]
