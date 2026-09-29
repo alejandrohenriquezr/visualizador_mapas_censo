@@ -15,6 +15,17 @@ jobs:
         run: python scripts/validate_repo.py .
       - name: Compile Python
         run: python -m compileall -q backend cartography scripts tests
+      - name: Validate shell scripts use LF
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          bad = []
+          for p in Path('.').rglob('*.sh'):
+              if b'\r\n' in p.read_bytes():
+                  bad.append(str(p))
+          if bad:
+              raise SystemExit('CRLF no permitido en scripts sh: ' + ', '.join(bad))
+          PY
       - name: Install backend dependencies
         run: python -m pip install -r backend/requirements.txt
       - name: Release regression suite

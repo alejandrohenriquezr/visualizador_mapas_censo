@@ -7,7 +7,7 @@ COPY backend/ /app/backend/
 COPY data/ /app/data/
 COPY resources/ /app/resources/
 COPY database/migrations/ /app/database/migrations/
-RUN mkdir -p /app/datos && chmod +x /app/backend/start.sh
+RUN mkdir -p /app/datos
 WORKDIR /app/backend
 EXPOSE 8000
-CMD ["/app/backend/start.sh"]
+CMD ["sh", "-c", "python /app/backend/db_migrate.py && exec python -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers \"${BACKEND_WORKERS:-2}\" --proxy-headers"]
