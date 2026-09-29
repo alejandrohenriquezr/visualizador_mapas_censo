@@ -8,6 +8,7 @@ from threading import RLock, Thread
 from time import perf_counter
 from uuid import uuid4
 import difflib
+import gzip
 import hashlib
 import json
 import logging
@@ -35,6 +36,8 @@ _PREWARM_LOCK = RLock()
 _CAPAS = None
 _GDFS = {}
 _JSON = {}
+_GZIP = {}
+_TRANSFERENCIA = {}
 _FIRMAS = {}
 _ESTADO = {"estado": "pendiente", "niveles_listos": [], "errores": {}}
 
@@ -179,6 +182,7 @@ def serializar(nivel, filtro_nivel=None, filtro_codigo=None):
     with _LOCK:
         if clave in _JSON:
             return _JSON[clave], ref["version"]
+    inicio = perf_counter()
     gdf = _filtrar(_cargar(nivel), nivel, filtro_nivel, filtro_codigo)
     if gdf.empty:
         raise ValueError("No hay geometrias para el filtro solicitado.")
@@ -189,9 +193,48 @@ def serializar(nivel, filtro_nivel=None, filtro_codigo=None):
     salida["centro_lat"] = centros.y
     salida = salida.rename(columns={info["campo_nombre"]: "nombre", info["campo_gdb"]: "codigo"})
     contenido = salida.to_json(drop_id=True, ensure_ascii=False).encode("utf-8")
+    duracion = perf_counter() - inicio
     with _LOCK:
         _JSON[clave] = contenido
+        _TRANSFERENCIA[clave] = {
+            "raw_bytes": len(contenido),
+            "gzip_bytes": None,
+            "reduccion_pct": None,
+            "serializacion_segundos": round(duracion, 3),
+            "features": int(len(salida)),
+        }
+    LOG.info(
+        "[cartografia] serializacion[%s] bytes=%s features=%s tiempo=%.3fs",
+        nivel, len(contenido), len(salida), duracion,
+    )
     return contenido, ref["version"]
+
+
+def serializar_gzip(nivel, filtro_nivel=None, filtro_codigo=None):
+    """Devuelve GeoJSON y su versión gzip cacheada para transferencia HTTP."""
+    contenido, version = serializar(nivel, filtro_nivel, filtro_codigo)
+    clave = (nivel, filtro_nivel, int(filtro_codigo) if filtro_codigo is not None else None, version)
+    with _LOCK:
+        comprimido = _GZIP.get(clave)
+    if comprimido is None:
+        inicio = perf_counter()
+        comprimido = gzip.compress(contenido, compresslevel=5)
+        duracion = perf_counter() - inicio
+        with _LOCK:
+            _GZIP[clave] = comprimido
+            metrica = _TRANSFERENCIA.setdefault(clave, {"raw_bytes": len(contenido)})
+            metrica["gzip_bytes"] = len(comprimido)
+            metrica["reduccion_pct"] = round(
+                100.0 * (1.0 - len(comprimido) / max(len(contenido), 1)), 2
+            )
+            metrica["gzip_segundos"] = round(duracion, 3)
+        LOG.info(
+            "[cartografia] gzip[%s] raw=%s gzip=%s reduccion=%.2f%% tiempo=%.3fs",
+            nivel, len(contenido), len(comprimido),
+            100.0 * (1.0 - len(comprimido) / max(len(contenido), 1)),
+            duracion,
+        )
+    return contenido, comprimido, version
 
 
 def precalentar(niveles):
@@ -200,7 +243,7 @@ def precalentar(niveles):
         _ESTADO.update(estado="en_curso", niveles_listos=[], errores={})
     for nivel in niveles:
         try:
-            serializar(nivel)
+            serializar_gzip(nivel)
             with _PREWARM_LOCK:
                 _ESTADO["niveles_listos"].append(nivel)
         except Exception as exc:
@@ -233,11 +276,18 @@ app = FastAPI(title="Visor Censo 2024 - Cartografia", lifespan=lifespan)
 def salud():
     with _PREWARM_LOCK:
         estado = deepcopy(_ESTADO)
+    with _LOCK:
+        transferencia = {}
+        for clave, metrica in _TRANSFERENCIA.items():
+            nivel, filtro_nivel, filtro_codigo, _version = clave
+            if filtro_nivel is None and filtro_codigo is None:
+                transferencia[nivel] = deepcopy(metrica)
     return {
         "estado": "ok",
         "gdb_existe": GDB_PATH.exists(),
         "gdb": str(GDB_PATH),
         "geometrias": estado,
+        "transferencia": transferencia,
     }
 
 
@@ -256,18 +306,30 @@ def geometria(
     filtro_nivel: str | None = None,
     filtro_codigo: int | None = None,
 ):
+    inicio = perf_counter()
     try:
-        contenido, version = serializar(nivel, filtro_nivel, filtro_codigo)
+        contenido, comprimido, version = serializar_gzip(nivel, filtro_nivel, filtro_codigo)
     except (ValueError, FileNotFoundError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     etag = f'"{version}-{filtro_nivel or "pais"}-{filtro_codigo or "todos"}"'
     version_solicitada = request.query_params.get("v")
+    acepta_gzip = "gzip" in request.headers.get("accept-encoding", "").lower()
+    cuerpo = comprimido if acepta_gzip else contenido
+    duracion_ms = (perf_counter() - inicio) * 1000.0
+    reduccion = 100.0 * (1.0 - len(comprimido) / max(len(contenido), 1))
     headers = {
         "ETag": etag,
+        "Vary": "Accept-Encoding",
         "Cache-Control": "public, max-age=31536000, immutable"
         if version_solicitada == version
         else "no-cache",
+        "X-Geometry-Raw-Bytes": str(len(contenido)),
+        "X-Geometry-Transfer-Bytes": str(len(cuerpo)),
+        "X-Geometry-Compression-Pct": f"{reduccion:.2f}",
+        "Server-Timing": f"cartography;dur={duracion_ms:.1f}",
     }
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers=headers)
-    return Response(content=contenido, media_type="application/geo+json", headers=headers)
+    if acepta_gzip:
+        headers["Content-Encoding"] = "gzip"
+    return Response(content=cuerpo, media_type="application/geo+json", headers=headers)
