@@ -575,7 +575,11 @@ def _salud_cartografia():
         data = json.loads(response.read().decode("utf-8"))
     if not data.get("gdb_existe"):
         raise RuntimeError("La FileGDB no está disponible en cartography")
-    return {"gdb_existe": True, "geometrias": data.get("geometrias")}
+    return {
+        "gdb_existe": True,
+        "geometrias": data.get("geometrias"),
+        "transferencia": data.get("transferencia", {}),
+    }
 
 
 def _salud_datos():
