@@ -199,22 +199,39 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
         respuesta = cache["respuesta"]
         respuesta["cache_aprobada"] = True
         respuesta.setdefault("interpretacion", {})["origen"] = "cache_aprobada"
+        respuesta["diagnostico"] = {
+            "consulta_id": consulta_id,
+            "cache_aprobada": True,
+        }
         respuesta["feedback_id"] = _registrar_resultado(
             pregunta, cache["sql"], respuesta
         )
+        paso_serializacion = perf_counter()
         response = JSONResponse(content=respuesta)
+        serializacion_s = perf_counter() - paso_serializacion
+        total_s = perf_counter() - inicio
+        response.headers["X-Consulta-Id"] = consulta_id
+        response.headers["X-Response-Time-Ms"] = f"{total_s * 1000.0:.1f}"
+        response.headers["Server-Timing"] = (
+            f"cache;dur={max(total_s - serializacion_s, 0.0) * 1000.0:.1f},"
+            f"serialize;dur={serializacion_s * 1000.0:.1f}"
+        )
         logging.getLogger("uvicorn.error").info(
-            "[consulta %s] cache_aprobada=True total_servidor=%.3fs bytes=%s",
-            consulta_id, perf_counter() - inicio, len(response.body))
+            "[consulta %s] cache_aprobada=True serializacion=%.3fs total_servidor=%.3fs bytes=%s",
+            consulta_id, serializacion_s, total_s, len(response.body))
         return response
     try:
         avisar(1, False)
+        paso_interpretacion = perf_counter()
         intencion = interpretar_consulta(
             pregunta, req.tabla_seleccionada, req.variable_seleccionada,
             req.operacion_seleccionada, req.denominador_seleccionado,
         )
+        interpretacion_s = perf_counter() - paso_interpretacion
         avisar(1, True)
+        paso_datos = perf_counter()
         resultado = ejecutar_consulta(intencion, progreso=avisar)
+        datos_s = perf_counter() - paso_datos
     except _ConsultaCancelada:
         raise
     except (AmbiguedadVariable, AmbiguedadOperacion, AmbiguedadDenominador):
@@ -227,6 +244,7 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
         raise HTTPException(status_code=500, detail=f"Error inesperado: {e}")
 
     avisar(5, False)
+    paso_preparacion = perf_counter()
     respuesta = {
         "tipo_visualizacion": resultado.get("tipo_visualizacion", "mapa"),
         "interpretacion": {
@@ -339,17 +357,39 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
             "nota": resultado.get("nota"),
         })
 
+    preparacion_s = perf_counter() - paso_preparacion
+    respuesta["diagnostico"] = {
+        "consulta_id": consulta_id,
+        "cache_aprobada": False,
+        "tiempos_segundos": {
+            "interpretacion": round(interpretacion_s, 3),
+            "motor_datos": round(datos_s, 3),
+            "preparacion_respuesta": round(preparacion_s, 3),
+        },
+    }
     respuesta["feedback_id"] = _registrar_resultado(
         pregunta, resultado.get("_sql_ejecutada", ""), respuesta
     )
 
     # La respuesta contiene datos agregados y una referencia; la cartografía
     # estable se descarga por separado y se reutiliza en el navegador.
-    paso = perf_counter()
+    paso_serializacion = perf_counter()
     response = JSONResponse(content=respuesta)
+    serializacion_s = perf_counter() - paso_serializacion
+    total_s = perf_counter() - inicio
+    response.headers["X-Consulta-Id"] = consulta_id
+    response.headers["X-Response-Time-Ms"] = f"{total_s * 1000.0:.1f}"
+    response.headers["Server-Timing"] = (
+        f"interpret;dur={interpretacion_s * 1000.0:.1f},"
+        f"data;dur={datos_s * 1000.0:.1f},"
+        f"prepare;dur={preparacion_s * 1000.0:.1f},"
+        f"serialize;dur={serializacion_s * 1000.0:.1f}"
+    )
     logging.getLogger("uvicorn.error").info(
-        "[consulta %s] serializacion=%.3fs total_servidor=%.3fs bytes=%s",
-        consulta_id, perf_counter() - paso, perf_counter() - inicio, len(response.body))
+        "[consulta %s] interpretacion=%.3fs datos=%.3fs preparacion=%.3fs "
+        "serializacion=%.3fs total_servidor=%.3fs bytes=%s",
+        consulta_id, interpretacion_s, datos_s, preparacion_s,
+        serializacion_s, total_s, len(response.body))
     avisar(5, True)
     return response
 
