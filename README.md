@@ -104,3 +104,16 @@ python scripts\benchmark_cartografia.py --base http://localhost:8010
 
 Las respuestas estadísticas incluyen `diagnostico.consulta_id` y tiempos por
 etapa; los endpoints HTTP agregan cabeceras de trazabilidad y `Server-Timing`.
+
+
+### Benchmark de simplificación cartográfica
+
+La v32.3 permite evaluar tolerancias distintas para región, provincia y comuna
+sin modificar el código. Ejecute:
+
+```cmd
+python scripts\benchmark_simplificacion.py
+```
+
+Use sus resultados para elegir tolerancias que reduzcan coordenadas y tamaño
+manteniendo bajo el error de área y cero geometrías inválidas.
