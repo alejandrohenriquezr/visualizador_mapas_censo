@@ -15,12 +15,14 @@ def main():
         "--tolerancias",
         default="0.0005,0.00075,0.001,0.0015,0.002,0.003,0.005,0.01",
     )
+    p.add_argument("--fuente", choices=("cache","gdb"), default="cache")
     args = p.parse_args()
     cmd = [
         "docker","compose","exec","-T","cartography",
-        "python","/app/cartography/benchmark_simplificacion.py",
+        "python","-u","/app/cartography/benchmark_simplificacion.py",
         "--niveles",args.niveles,
         "--tolerancias",args.tolerancias,
+        "--fuente",args.fuente,
     ]
     print("+"," ".join(cmd))
     raise SystemExit(subprocess.call(cmd, cwd=ROOT))

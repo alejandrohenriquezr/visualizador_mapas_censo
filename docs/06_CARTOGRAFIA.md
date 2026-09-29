@@ -57,3 +57,25 @@ El benchmark se ejecuta dentro del contenedor cartography y compara varias
 tolerancias usando la FileGDB real. Reporta cantidad de coordenadas, tamaños
 GeoJSON/gzip, reducción de vértices, error de área total y máximo, geometrías
 inválidas y tiempo de proceso.
+
+
+### Fuente del benchmark
+
+Por defecto, `benchmark_simplificacion.py` usa la caché productiva GPKG ya
+precalentada por cartography. Esto evita releer la FileGDB y permite comparar
+tolerancias más agresivas respecto de la geometría actualmente publicada
+(0.0005 por defecto), con tiempos mucho menores.
+
+```cmd
+python scripts\benchmark_simplificacion.py --fuente cache
+```
+
+Para auditar directamente contra la FileGDB original:
+
+```cmd
+python scripts\benchmark_simplificacion.py --fuente gdb
+```
+
+La lectura directa puede tardar varios minutos en polígonos multipartes grandes.
+El benchmark imprime progreso por nivel y tolerancia para distinguir trabajo
+costoso de un proceso bloqueado.
