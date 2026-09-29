@@ -1,0 +1,906 @@
+{
+  "version": 1,
+  "descripcion": "Alias y expresiones de uso chileno para normalización previa del Visor Censo 2024. Los alias ambiguos se documentan pero no se sustituyen automáticamente.",
+  "expansiones_seguras": [
+    {
+      "patrones": [
+        "sin pega",
+        "sin trabajo",
+        "cesante",
+        "desempleado",
+        "desempleada",
+        "desempleados",
+        "desempleadas"
+      ],
+      "canonico": "desocupado",
+      "tema": "trabajo"
+    },
+    {
+      "patrones": [
+        "con pega",
+        "tiene pega",
+        "tiene trabajo",
+        "esta trabajando"
+      ],
+      "canonico": "ocupado",
+      "tema": "trabajo"
+    },
+    {
+      "patrones": [
+        "pega"
+      ],
+      "canonico": "trabajo",
+      "tema": "trabajo"
+    },
+    {
+      "patrones": [
+        "depas",
+        "depa",
+        "deptos",
+        "depto",
+        "dptos",
+        "dpto"
+      ],
+      "canonico": "departamento",
+      "tema": "vivienda"
+    },
+    {
+      "patrones": [
+        "celu",
+        "celus"
+      ],
+      "canonico": "celular",
+      "tema": "tic"
+    },
+    {
+      "patrones": [
+        "compu",
+        "compus",
+        "pc",
+        "notebook",
+        "laptop"
+      ],
+      "canonico": "computador",
+      "tema": "tic"
+    },
+    {
+      "patrones": [
+        "a patita",
+        "a pata",
+        "a pie"
+      ],
+      "canonico": "caminando",
+      "tema": "transporte"
+    },
+    {
+      "patrones": [
+        "cleta",
+        "bici"
+      ],
+      "canonico": "bicicleta",
+      "tema": "transporte"
+    },
+    {
+      "patrones": [
+        "moto"
+      ],
+      "canonico": "motocicleta",
+      "tema": "transporte"
+    },
+    {
+      "patrones": [
+        "micro",
+        "metro",
+        "tren",
+        "colectivo",
+        "bus"
+      ],
+      "canonico": "transporte publico",
+      "tema": "transporte"
+    },
+    {
+      "patrones": [
+        "starlink"
+      ],
+      "canonico": "internet satelital",
+      "tema": "internet"
+    },
+    {
+      "patrones": [
+        "datos moviles",
+        "internet del celu",
+        "internet del celular",
+        "bam",
+        "4g",
+        "5g"
+      ],
+      "canonico": "internet movil",
+      "tema": "internet"
+    },
+    {
+      "patrones": [
+        "fibra optica",
+        "internet de casa",
+        "banda ancha fija"
+      ],
+      "canonico": "internet fija",
+      "tema": "internet"
+    },
+    {
+      "patrones": [
+        "ruca"
+      ],
+      "canonico": "ruka",
+      "tema": "vivienda"
+    },
+    {
+      "patrones": [
+        "casa rodante",
+        "motorhome"
+      ],
+      "canonico": "vivienda movil",
+      "tema": "vivienda"
+    },
+    {
+      "patrones": [
+        "casa de veraneo",
+        "casa de vacaciones",
+        "segunda vivienda"
+      ],
+      "canonico": "vivienda de temporada",
+      "tema": "vivienda"
+    },
+    {
+      "patrones": [
+        "casa botada",
+        "vivienda botada"
+      ],
+      "canonico": "vivienda abandonada",
+      "tema": "vivienda"
+    },
+    {
+      "patrones": [
+        "pagando dividendo",
+        "pagando el dividendo",
+        "con hipoteca",
+        "pagando hipotecario"
+      ],
+      "canonico": "propia pagandose",
+      "tema": "tenencia"
+    },
+    {
+      "patrones": [
+        "sin deuda hipotecaria",
+        "termino de pagar la casa",
+        "termino de pagar el departamento"
+      ],
+      "canonico": "propia pagada",
+      "tema": "tenencia"
+    },
+    {
+      "patrones": [
+        "arriendo formal"
+      ],
+      "canonico": "arrendada con contrato",
+      "tema": "tenencia"
+    },
+    {
+      "patrones": [
+        "arriendo sin contrato",
+        "arriendo de palabra"
+      ],
+      "canonico": "arrendada sin contrato",
+      "tema": "tenencia"
+    },
+    {
+      "patrones": [
+        "vive solo",
+        "vive sola",
+        "hogar de una persona"
+      ],
+      "canonico": "unipersonal",
+      "tema": "hogar"
+    },
+    {
+      "patrones": [
+        "mama sola con hijos",
+        "madre sola con hijos",
+        "papa solo con hijos",
+        "padre solo con hijos"
+      ],
+      "canonico": "nuclear monoparental",
+      "tema": "hogar"
+    },
+    {
+      "patrones": [
+        "se vino a chile",
+        "llego a chile",
+        "llego al pais"
+      ],
+      "canonico": "llegada a chile",
+      "tema": "migracion"
+    },
+    {
+      "patrones": [
+        "la u"
+      ],
+      "canonico": "educacion superior",
+      "tema": "educacion"
+    },
+    {
+      "patrones": [
+        "ensenanza media",
+        "la media"
+      ],
+      "canonico": "educacion media",
+      "tema": "educacion"
+    },
+    {
+      "patrones": [
+        "ensenanza basica",
+        "la basica"
+      ],
+      "canonico": "educacion basica",
+      "tema": "educacion"
+    },
+    {
+      "patrones": [
+        "jardin infantil",
+        "preescolar",
+        "prekinder",
+        "kinder",
+        "sala cuna"
+      ],
+      "canonico": "educacion parvularia",
+      "tema": "educacion"
+    },
+    {
+      "patrones": [
+        "anos estudiados",
+        "anos de estudio",
+        "cuanto estudio"
+      ],
+      "canonico": "escolaridad",
+      "tema": "educacion"
+    },
+    {
+      "patrones": [
+        "no sabe leer ni escribir",
+        "analfabeto",
+        "analfabeta"
+      ],
+      "canonico": "no sabe leer y escribir",
+      "tema": "alfabetizacion"
+    },
+    {
+      "patrones": [
+        "sabe leer y escribir",
+        "lee y escribe"
+      ],
+      "canonico": "sabe leer y escribir",
+      "tema": "alfabetizacion"
+    },
+    {
+      "patrones": [
+        "por cuenta propia",
+        "freelance"
+      ],
+      "canonico": "independiente",
+      "tema": "trabajo"
+    },
+    {
+      "patrones": [
+        "asalariado",
+        "contratado"
+      ],
+      "canonico": "dependiente",
+      "tema": "trabajo"
+    },
+    {
+      "patrones": [
+        "vive con su pololo",
+        "vive con su polola",
+        "vive con el pololo",
+        "vive con la polola"
+      ],
+      "canonico": "conviviente o pareja sin acuerdo de union civil",
+      "tema": "estado conyugal"
+    },
+    {
+      "patrones": [
+        "mapudungun",
+        "mapuzugun"
+      ],
+      "canonico": "mapuzugun",
+      "tema": "lengua indigena"
+    },
+    {
+      "patrones": [
+        "rapanui"
+      ],
+      "canonico": "rapa nui",
+      "tema": "pueblos indigenas"
+    },
+    {
+      "patrones": [
+        "lickanantay"
+      ],
+      "canonico": "atacameno lickanantay",
+      "tema": "pueblos indigenas"
+    },
+    {
+      "patrones": [
+        "kaweskar"
+      ],
+      "canonico": "kawesqar",
+      "tema": "pueblos indigenas"
+    },
+    {
+      "patrones": [
+        "selknam",
+        "selk nam"
+      ],
+      "canonico": "selk nam",
+      "tema": "pueblos indigenas"
+    },
+    {
+      "patrones": [
+        "mormon",
+        "mormones"
+      ],
+      "canonico": "iglesia de jesucristo de los santos de los ultimos dias",
+      "tema": "religion"
+    },
+    {
+      "patrones": [
+        "sin religion",
+        "sin credo"
+      ],
+      "canonico": "ninguna religion credo",
+      "tema": "religion"
+    },
+    {
+      "patrones": [
+        "camion del agua"
+      ],
+      "canonico": "camion aljibe",
+      "tema": "agua"
+    },
+    {
+      "patrones": [
+        "acarrea agua",
+        "ir a buscar agua"
+      ],
+      "canonico": "no tiene sistema la acarrea",
+      "tema": "agua"
+    },
+    {
+      "patrones": [
+        "fosa"
+      ],
+      "canonico": "fosa septica",
+      "tema": "saneamiento"
+    },
+    {
+      "patrones": [
+        "letrina",
+        "cajon sanitario"
+      ],
+      "canonico": "pozo negro letrina sanitaria cajon",
+      "tema": "saneamiento"
+    },
+    {
+      "patrones": [
+        "sin bano",
+        "sin wc",
+        "no tiene wc"
+      ],
+      "canonico": "no tiene servicio higienico",
+      "tema": "saneamiento"
+    },
+    {
+      "patrones": [
+        "panel solar",
+        "paneles solares"
+      ],
+      "canonico": "placa solar",
+      "tema": "electricidad"
+    },
+    {
+      "patrones": [
+        "generador a bencina",
+        "generador a diesel"
+      ],
+      "canonico": "generador con diesel o bencina",
+      "tema": "electricidad"
+    },
+    {
+      "patrones": [
+        "pasa el camion de la basura",
+        "retiro municipal",
+        "camion de la basura"
+      ],
+      "canonico": "servicios de aseo",
+      "tema": "basura"
+    },
+    {
+      "patrones": [
+        "quema la basura",
+        "entierra la basura"
+      ],
+      "canonico": "entierra quema",
+      "tema": "basura"
+    },
+    {
+      "patrones": [
+        "cuantas guaguas tuvo",
+        "cuantos hijos tuvo"
+      ],
+      "canonico": "cuantas hijas e hijos nacidos vivos ha tenido en total",
+      "tema": "fecundidad"
+    },
+    {
+      "patrones": [
+        "afro",
+        "afros"
+      ],
+      "canonico": "afrodescendiente",
+      "tema": "afrodescendencia"
+    }
+  ],
+  "alias_geograficos": [
+    {
+      "patrones": [
+        "rm"
+      ],
+      "canonico": "region metropolitana de santiago"
+    },
+    {
+      "patrones": [
+        "i region",
+        "primera region",
+        "1ra region"
+      ],
+      "canonico": "region tarapaca"
+    },
+    {
+      "patrones": [
+        "ii region",
+        "segunda region",
+        "2da region"
+      ],
+      "canonico": "region antofagasta"
+    },
+    {
+      "patrones": [
+        "iii region",
+        "tercera region",
+        "3ra region"
+      ],
+      "canonico": "region atacama"
+    },
+    {
+      "patrones": [
+        "iv region",
+        "cuarta region",
+        "4ta region"
+      ],
+      "canonico": "region coquimbo"
+    },
+    {
+      "patrones": [
+        "v region",
+        "quinta region",
+        "5ta region"
+      ],
+      "canonico": "region valparaiso"
+    },
+    {
+      "patrones": [
+        "vi region",
+        "sexta region",
+        "6ta region"
+      ],
+      "canonico": "region libertador general bernardo o higgins"
+    },
+    {
+      "patrones": [
+        "vii region",
+        "septima region",
+        "7ma region"
+      ],
+      "canonico": "region maule"
+    },
+    {
+      "patrones": [
+        "viii region",
+        "octava region",
+        "8va region"
+      ],
+      "canonico": "region biobio"
+    },
+    {
+      "patrones": [
+        "ix region",
+        "novena region",
+        "9na region"
+      ],
+      "canonico": "region la araucania"
+    },
+    {
+      "patrones": [
+        "x region",
+        "decima region",
+        "10ma region"
+      ],
+      "canonico": "region los lagos"
+    },
+    {
+      "patrones": [
+        "xi region",
+        "undecima region",
+        "11va region"
+      ],
+      "canonico": "region aysen del general carlos ibanez del campo"
+    },
+    {
+      "patrones": [
+        "xii region",
+        "duodecima region",
+        "12va region"
+      ],
+      "canonico": "region magallanes y de la antartica chilena"
+    },
+    {
+      "patrones": [
+        "xiii region",
+        "decimotercera region",
+        "13va region"
+      ],
+      "canonico": "region metropolitana de santiago"
+    },
+    {
+      "patrones": [
+        "xiv region",
+        "decimocuarta region",
+        "14va region"
+      ],
+      "canonico": "region los rios"
+    },
+    {
+      "patrones": [
+        "xv region",
+        "decimoquinta region",
+        "15va region"
+      ],
+      "canonico": "region arica y parinacota"
+    },
+    {
+      "patrones": [
+        "xvi region",
+        "decimosexta region",
+        "16va region"
+      ],
+      "canonico": "region nuble"
+    },
+    {
+      "patrones": [
+        "stgo"
+      ],
+      "canonico": "santiago"
+    }
+  ],
+  "rasgos_booleanos": [
+    {
+      "patrones": [
+        "internet satelital",
+        "starlink"
+      ],
+      "tabla": "hogares",
+      "variable": "p15f_serv_internet_satelital",
+      "si": "1",
+      "no": "2",
+      "descripcion": "hogares con internet satelital"
+    },
+    {
+      "patrones": [
+        "internet movil",
+        "datos moviles",
+        "bam",
+        "4g",
+        "5g"
+      ],
+      "tabla": "hogares",
+      "variable": "p15e_serv_internet_movil",
+      "si": "1",
+      "no": "2",
+      "descripcion": "hogares con internet móvil"
+    },
+    {
+      "patrones": [
+        "internet fija",
+        "fibra optica",
+        "banda ancha fija"
+      ],
+      "tabla": "hogares",
+      "variable": "p15d_serv_internet_fija",
+      "si": "1",
+      "no": "2",
+      "descripcion": "hogares con internet fija"
+    },
+    {
+      "patrones": [
+        "celular",
+        "smartphone",
+        "telefono movil"
+      ],
+      "tabla": "hogares",
+      "variable": "p15a_serv_tel_movil",
+      "si": "1",
+      "no": "2",
+      "descripcion": "hogares con teléfono móvil"
+    },
+    {
+      "patrones": [
+        "computador"
+      ],
+      "tabla": "hogares",
+      "variable": "p15b_serv_compu",
+      "si": "1",
+      "no": "2",
+      "descripcion": "hogares con computador"
+    },
+    {
+      "patrones": [
+        "tablet"
+      ],
+      "tabla": "hogares",
+      "variable": "p15c_serv_tablet",
+      "si": "1",
+      "no": "2",
+      "descripcion": "hogares con tablet"
+    },
+    {
+      "patrones": [
+        "discapacidad"
+      ],
+      "tabla": "personas",
+      "variable": "discapacidad",
+      "si": "1",
+      "no": "2",
+      "descripcion": "personas con discapacidad"
+    },
+    {
+      "patrones": [
+        "pueblo indigena",
+        "pueblos indigenas",
+        "pueblo originario",
+        "pueblos originarios",
+        "indigena",
+        "indigenas"
+      ],
+      "tabla": "personas",
+      "variable": "p28_autoid_pueblo",
+      "si": "1",
+      "no": "2",
+      "descripcion": "personas que se consideran pertenecientes a un pueblo indígena u originario"
+    }
+  ],
+  "paises_alias": {
+    "argentina": [
+      "argentino",
+      "argentina",
+      "argentinos",
+      "argentinas"
+    ],
+    "bolivia": [
+      "boliviano",
+      "boliviana",
+      "bolivianos",
+      "bolivianas"
+    ],
+    "colombia": [
+      "colombiano",
+      "colombiana",
+      "colombianos",
+      "colombianas"
+    ],
+    "haiti": [
+      "haitiano",
+      "haitiana",
+      "haitianos",
+      "haitianas"
+    ],
+    "peru": [
+      "peruano",
+      "peruana",
+      "peruanos",
+      "peruanas"
+    ],
+    "venezuela": [
+      "venezolano",
+      "venezolana",
+      "venezolanos",
+      "venezolanas"
+    ],
+    "chile": [
+      "chileno",
+      "chilena",
+      "chilenos",
+      "chilenas"
+    ]
+  },
+  "ambiguos_no_sustituir": [
+    {
+      "termino": "viejo",
+      "posibles": [
+        "persona mayor",
+        "padre",
+        "pareja",
+        "amigo"
+      ]
+    },
+    {
+      "termino": "vieja",
+      "posibles": [
+        "persona mayor",
+        "madre",
+        "pareja",
+        "amiga"
+      ]
+    },
+    {
+      "termino": "pololo",
+      "posibles": [
+        "pareja",
+        "trabajo ocasional"
+      ]
+    },
+    {
+      "termino": "polola",
+      "posibles": [
+        "pareja"
+      ]
+    },
+    {
+      "termino": "pobla",
+      "posibles": [
+        "barrio o población",
+        "población estadística"
+      ]
+    },
+    {
+      "termino": "wifi",
+      "posibles": [
+        "internet fija",
+        "internet móvil compartida"
+      ]
+    },
+    {
+      "termino": "toma",
+      "posibles": [
+        "asentamiento",
+        "ocupación de hecho"
+      ]
+    },
+    {
+      "termino": "pieza",
+      "posibles": [
+        "habitación",
+        "pieza en conventillo"
+      ]
+    },
+    {
+      "termino": "santiago",
+      "posibles": [
+        "comuna",
+        "provincia",
+        "referencia metropolitana"
+      ]
+    },
+    {
+      "termino": "extranjero",
+      "posibles": [
+        "lugar de nacimiento",
+        "nacionalidad"
+      ]
+    },
+    {
+      "termino": "venezolano",
+      "posibles": [
+        "nacimiento en Venezuela",
+        "nacionalidad venezolana"
+      ]
+    },
+    {
+      "termino": "uber",
+      "posibles": [
+        "taxi o transporte por aplicación",
+        "otro medio de transporte"
+      ]
+    },
+    {
+      "termino": "didi",
+      "posibles": [
+        "taxi o transporte por aplicación",
+        "otro medio de transporte"
+      ]
+    },
+    {
+      "termino": "cabify",
+      "posibles": [
+        "taxi o transporte por aplicación",
+        "otro medio de transporte"
+      ]
+    },
+    {
+      "termino": "guagua",
+      "posibles": [
+        "niño de corta edad",
+        "hijo o hija"
+      ]
+    },
+    {
+      "termino": "cabro",
+      "posibles": [
+        "niño",
+        "adolescente",
+        "joven"
+      ]
+    },
+    {
+      "termino": "cabros",
+      "posibles": [
+        "niños",
+        "adolescentes",
+        "jóvenes"
+      ]
+    },
+    {
+      "termino": "adulto mayor",
+      "posibles": [
+        "rango de edad que debe explicitarse"
+      ]
+    },
+    {
+      "termino": "tercera edad",
+      "posibles": [
+        "rango de edad que debe explicitarse"
+      ]
+    },
+    {
+      "termino": "migrante",
+      "posibles": [
+        "lugar de nacimiento",
+        "residencia anterior",
+        "nacionalidad"
+      ]
+    },
+    {
+      "termino": "ateo",
+      "posibles": [
+        "sin religión",
+        "categoría no separada en el diccionario censal"
+      ]
+    },
+    {
+      "termino": "agnostico",
+      "posibles": [
+        "sin religión",
+        "categoría no separada en el diccionario censal"
+      ]
+    },
+    {
+      "termino": "trans",
+      "posibles": [
+        "diversidad de género; el diccionario no separa esta identidad"
+      ]
+    },
+    {
+      "termino": "no binario",
+      "posibles": [
+        "diversidad de género; el diccionario no separa esta identidad"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visor Censo 2024 · Chile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --tinta:#1b2430;
+    --papel:#f6f3ec;
+    --cobre:#b5652c;
+    --cobre-osc:#8a4a1e;
+    --linea:#d8d2c2;
+    --acento:#2f5d50;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--papel);
+    color:var(--tinta);
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    padding:22px 28px 16px;
+    border-bottom:1px solid var(--linea);
+    background:var(--papel);
+  }
+  header h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:1.6rem;
+    margin:0 0 2px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:0;
+    font-size:0.85rem;
+    color:#5a5245;
+  }
+  #panel-consulta{
+    padding:16px 28px;
+    background:var(--papel);
+    border-bottom:1px solid var(--linea);
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  #pregunta{
+    flex:1 1 420px;
+    padding:12px 16px;
+    font-size:0.95rem;
+    font-family:inherit;
+    border:1.5px solid var(--tinta);
+    border-radius:2px;
+    background:#fff;
+    color:var(--tinta);
+  }
+  #pregunta:focus{outline:2px solid var(--cobre); outline-offset:1px;}
+  #btn-consultar{
+    padding:12px 22px;
+    background:var(--cobre);
+    color:#fff;
+    border:none;
+    border-radius:2px;
+    font-size:0.9rem;
+    font-weight:600;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  #btn-consultar:hover{background:var(--cobre-osc);}
+  #btn-consultar:disabled{background:#bcb4a4; cursor:default;}
+  .ejemplos{
+    width:100%;
+    font-size:0.8rem;
+    color:#7a715f;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .ejemplos button{
+    background:none;
+    border:1px solid var(--linea);
+    border-radius:14px;
+    padding:4px 12px;
+    font-size:0.78rem;
+    color:var(--acento);
+    cursor:pointer;
+  }
+  .ejemplos button:hover{border-color:var(--acento); background:#eef2ee;}
+  main{
+    flex:1;
+    position:relative;
+    min-height:0;
+  }
+  #mapa{height:100%; width:100%;}
+  /* Panel no modal: deja visibles el mapa y sus controles. */
+  #estado{
+    position:absolute;
+    top:14px; left:58px;
+    z-index:1000;
+    background:rgba(27,36,48,0.97);
+    color:#fff;
+    padding:16px;
+    border-radius:6px;
+    font-size:0.82rem;
+    width:370px;
+    max-width:calc(100% - 72px);
+    max-height:calc(100% - 28px);
+    overflow:auto;
+    box-shadow:0 6px 24px #0003;
+    display:none;
+  }
+  #estado.visible{display:block;}
+  #estado.error{background:#702b25;}
+  #estado.cerrado{display:none;}
+  .estado-cabecera{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  #estado-titulo{margin:0;font-size:0.95rem;}
+  #estado-cerrar{background:transparent;border:1px solid #ffffff70;color:#fff;
+    border-radius:3px;padding:4px 8px;font:inherit;cursor:pointer;}
+  #estado-cerrar[hidden]{display:none;}
+  #estado-mensaje{margin:12px 0;line-height:1.5;}
+  #progreso-barra{height:9px;border-radius:6px;background:#ffffff2b;overflow:hidden;}
+  #progreso-relleno{height:100%;width:0;background:#91c9ad;}
+  #estado.error #progreso-relleno{background:#f1bc87;}
+  #progreso-texto{margin:8px 0 0;color:#e0e7e3;font-size:0.76rem;}
+  #progreso-etapas{list-style:none;counter-reset:paso;padding:0;margin:14px 0 0;}
+  #progreso-etapas li{display:flex;gap:9px;align-items:center;padding:5px 0;
+    line-height:1.35;color:#c4cbd0;}
+  #progreso-etapas li::before{counter-increment:paso;content:counter(paso);
+    display:grid;place-items:center;width:20px;height:20px;flex:0 0 20px;
+    border:1px solid #ffffff60;border-radius:50%;font-size:0.7rem;}
+  #progreso-etapas li.completada{color:#b6e3c9;}
+  #progreso-etapas li.completada::before{content:'✓';background:#91c9ad;color:#152b22;border-color:transparent;}
+  #progreso-etapas li.actual{color:#fff;font-weight:600;}
+  #progreso-etapas li.actual::before{border-color:#fff;}
+  .nota-sin-datos{margin:8px 0 0;color:#6a6355;}
+  .nota-sin-datos::before{content:'';display:inline-block;width:10px;height:10px;
+    background:#d1d5db;margin-right:6px;}
+  @media(max-width:600px){
+    header{padding:16px;}
+    #panel-consulta{padding:12px 16px;}
+    #pregunta{min-width:0;flex-basis:100%;}
+    #progreso-etapas{display:none;}
+    main{min-height:340px;}
+  }
+  #leyenda{
+    position:absolute;
+    bottom:24px; right:14px;
+    z-index:1000;
+    background:#fffdf8;
+    border:1px solid var(--linea);
+    padding:12px 14px;
+    border-radius:3px;
+    font-size:0.78rem;
+    min-width:190px;
+    max-width:min(370px, calc(100% - 28px));
+    display:none;
+  }
+  #leyenda.visible{display:block;}
+  #leyenda h3{
+    margin:0 0 8px; font-size:0.8rem; font-family:'Fraunces',serif; font-weight:600;
+  }
+  #barra-leyenda{
+    height:10px; border-radius:2px;
+    background:linear-gradient(to right, #eef2ee, var(--acento));
+    margin-bottom:4px;
+  }
+  #rango-leyenda{display:flex; justify-content:space-between; color:#6a6355;}
+  .leaflet-popup-content{font-family:'Inter',sans-serif; font-size:0.85rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Visor Censo 2024 · Chile</h1>
+  <p>Escribe una pregunta y se genera un mapa a partir de los datos oficiales del Censo 2024 — procesado 100% en tu computador.</p>
+</header>
+
+<div id="panel-consulta">
+  <input type="text" id="pregunta" placeholder="Ej: porcentaje de hogares con internet fija por comuna" autocomplete="off">
+  <button id="btn-consultar">Generar mapa</button>
+  <div class="ejemplos">
+    <span>Prueba:</span>
+    <button data-q="porcentaje de personas que hablan una lengua indígena por comuna">lenguas indígenas</button>
+    <button data-q="porcentaje de viviendas con hacinamiento por región">hacinamiento por región</button>
+    <button data-q="promedio de escolaridad por comuna">escolaridad promedio</button>
+    <button data-q="cantidad de personas nacidas fuera de Chile por región">migración por región</button>
+  </div>
+</div>
+
+<main>
+  <div id="mapa"></div>
+  <section id="estado" aria-label="Avance de la consulta">
+    <div class="estado-cabecera">
+      <h2 id="estado-titulo">Preparando el mapa</h2>
+      <button id="estado-cerrar" type="button" aria-label="Cerrar el estado de la consulta" hidden>Cerrar</button>
+    </div>
+    <p id="estado-mensaje" role="status" aria-live="polite" aria-atomic="true"></p>
+    <div id="progreso-barra" role="progressbar" aria-label="Procesos completados"
+         aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" aria-valuetext="0 de 6 procesos completados">
+      <div id="progreso-relleno"></div>
+    </div>
+    <p id="progreso-texto">0 de 6 procesos completados · 0 %</p>
+    <ol id="progreso-etapas" aria-hidden="true"></ol>
+  </section>
+  <div id="leyenda">
+    <h3 id="leyenda-titulo">Valor</h3>
+    <div id="barra-leyenda"></div>
+    <div id="rango-leyenda"><span id="leyenda-min">0</span><span id="leyenda-max">0</span></div>
+    <p class="nota-sin-datos" id="leyenda-sin-datos" hidden>Sin datos</p>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// Admite el servidor local y la apertura del HTML mediante file://.
+const BASE_API = location.protocol === 'file:' ? 'http://localhost:8000' : '';
+const URL_API = BASE_API + '/api/consulta/progreso';
+const ETAPAS = [
+  'Entender la pregunta',
+  'Calcular los resultados',
+  'Preparar las zonas del mapa',
+  'Asignar los resultados a cada zona',
+  'Preparar la respuesta',
+  'Mostrar el mapa'
+];
+let consultaEnCurso = false;
+let completados = 0;
+let totalServidor = 5;
+
+const mapa = L.map('mapa', {zoomControl:true}).setView([-33.45, -70.66], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap',
+  maxZoom: 18
+}).addTo(mapa);
+
+// Chile completo por defecto
+mapa.setView([-35.5, -71.5], 4);
+
+let capaActual = null;
+
+function colorPara(valor, min, max){
+  // Un valor ausente es distinto de un cero observado.
+  if(!Number.isFinite(valor) || !Number.isFinite(min) || !Number.isFinite(max)) return '#d1d5db';
+  if(max === min) return "#2f5d50";
+  const t = Math.max(0, Math.min(1, (valor - min) / (max - min)));
+  // interpola entre un verde pálido y el verde acento
+  const r = Math.round(238 + (47-238)*t);
+  const g = Math.round(242 + (93-242)*t);
+  const b = Math.round(238 + (80-238)*t);
+  return `rgb(${r},${g},${b})`;
+}
+
+// La barra representa procesos terminados, no una estimación de segundos.
+function mostrarAvance(mensaje, etapaActual, esError=false){
+  const total = totalServidor + 1;
+  const panel = document.getElementById('estado');
+  panel.classList.add('visible');
+  panel.classList.remove('cerrado');
+  panel.classList.toggle('error', esError);
+  document.getElementById('estado-mensaje').textContent = mensaje;
+  const porcentaje = Math.round(100 * completados / total);
+  const barra = document.getElementById('progreso-barra');
+  barra.setAttribute('aria-valuemax', total);
+  barra.setAttribute('aria-valuenow', completados);
+  barra.setAttribute('aria-valuetext', `${completados} de ${total} procesos completados`);
+  document.getElementById('progreso-relleno').style.width = `${porcentaje}%`;
+  document.getElementById('progreso-texto').textContent =
+    `${completados} de ${total} procesos completados · ${porcentaje} %`;
+  const lista = document.getElementById('progreso-etapas');
+  lista.replaceChildren();
+  for(let i=1; i<=total; i++){
+    const elemento = document.createElement('li');
+    elemento.textContent = i === total ? 'Mostrar el mapa' : (ETAPAS[i-1] || `Proceso ${i}`);
+    elemento.classList.toggle('completada', i <= completados);
+    elemento.classList.toggle('actual', !esError && i === etapaActual && i > completados);
+    lista.appendChild(elemento);
+  }
+}
+
+// Valida los avisos del servidor y no retrocede ni inventa etapas completadas.
+function recibirProgreso(aviso){
+  if(!Number.isInteger(aviso.total) || aviso.total < 1 || aviso.total > 100 ||
+     !Number.isInteger(aviso.etapa) || aviso.etapa < 1 || aviso.etapa > aviso.total ||
+     !Number.isInteger(aviso.completados) || aviso.completados < 0 || aviso.completados > aviso.total ||
+     !['en_curso','completado'].includes(aviso.estado)){
+    throw new Error('El servidor envió un aviso de avance no válido.');
+  }
+  const esperados = aviso.estado === 'completado' ? aviso.etapa : aviso.etapa - 1;
+  if(aviso.completados !== esperados) throw new Error('El avance recibido no corresponde a la etapa indicada.');
+  if(aviso.completados < completados) return;
+  totalServidor = aviso.total;
+  completados = aviso.completados;
+  mostrarAvance(aviso.mensaje || 'Preparando el mapa…', aviso.etapa);
+}
+
+// Decodifica eventos SSE aunque lleguen partidos entre bytes o entre líneas.
+async function leerConsulta(resp, onProgreso){
+  if(!resp.body) throw new Error('El navegador no permite leer el avance de la consulta.');
+  const lector = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let pendiente = '';
+  try{
+    while(true){
+      const {value, done} = await lector.read();
+      pendiente += done ? decoder.decode() : decoder.decode(value, {stream:true});
+      let separador;
+      while((separador = /\r?\n\r?\n/.exec(pendiente)) !== null){
+        const bloque = pendiente.slice(0, separador.index);
+        pendiente = pendiente.slice(separador.index + separador[0].length);
+        let evento = 'message';
+        const datos = [];
+        for(const linea of bloque.split(/\r?\n/)){
+          if(linea.startsWith('event:')) evento = linea.slice(6).trim();
+          if(linea.startsWith('data:')) datos.push(linea.slice(5).replace(/^ /, ''));
+        }
+        // Los comentarios de conexión no representan progreso.
+        if(datos.length === 0) continue;
+        let contenido;
+        try{ contenido = JSON.parse(datos.join('\n')); }
+        catch{ throw new Error('La respuesta del servidor llegó incompleta o no se pudo leer.'); }
+        if(evento === 'progreso') onProgreso(contenido);
+        else if(evento === 'error') throw new Error(contenido.mensaje || 'No se pudo completar la consulta.');
+        else if(evento === 'resultado') return contenido;
+      }
+      if(done) throw new Error('Se interrumpió la conexión antes de recibir el mapa.');
+    }
+  } finally {
+    // Cierra también en errores para no mantener una consulta abandonada.
+    try{ await lector.cancel(); }catch{}
+    lector.releaseLock();
+  }
+}
+
+function bloquearConsulta(bloqueada){
+  document.getElementById('btn-consultar').disabled = bloqueada;
+  document.getElementById('pregunta').disabled = bloqueada;
+  document.querySelectorAll('.ejemplos button').forEach(b => { b.disabled = bloqueada; });
+  document.getElementById('mapa').setAttribute('aria-busy', bloqueada ? 'true' : 'false');
+}
+
+// Da al navegador oportunidad de dibujar el estado antes de procesar geometrías.
+function siguienteCuadro(){
+  return new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+async function consultar(){
+  if(consultaEnCurso) return;
+  const pregunta = document.getElementById('pregunta').value.trim();
+  if(!pregunta) return;
+  consultaEnCurso = true;
+  completados = 0;
+  totalServidor = 5;
+  bloquearConsulta(true);
+  document.getElementById('estado-titulo').textContent = 'Preparando el mapa';
+  document.getElementById('estado-cerrar').hidden = true;
+  mostrarAvance('Enviando la pregunta…', 1);
+  try{
+    const resp = await fetch(URL_API, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Accept':'text/event-stream'},
+      body:JSON.stringify({pregunta})
+    });
+    if(!resp.ok){
+      if(resp.status === 404 || resp.status === 405){
+        throw new Error('Falta instalar la actualización del servidor que informa el avance de las consultas.');
+      }
+      let error;
+      try{ error = await resp.json(); }catch{}
+      throw new Error(typeof error?.detail === 'string' ? error.detail : 'El servidor no pudo iniciar la consulta.');
+    }
+    if(!resp.headers.get('content-type')?.includes('text/event-stream')){
+      throw new Error('El servidor no está enviando el avance esperado. Revisar que esté instalada la última actualización.');
+    }
+    const data = await leerConsulta(resp, recibirProgreso);
+    if(completados !== totalServidor){
+      throw new Error('No se recibió la confirmación de todas las etapas del servidor.');
+    }
+    mostrarAvance('Mostrando los resultados en el mapa…', totalServidor + 1);
+    await siguienteCuadro();
+    await siguienteCuadro();
+    await pintarGeoJSON(data);
+    // Incluye el dibujo local: el fin del servidor equivale a 5/6, no a 100 %.
+    await siguienteCuadro();
+    await siguienteCuadro();
+    completados = totalServidor + 1;
+    document.getElementById('estado-titulo').textContent = 'Mapa listo';
+    mostrarAvance(descripcionCotidiana(data), null);
+  } catch(err){
+    document.getElementById('estado-titulo').textContent = 'No se pudo completar el mapa';
+    const detalle = err instanceof TypeError ? 'No se pudo conectar con el servidor local o se interrumpió la conexión.' : err.message;
+    mostrarAvance(detalle || 'Ocurrió un error durante la consulta.', null, true);
+  } finally {
+    consultaEnCurso = false;
+    bloquearConsulta(false);
+    document.getElementById('estado-cerrar').hidden = false;
+  }
+}
+
+// El resultado legible proviene del servidor; nunca muestra códigos de variables.
+function descripcionCotidiana(data){
+  const interp = data.interpretacion || {};
+  if(typeof interp.descripcion === 'string' && interp.descripcion.trim()) return interp.descripcion;
+  const operaciones = {conteo:'Cantidad', porcentaje:'Porcentaje', promedio:'Promedio'};
+  const nivel = {region:'región', provincia:'provincia', comuna:'comuna'}[data.nivel_geografico] || 'territorio';
+  return `${operaciones[interp.operacion] || 'Resultados'} por ${nivel}.`;
+}
+
+async function pintarGeoJSON(data){
+  if(!data.geojson || data.geojson.type !== 'FeatureCollection' || !Array.isArray(data.geojson.features)){
+    throw new Error('La respuesta no contiene un mapa válido.');
+  }
+  if(data.geojson.features.length === 0) throw new Error('No se encontraron zonas para mostrar con esa selección.');
+  const {min, max} = data;
+  const nuevaCapa = L.geoJSON(null, {
+    style: feature => ({
+      fillColor: colorPara(feature.properties?.valor, min, max),
+      weight:0.6, color:'#4a4438', fillOpacity:0.85
+    }),
+    onEachFeature:(feature, layer) => {
+      const propiedades = feature.properties || {};
+      // textContent evita interpretar nombres o etiquetas como código HTML.
+      const popup = document.createElement('div');
+      const nombre = document.createElement('strong');
+      nombre.textContent = propiedades.nombre ?? '';
+      const valor = document.createElement('div');
+      valor.textContent = Number.isFinite(propiedades.valor)
+        ? 'Valor: ' + propiedades.valor.toLocaleString('es-CL', {maximumFractionDigits:2})
+        : 'Sin datos';
+      popup.append(nombre, valor);
+      layer.bindPopup(popup);
+    }
+  });
+  try{
+    // Procesa lotes sin adelantar la barra: todo el dibujo es una sola etapa.
+    for(let i=0; i<data.geojson.features.length; i+=25){
+      data.geojson.features.slice(i,i+25).forEach(feature => nuevaCapa.addData(feature));
+      await siguienteCuadro();
+    }
+    const limites = nuevaCapa.getBounds();
+    if(!limites.isValid()) throw new Error('Las zonas recibidas no contienen geometrías visibles.');
+    nuevaCapa.addTo(mapa);
+    mapa.fitBounds(limites, {padding:[20,20], animate:false});
+  }catch(error){
+    // Un fallo no elimina el último mapa que sí se pudo mostrar.
+    mapa.removeLayer(nuevaCapa);
+    throw error;
+  }
+  if(capaActual) mapa.removeLayer(capaActual);
+  capaActual = nuevaCapa;
+  document.getElementById('leyenda-titulo').textContent = descripcionCotidiana(data);
+  document.getElementById('leyenda-min').textContent = Number.isFinite(min) ? min.toLocaleString('es-CL', {maximumFractionDigits:1}) : 'Sin datos';
+  document.getElementById('leyenda-max').textContent = Number.isFinite(max) ? max.toLocaleString('es-CL', {maximumFractionDigits:1}) : 'Sin datos';
+  document.getElementById('barra-leyenda').hidden = !Number.isFinite(min) || !Number.isFinite(max);
+  document.getElementById('leyenda-sin-datos').hidden = !data.geojson.features.some(f => !Number.isFinite(f.properties?.valor));
+  document.getElementById('leyenda').classList.add('visible');
+}
+
+// Bloquea consultas simultáneas desde clic, Enter o botones de ejemplo.
+document.getElementById('btn-consultar').addEventListener('click', consultar);
+document.getElementById('pregunta').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); consultar(); }
+});
+document.querySelectorAll('.ejemplos button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(consultaEnCurso) return;
+    document.getElementById('pregunta').value = btn.dataset.q;
+    consultar();
+  });
+});
+document.getElementById('estado-cerrar').addEventListener('click', () => {
+  if(!consultaEnCurso) document.getElementById('estado').classList.remove('visible');
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,637 @@
+{
+  "Regional_CPV24": [
+    {
+      "campo": "COD_REGION",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la región"
+    },
+    {
+      "campo": "REGION",
+      "tipo": "String",
+      "descripcion": "Nombre de región"
+    }
+  ],
+  "Provincial_CPV24": [
+    {
+      "campo": "COD_REGION",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la región"
+    },
+    {
+      "campo": "REGION",
+      "tipo": "String",
+      "descripcion": "Nombre de región"
+    },
+    {
+      "campo": "COD_PROVINCIA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la provincia"
+    },
+    {
+      "campo": "PROVINCIA",
+      "tipo": "String",
+      "descripcion": "Nombre de provincia"
+    }
+  ],
+  "Comunal_CPV24": [
+    {
+      "campo": "CUT",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la comuna"
+    },
+    {
+      "campo": "COD_REGION",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la región"
+    },
+    {
+      "campo": "REGION",
+      "tipo": "String",
+      "descripcion": "Nombre de región"
+    },
+    {
+      "campo": "COD_PROVINCIA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la provincia"
+    },
+    {
+      "campo": "PROVINCIA",
+      "tipo": "String",
+      "descripcion": "Nombre de provincia"
+    },
+    {
+      "campo": "COMUNA",
+      "tipo": "String",
+      "descripcion": "Nombre de comuna"
+    }
+  ],
+  "Distrital_CPV24": [
+    {
+      "campo": "CUT",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la comuna"
+    },
+    {
+      "campo": "COD_REGION",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la región"
+    },
+    {
+      "campo": "REGION",
+      "tipo": "String",
+      "descripcion": "Nombre de región"
+    },
+    {
+      "campo": "COD_PROVINCIA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la provincia"
+    },
+    {
+      "campo": "PROVINCIA",
+      "tipo": "String",
+      "descripcion": "Nombre de provincia"
+    },
+    {
+      "campo": "COMUNA",
+      "tipo": "String",
+      "descripcion": "Nombre de comuna"
+    },
+    {
+      "campo": "DISTRITO",
+      "tipo": "String",
+      "descripcion": "Nombre de distrito"
+    },
+    {
+      "campo": "COD_DISTRITO",
+      "tipo": "SmallInteger",
+      "descripcion": "Código identificador de distrito"
+    },
+    {
+      "campo": "TIPO_DISTRITO",
+      "tipo": "String",
+      "descripcion": "Tipo de distrito"
+    },
+    {
+      "campo": "ID_DISTRITO",
+      "tipo": "Double",
+      "descripcion": "Identificador único de distrito dentro de País"
+    }
+  ],
+  "Limite_Urbano_CPV24": [
+    {
+      "campo": "CUT",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la comuna"
+    },
+    {
+      "campo": "COD_REGION",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la región"
+    },
+    {
+      "campo": "REGION",
+      "tipo": "String",
+      "descripcion": "Nombre de región"
+    },
+    {
+      "campo": "COD_PROVINCIA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la provincia"
+    },
+    {
+      "campo": "PROVINCIA",
+      "tipo": "String",
+      "descripcion": "Nombre de provincia"
+    },
+    {
+      "campo": "COMUNA",
+      "tipo": "String",
+      "descripcion": "Nombre de comuna"
+    },
+    {
+      "campo": "AREA_C",
+      "tipo": "String",
+      "descripcion": "Estrato censal"
+    },
+    {
+      "campo": "COD_LOCALIDAD",
+      "tipo": "Integer",
+      "descripcion": "Código de localidad"
+    },
+    {
+      "campo": "LOCALIDAD",
+      "tipo": "String",
+      "descripcion": "Nombre de localidad"
+    },
+    {
+      "campo": "COD_ENTIDAD",
+      "tipo": "Integer",
+      "descripcion": "Código de entidad poblada urbana"
+    },
+    {
+      "campo": "ENTIDAD",
+      "tipo": "String",
+      "descripcion": "Nombre de entidad (Urbano)"
+    },
+    {
+      "campo": "COD_CATEGORIA",
+      "tipo": "SmallInteger",
+      "descripcion": "Código de categoría"
+    },
+    {
+      "campo": "CATEGORIA",
+      "tipo": "String",
+      "descripcion": "Nombre de categoría"
+    },
+    {
+      "campo": "ID_ENTIDAD",
+      "tipo": "Double",
+      "descripcion": "Identificador único de entidad dentro de País"
+    },
+    {
+      "campo": "ID_LOCALIDAD",
+      "tipo": "Double",
+      "descripcion": "Identificador único de localidad dentro de País"
+    },
+    {
+      "campo": "CONURBACION",
+      "tipo": "String",
+      "descripcion": "Nombre de conurbación (cuando corresponda)"
+    }
+  ],
+  "Localidades_CPV24": [
+    {
+      "campo": "CUT",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la comuna"
+    },
+    {
+      "campo": "COD_REGION",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la región"
+    },
+    {
+      "campo": "REGION",
+      "tipo": "String",
+      "descripcion": "Nombre de región"
+    },
+    {
+      "campo": "COD_PROVINCIA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la provincia"
+    },
+    {
+      "campo": "PROVINCIA",
+      "tipo": "String",
+      "descripcion": "Nombre de provincia"
+    },
+    {
+      "campo": "COMUNA",
+      "tipo": "String",
+      "descripcion": "Nombre de comuna"
+    },
+    {
+      "campo": "AREA_C",
+      "tipo": "String",
+      "descripcion": "Estrato censal (Rural)"
+    },
+    {
+      "campo": "COD_LOCALIDAD",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de localidad"
+    },
+    {
+      "campo": "LOCALIDAD",
+      "tipo": "String",
+      "descripcion": "Nombre de localidad"
+    },
+    {
+      "campo": "ID_LOCALIDAD",
+      "tipo": "Double",
+      "descripcion": "Identificador único de localidad dentro de País"
+    }
+  ],
+  "Zonal_CPV24": [
+    {
+      "campo": "CUT",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la comuna"
+    },
+    {
+      "campo": "COD_REGION",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la región"
+    },
+    {
+      "campo": "REGION",
+      "tipo": "String",
+      "descripcion": "Nombre de región"
+    },
+    {
+      "campo": "COD_PROVINCIA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la provincia"
+    },
+    {
+      "campo": "PROVINCIA",
+      "tipo": "String",
+      "descripcion": "Nombre de provincia"
+    },
+    {
+      "campo": "COMUNA",
+      "tipo": "String",
+      "descripcion": "Nombre de comuna"
+    },
+    {
+      "campo": "AREA_C",
+      "tipo": "String",
+      "descripcion": "Estrato censal"
+    },
+    {
+      "campo": "DISTRITO",
+      "tipo": "String",
+      "descripcion": "Nombre de distrito"
+    },
+    {
+      "campo": "COD_DISTRITO",
+      "tipo": "SmallInteger",
+      "descripcion": "Código identificador de distrito"
+    },
+    {
+      "campo": "COD_LOCALIDAD",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de localidad"
+    },
+    {
+      "campo": "COD _ZONA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de zona"
+    },
+    {
+      "campo": "LOCALIDAD",
+      "tipo": "String",
+      "descripcion": "Nombre de localidad"
+    },
+    {
+      "campo": "COD_ENTIDAD",
+      "tipo": "Integer",
+      "descripcion": "Código de entidad poblada urbana"
+    },
+    {
+      "campo": "ENTIDAD",
+      "tipo": "String",
+      "descripcion": "Nombre de entidad (Urbano)"
+    },
+    {
+      "campo": "COD_CATEGORIA",
+      "tipo": "SmallInteger",
+      "descripcion": "Código de categoría"
+    },
+    {
+      "campo": "CATEGORIA",
+      "tipo": "String",
+      "descripcion": "Nombre de categoría"
+    },
+    {
+      "campo": "ID_ENTIDAD",
+      "tipo": "Double",
+      "descripcion": "Identificador único de entidad dentro de País"
+    },
+    {
+      "campo": "ID_LOCALIDAD",
+      "tipo": "Double",
+      "descripcion": "Identificador único de localidad dentro de País"
+    },
+    {
+      "campo": "ID_DISTRITO",
+      "tipo": "Double",
+      "descripcion": "Identificador único de distrito dentro de País"
+    },
+    {
+      "campo": "ID_ZONA",
+      "tipo": "Double",
+      "descripcion": "Identificador único de zona dentro del País"
+    }
+  ],
+  "Aldeas_CPV24": [
+    {
+      "campo": "CUT",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la comuna"
+    },
+    {
+      "campo": "COD_REGION",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la región"
+    },
+    {
+      "campo": "REGION",
+      "tipo": "String",
+      "descripcion": "Nombre de región"
+    },
+    {
+      "campo": "COD_PROVINCIA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la provincia"
+    },
+    {
+      "campo": "PROVINCIA",
+      "tipo": "String",
+      "descripcion": "Nombre de provincia"
+    },
+    {
+      "campo": "COMUNA",
+      "tipo": "String",
+      "descripcion": "Nombre de comuna"
+    },
+    {
+      "campo": "AREA_C",
+      "tipo": "String",
+      "descripcion": "Estrato censal"
+    },
+    {
+      "campo": "ENTIDAD",
+      "tipo": "String",
+      "descripcion": "Nombre de entidad (Aldea)"
+    },
+    {
+      "campo": "COD_CATEGORIA",
+      "tipo": "SmallInteger",
+      "descripcion": "Código de categoría"
+    },
+    {
+      "campo": "CATEGORIA",
+      "tipo": "String",
+      "descripcion": "Nombre de categoría"
+    },
+    {
+      "campo": "ID_ENTIDAD",
+      "tipo": "Double",
+      "descripcion": "Identificador único de aldea dentro de País"
+    }
+  ],
+  "Entidades_CPV24": [
+    {
+      "campo": "CUT",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la comuna"
+    },
+    {
+      "campo": "COD_REGION",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la región"
+    },
+    {
+      "campo": "REGION",
+      "tipo": "String",
+      "descripcion": "Nombre de región"
+    },
+    {
+      "campo": "COD_PROVINCIA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la provincia"
+    },
+    {
+      "campo": "PROVINCIA",
+      "tipo": "String",
+      "descripcion": "Nombre de provincia"
+    },
+    {
+      "campo": "COMUNA",
+      "tipo": "String",
+      "descripcion": "Nombre de comuna"
+    },
+    {
+      "campo": "AREA_C",
+      "tipo": "String",
+      "descripcion": "Estrato censal"
+    },
+    {
+      "campo": "MANZENT",
+      "tipo": "Double",
+      "descripcion": "Código único identificador de entidad"
+    },
+    {
+      "campo": "DISTRITO",
+      "tipo": "String",
+      "descripcion": "Nombre de distrito"
+    },
+    {
+      "campo": "COD_DISTRITO",
+      "tipo": "SmallInteger",
+      "descripcion": "Código identificador de distrito"
+    },
+    {
+      "campo": "COD_LOCALIDAD",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de localidad"
+    },
+    {
+      "campo": "LOCALIDAD",
+      "tipo": "String",
+      "descripcion": "Nombre de localidad"
+    },
+    {
+      "campo": "COD_ENTIDAD",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de entidad "
+    },
+    {
+      "campo": "ENTIDAD",
+      "tipo": "String",
+      "descripcion": "Nombre de entidad (Rural)"
+    },
+    {
+      "campo": "COD_CATEGORIA",
+      "tipo": "SmallInteger",
+      "descripcion": "Código de categoría"
+    },
+    {
+      "campo": "CATEGORIA",
+      "tipo": "String",
+      "descripcion": "Nombre de categoría"
+    },
+    {
+      "campo": "MZ_BASE_CENSO",
+      "tipo": "SmallInteger",
+      "descripcion": "Identifica entidades con datos en tabulados"
+    },
+    {
+      "campo": "ID_ENTIDAD",
+      "tipo": "Double",
+      "descripcion": "Identificador único de entidad dentro de País"
+    },
+    {
+      "campo": "ID_LOCALIDAD",
+      "tipo": "Double",
+      "descripcion": "Identificador único de localidad dentro de País"
+    },
+    {
+      "campo": "ID_DISTRITO",
+      "tipo": "Double",
+      "descripcion": "Identificador único de distrito dentro de País"
+    }
+  ],
+  "Manzanas_CPV24": [
+    {
+      "campo": "CUT",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la comuna"
+    },
+    {
+      "campo": "COD_REGION",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la región"
+    },
+    {
+      "campo": "REGION",
+      "tipo": "String",
+      "descripcion": "Nombre de región"
+    },
+    {
+      "campo": "COD_PROVINCIA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de la provincia"
+    },
+    {
+      "campo": "PROVINCIA",
+      "tipo": "String",
+      "descripcion": "Nombre de provincia"
+    },
+    {
+      "campo": "COMUNA",
+      "tipo": "String",
+      "descripcion": "Nombre de comuna"
+    },
+    {
+      "campo": "AREA_C",
+      "tipo": "String",
+      "descripcion": "Estrato censal"
+    },
+    {
+      "campo": "MANZENT",
+      "tipo": "Double",
+      "descripcion": "Código único identificador de manzana"
+    },
+    {
+      "campo": "DISTRITO",
+      "tipo": "String",
+      "descripcion": "Nombre de distrito"
+    },
+    {
+      "campo": "COD_DISTRITO",
+      "tipo": "SmallInteger",
+      "descripcion": "Código identificador de distrito"
+    },
+    {
+      "campo": "COD_LOCALIDAD",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de localidad"
+    },
+    {
+      "campo": "COD_ZONA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de zona"
+    },
+    {
+      "campo": "LOCALIDAD",
+      "tipo": "String",
+      "descripcion": "Nombre de localidad"
+    },
+    {
+      "campo": "COD_ENTIDAD",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de entidad "
+    },
+    {
+      "campo": "COD_MANZANA",
+      "tipo": "Integer",
+      "descripcion": "Código identificador de manzana "
+    },
+    {
+      "campo": "ENTIDAD",
+      "tipo": "String",
+      "descripcion": "Nombre de entidad (Urbana - Aldea)"
+    },
+    {
+      "campo": "TIPO_MZ",
+      "tipo": "String",
+      "descripcion": "Tipo de manzana (Urbano - Aldea)"
+    },
+    {
+      "campo": "COD_CATEGORIA",
+      "tipo": "SmallInteger",
+      "descripcion": "Código de categoría"
+    },
+    {
+      "campo": "CATEGORIA",
+      "tipo": "String",
+      "descripcion": "Nombre de categoría"
+    },
+    {
+      "campo": "MZ_BASE_CENSO",
+      "tipo": "SmallInteger",
+      "descripcion": "Identifica manzanas con datos en tabulados de manzana"
+    },
+    {
+      "campo": "ID_ENTIDAD",
+      "tipo": "Double",
+      "descripcion": "Identificador único de entidad dentro de País"
+    },
+    {
+      "campo": "ID_LOCALIDAD",
+      "tipo": "Double",
+      "descripcion": "Identificador único de localidad dentro de País"
+    },
+    {
+      "campo": "ID_DISTRITO",
+      "tipo": "Double",
+      "descripcion": "Identificador único de distrito dentro de País"
+    },
+    {
+      "campo": "ID_ZONA",
+      "tipo": "Double",
+      "descripcion": "Identificador único de zona dentro del País (para manzanas urbanas)"
+    }
+  ]
+}

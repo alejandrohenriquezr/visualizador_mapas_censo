@@ -1,0 +1,2266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visor Censo 2024 · Chile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --tinta:#1b2430;
+    --papel:#f6f3ec;
+    --cobre:#b5652c;
+    --cobre-osc:#8a4a1e;
+    --linea:#d8d2c2;
+    --acento:#2f5d50;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--papel);
+    color:var(--tinta);
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    padding:22px 28px 16px;
+    border-bottom:1px solid var(--linea);
+    background:var(--papel);
+  }
+  header h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:1.6rem;
+    margin:0 0 2px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:0;
+    font-size:0.85rem;
+    color:#5a5245;
+  }
+  #panel-consulta{
+    padding:16px 28px;
+    background:var(--papel);
+    border-bottom:1px solid var(--linea);
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  #pregunta{
+    flex:1 1 420px;
+    padding:12px 16px;
+    font-size:0.95rem;
+    font-family:inherit;
+    border:1.5px solid var(--tinta);
+    border-radius:2px;
+    background:#fff;
+    color:var(--tinta);
+  }
+  #pregunta:focus{outline:2px solid var(--cobre); outline-offset:1px;}
+  #btn-consultar{
+    padding:12px 22px;
+    background:var(--cobre);
+    color:#fff;
+    border:none;
+    border-radius:2px;
+    font-size:0.9rem;
+    font-weight:600;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  #btn-consultar:hover{background:var(--cobre-osc);}
+  #btn-consultar:disabled{background:#bcb4a4; cursor:default;}
+  .ejemplos{
+    width:100%;
+    font-size:0.8rem;
+    color:#7a715f;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .ejemplos button{
+    background:none;
+    border:1px solid var(--linea);
+    border-radius:14px;
+    padding:4px 12px;
+    font-size:0.78rem;
+    color:var(--acento);
+    cursor:pointer;
+  }
+  .ejemplos button:hover{border-color:var(--acento); background:#eef2ee;}
+  main{
+    flex:1;
+    position:relative;
+    min-height:0;
+  }
+  #mapa{height:100%; width:100%;}
+  #mapa.oculto{visibility:hidden;}
+  #grafico-torta{
+    position:absolute;inset:0;z-index:500;background:var(--papel);display:none;
+    padding:28px;overflow:auto;
+  }
+  #grafico-torta.visible{display:grid;place-items:center;}
+  .torta-contenido{width:min(900px,100%);background:#fffdf8;border:1px solid var(--linea);
+    padding:24px;border-radius:6px;}
+  #torta-titulo{font-family:'Fraunces',serif;margin:0 0 22px;font-size:1.25rem;}
+  .torta-cuerpo{display:flex;align-items:center;justify-content:center;gap:42px;flex-wrap:wrap;}
+  #torta-dibujo{width:min(330px,72vw);aspect-ratio:1;border-radius:50%;
+    box-shadow:inset 0 0 0 1px #0001;}
+  #torta-leyenda{list-style:none;margin:0;padding:0;min-width:min(330px,100%);}
+  #torta-leyenda li{display:grid;grid-template-columns:14px 1fr auto;gap:9px;
+    align-items:center;padding:8px 0;border-bottom:1px solid #ece7db;}
+  .torta-color{width:12px;height:12px;border-radius:2px;}
+  .torta-valor{font-variant-numeric:tabular-nums;text-align:right;}
+  .marcador-torta{background:transparent;border:none;}
+  .torta-local{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 6px #0008;}
+  #leyenda-categorias{list-style:none;padding:0;margin:7px 0 0;}
+  #leyenda-categorias li{display:grid;grid-template-columns:11px 1fr;gap:7px;
+    align-items:center;padding:3px 0;}
+  #selector-variable{position:fixed;inset:0;z-index:3000;background:#16202bd9;
+    display:none;place-items:center;padding:20px;}
+  #selector-variable.visible,.modal.visible{display:grid;}
+  .modal{position:fixed;inset:0;z-index:3100;background:#16202bd9;
+    display:none;place-items:center;padding:20px;}
+  .selector-contenido{width:min(680px,100%);max-height:85vh;overflow:auto;background:#fffdf8;
+    border-radius:7px;padding:24px;box-shadow:0 12px 42px #0005;}
+  .selector-contenido h2{font-family:'Fraunces',serif;margin:0 0 8px;}
+  .selector-contenido p{color:#5a5245;line-height:1.45;}
+  #selector-opciones{display:grid;gap:10px;margin-top:16px;}
+  .opcion-variable{text-align:left;background:#fff;border:1px solid var(--linea);
+    border-radius:4px;padding:13px;cursor:pointer;font:inherit;color:var(--tinta);}
+  .opcion-variable:hover,.opcion-variable:focus{border-color:var(--acento);background:#eef2ee;}
+  .opcion-variable strong,.opcion-variable small{display:block;}
+  .opcion-variable small{margin-top:5px;color:#6a6355;line-height:1.35;}
+  .acciones-modal{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+  .btn-secundario,.btn-primario{padding:9px 14px;border:1px solid var(--linea);
+    cursor:pointer;font:inherit;border-radius:3px;}
+  .btn-secundario{background:transparent;color:var(--tinta);}
+  .btn-primario{background:var(--acento);border-color:var(--acento);color:#fff;}
+  .opcion-radio{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;
+    background:#fff;border:1px solid var(--linea);border-radius:4px;padding:12px;}
+  .opcion-radio strong,.opcion-radio small{display:block;}
+  .opcion-radio small{color:#6a6355;margin-top:4px;line-height:1.35;}
+  #acciones-resultado{position:absolute;top:14px;right:14px;z-index:1100;display:none;
+    gap:8px;align-items:center;background:#fffdf8;border:1px solid var(--linea);
+    border-radius:5px;padding:7px;box-shadow:0 3px 14px #0002;}
+  #acciones-resultado.visible{display:flex;}
+  .accion-resultado{min-width:38px;height:36px;border:1px solid var(--linea);
+    background:#fff;color:var(--tinta);border-radius:3px;cursor:pointer;font:inherit;}
+  .accion-resultado:hover{border-color:var(--acento);background:#eef2ee;}
+  .accion-resultado.activa{background:#dcebe3;border-color:var(--acento);}
+  #btn-descargar{width:auto;padding:0 12px;font-weight:600;color:var(--acento);}
+  #feedback-mensaje{font-size:.75rem;color:#5a5245;max-width:150px;}
+  #fallo-ejemplos{display:grid;gap:8px;padding-left:20px;}
+  #fallo-ejemplos button{font:inherit;text-align:left;color:var(--acento);background:none;
+    border:0;padding:2px;cursor:pointer;}
+  /* Panel no modal: deja visibles el mapa y sus controles. */
+  #estado{
+    position:absolute;
+    top:14px; left:58px;
+    z-index:1000;
+    background:rgba(27,36,48,0.97);
+    color:#fff;
+    padding:16px;
+    border-radius:6px;
+    font-size:0.82rem;
+    width:370px;
+    max-width:calc(100% - 72px);
+    max-height:calc(100% - 28px);
+    overflow:auto;
+    box-shadow:0 6px 24px #0003;
+    display:none;
+  }
+  #estado.visible{display:block;}
+  #estado{opacity:1;transition:opacity .5s ease;}
+  #estado.desvaneciendo{opacity:0;}
+  #estado.error{background:#702b25;}
+  #estado.cerrado{display:none;}
+  .estado-cabecera{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  #estado-titulo{margin:0;font-size:0.95rem;}
+  #estado-cerrar{background:transparent;border:1px solid #ffffff70;color:#fff;
+    border-radius:3px;padding:4px 8px;font:inherit;cursor:pointer;}
+  #estado-cerrar[hidden]{display:none;}
+  #estado-mensaje{margin:12px 0;line-height:1.5;}
+  #progreso-barra{height:9px;border-radius:6px;background:#ffffff2b;overflow:hidden;}
+  #progreso-relleno{height:100%;width:0;background:#91c9ad;}
+  #estado.error #progreso-relleno{background:#f1bc87;}
+  #progreso-texto{margin:8px 0 0;color:#e0e7e3;font-size:0.76rem;}
+  #progreso-etapas{list-style:none;counter-reset:paso;padding:0;margin:14px 0 0;}
+  #progreso-etapas li{display:flex;gap:9px;align-items:center;padding:5px 0;
+    line-height:1.35;color:#c4cbd0;}
+  #progreso-etapas li::before{counter-increment:paso;content:counter(paso);
+    display:grid;place-items:center;width:20px;height:20px;flex:0 0 20px;
+    border:1px solid #ffffff60;border-radius:50%;font-size:0.7rem;}
+  #progreso-etapas li.completada{color:#b6e3c9;}
+  #progreso-etapas li.completada::before{content:'✓';background:#91c9ad;color:#152b22;border-color:transparent;}
+  #progreso-etapas li.actual{color:#fff;font-weight:600;}
+  #progreso-etapas li.actual::before{border-color:#fff;}
+  .nota-sin-datos{margin:8px 0 0;color:#6a6355;}
+  .nota-sin-datos::before{content:'';display:inline-block;width:10px;height:10px;
+    background:#d1d5db;margin-right:6px;}
+  @media(max-width:600px){
+    header{padding:16px;}
+    #panel-consulta{padding:12px 16px;}
+    #pregunta{min-width:0;flex-basis:100%;}
+    #progreso-etapas{display:none;}
+    main{min-height:340px;}
+  }
+  #leyenda{
+    position:absolute;
+    bottom:24px; right:14px;
+    z-index:1000;
+    background:#fffdf8;
+    border:1px solid var(--linea);
+    padding:12px 14px;
+    border-radius:3px;
+    font-size:0.78rem;
+    min-width:190px;
+    max-width:min(370px, calc(100% - 28px));
+    display:none;
+  }
+  #leyenda.visible{display:block;}
+  #leyenda h3{
+    margin:0 0 8px; font-size:0.8rem; font-family:'Fraunces',serif; font-weight:600;
+  }
+  #barra-leyenda{
+    height:10px; border-radius:2px;
+    background:linear-gradient(to right, #eef2ee, var(--acento));
+    margin-bottom:4px;
+  }
+  #rango-leyenda{display:flex; justify-content:space-between; color:#6a6355;}
+  .leaflet-popup-content{font-family:'Inter',sans-serif; font-size:0.85rem;}
+
+  /* v4: comparación de las seis dimensiones funcionales P32 */
+  #grafico-barras{display:none;min-height:340px;padding:22px;overflow:auto;}
+  #grafico-barras.visible{display:block;}
+  .barras-contenido{max-width:900px;margin:0 auto;}
+  #barras-titulo{margin:0 0 18px;font-size:1.15rem;}
+  .barra-fila{display:grid;grid-template-columns:minmax(210px,2fr) minmax(180px,5fr) minmax(110px,1fr);gap:12px;align-items:center;margin:11px 0;}
+  .barra-etiqueta{font-size:.86rem;line-height:1.25;}
+  .barra-pista{height:18px;background:#e5e7eb;border-radius:3px;overflow:hidden;}
+  .barra-relleno{height:100%;background:var(--acento,#2f5d50);min-width:0;}
+  .barra-valor{text-align:right;font-variant-numeric:tabular-nums;font-size:.82rem;}
+  #barras-nota{margin:18px 0 0;font-size:.78rem;line-height:1.45;color:#6a6355;}
+  @media(max-width:650px){.barra-fila{grid-template-columns:1fr;gap:5px}.barra-valor{text-align:left}}
+
+
+  /* v5: mini gráficos de barras P32 sobre el mapa */
+  .p32-marker-wrap{background:transparent;border:0;}
+  .p32-mini-chart{width:68px;height:46px;display:flex;align-items:flex-end;gap:2px;
+    padding:4px 5px 3px;background:#ffffffeb;border:1px solid #6f746f;border-radius:4px;
+    box-shadow:0 1px 4px #0003;box-sizing:border-box;}
+  .p32-mini-bar{flex:1;min-width:5px;border-radius:2px 2px 0 0;opacity:.95;}
+  .p32-popup{min-width:260px;max-width:340px;font-size:.82rem;}
+  .p32-popup h3{margin:0 0 7px;font-size:.93rem;}
+  .p32-popup p{margin:4px 0 8px;color:#5f5a50;}
+  .p32-popup-row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:3px 0;border-bottom:1px solid #eee;}
+  .p32-legend{background:#fffdf8ee;border:1px solid #aaa;padding:9px 10px;border-radius:4px;
+    box-shadow:0 1px 5px #0002;max-width:250px;font:12px/1.25 Arial,sans-serif;}
+  .p32-legend strong{display:block;margin-bottom:5px;}
+  .p32-legend-item{display:flex;align-items:center;gap:6px;margin:3px 0;}
+  .p32-legend-color{width:10px;height:10px;border-radius:2px;flex:0 0 10px;}
+
+
+  /* v6: barras P32 robustas sobre el mapa */
+  body.p32-mapa-activo #leyenda{display:none !important;}
+  .p32-marker-wrap-v6{background:transparent !important;border:0 !important;}
+  .p32-mini-svg-wrap{width:88px;height:58px;background:#fffdf8f2;border:1px solid #5f665f;
+    border-radius:4px;box-shadow:0 1px 5px #0004;box-sizing:border-box;padding:2px;}
+  .p32-mini-svg-wrap svg{display:block;width:82px;height:52px;overflow:visible;}
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Visor Censo 2024 · Chile</h1>
+  <p>Escribe una pregunta y genera un mapa o gráfico a partir de los datos oficiales del Censo 2024.<br>
+  <b>Precaución:</b> La información obtenida debe ser interpretada con detención y se recomienda su contraste con información oficial 
+  publicada en <a href="https://www.ine.gob.cl">www.ine.gob.cl</a> o generada a través de <a href="https://redatam-ine.ine.cl">redatam-ine.ine.cl</a>.
+  </p>
+</header>
+
+<div id="panel-consulta">
+  <input type="text" id="pregunta" placeholder="Ej: porcentaje de hogares con internet fija por comuna" autocomplete="off">
+  <button id="btn-consultar">Generar visualización</button>
+  <div class="ejemplos">
+    <span>Prueba:</span>
+    <button data-q="porcentaje de personas que hablan o entienden Mapuzugún por región">hablan o entienden Mapuzugún</button>
+    <button data-q="porcentaje de viviendas con hacinamiento crítico por región">hacinamiento</button>
+    <button data-q="promedio de escolaridad por comuna de la región Metropolitana">escolaridad promedio</button>
+    <button data-q="porcentaje de personas nacidas fuera de Chile por región">inmigración internacional</button>
+    <button data-q="distribución de hogares según tipología por región">Gráfico de tipología de hogares</button>
+  </div>
+</div>
+
+<main>
+  <div id="mapa"></div>
+  <section id="grafico-torta" aria-label="Gráfico circular">
+    <div class="torta-contenido">
+      <h2 id="torta-titulo"></h2>
+      <div class="torta-cuerpo">
+        <div id="torta-dibujo" role="img"></div>
+        <ul id="torta-leyenda"></ul>
+      </div>
+    </div>
+  </section>
+  
+  <section id="grafico-barras" aria-label="Gráfico de barras de dimensiones funcionales">
+    <div class="barras-contenido">
+      <h2 id="barras-titulo"></h2>
+      <div id="barras-lista" role="img"></div>
+      <p id="barras-nota"></p>
+    </div>
+  </section>
+
+  <section id="estado" aria-label="Avance de la consulta">
+    <div class="estado-cabecera">
+      <h2 id="estado-titulo">Preparando la visualización</h2>
+      <button id="estado-cerrar" type="button" aria-label="Cerrar el estado de la consulta" hidden>Cerrar</button>
+    </div>
+    <p id="estado-mensaje" role="status" aria-live="polite" aria-atomic="true"></p>
+    <div id="progreso-barra" role="progressbar" aria-label="Procesos completados"
+         aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" aria-valuetext="0 de 6 procesos completados">
+      <div id="progreso-relleno"></div>
+    </div>
+    <p id="progreso-texto">0 de 6 procesos completados · 0 %</p>
+    <ol id="progreso-etapas" aria-hidden="true"></ol>
+  </section>
+  <div id="leyenda">
+    <h3 id="leyenda-titulo">Valor</h3>
+    <div id="barra-leyenda"></div>
+    <div id="rango-leyenda"><span id="leyenda-min">0</span><span id="leyenda-max">0</span></div>
+    <ul id="leyenda-categorias" hidden></ul>
+    <p class="nota-sin-datos" id="leyenda-sin-datos" hidden>Sin datos</p>
+  </div>
+  <div id="acciones-resultado" aria-label="Acciones del resultado">
+    <button id="feedback-positivo" class="accion-resultado" type="button"
+      title="¿Respondí correctamente tu pregunta?" aria-label="La respuesta fue correcta">👍</button>
+    <button id="feedback-negativo" class="accion-resultado" type="button"
+      title="Sentimos no haber satisfecho tus expectativas, te invitamos a probar las preguntas prediseñadas de prueba, esto te ayudará a comprender de mejor forma cómo funciona nuestro sistema"
+      aria-label="La respuesta no fue correcta">👎</button>
+    <button id="btn-descargar" class="accion-resultado" type="button">Descargar Excel</button>
+    <span id="feedback-mensaje" role="status"></span>
+  </div>
+</main>
+
+<section id="selector-variable" role="dialog" aria-modal="true" aria-labelledby="selector-titulo">
+  <div class="selector-contenido">
+    <h2 id="selector-titulo">Selecciona la variable</h2>
+    <p id="selector-mensaje"></p>
+    <div id="selector-opciones"></div>
+    <div class="acciones-modal">
+      <button id="selector-reformular" class="btn-secundario" type="button">Reformular pregunta</button>
+      <button id="selector-aceptar" class="btn-primario" type="button" hidden>Aceptar</button>
+      <button id="selector-cancelar" class="btn-secundario" type="button">Cancelar</button>
+    </div>
+  </div>
+</section>
+
+<section id="selector-operacion" class="modal" role="dialog" aria-modal="true" aria-labelledby="operacion-titulo">
+  <div class="selector-contenido">
+    <h2 id="operacion-titulo">¿Qué deseas calcular?</h2>
+    <p id="operacion-mensaje"></p>
+    <div id="operacion-opciones"></div>
+    <div class="acciones-modal">
+      <button id="operacion-reformular" class="btn-secundario" type="button">Reformular pregunta</button>
+    </div>
+  </div>
+</section>
+
+<section id="modal-fallo" class="modal" role="dialog" aria-modal="true" aria-labelledby="fallo-titulo">
+  <div class="selector-contenido">
+    <h2 id="fallo-titulo">Reformula tu consulta</h2>
+    <p id="fallo-mensaje">No pudimos generar la visualización. Prueba indicando el cálculo, la variable y el nivel territorial.</p>
+    <p>Ejemplos:</p>
+    <ol id="fallo-ejemplos">
+      <li><button type="button">Porcentaje de personas que hablan o entienden Mapuzugún por región</button></li>
+      <li><button type="button">Distribución de hogares según tipología por región</button></li>
+      <li><button type="button">Porcentaje de viviendas con hacinamiento crítico por Comuna de la región Metropolitana</button></li>
+    </ol>
+    <div class="acciones-modal">
+      <button id="fallo-reformular" class="btn-primario" type="button">Reformular pregunta</button>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// Admite el servidor local y la apertura del HTML mediante file://.
+const BASE_API = location.protocol === 'file:' ? 'http://localhost:8000' : '';
+const URL_API = BASE_API + '/api/consulta/progreso';
+const ETAPAS = [
+  'Entender la pregunta',
+  'Calcular los resultados',
+  'Identificar la cartografía',
+  'Asignar los resultados a cada zona',
+  'Preparar la respuesta',
+  'Mostrar el resultado'
+];
+let consultaEnCurso = false;
+let completados = 0;
+let totalServidor = 5;
+let seleccionAcumulada = {};
+let resultadoActual = null;
+let cierreEstadoTimer = null;
+let ocultarEstadoTimer = null;
+
+const mapa = L.map('mapa', {zoomControl:true}).setView([-33.45, -70.66], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap',
+  maxZoom: 18
+}).addTo(mapa);
+
+// Chile completo por defecto
+mapa.setView([-35.5, -71.5], 4);
+
+let capaActual = null;
+const cacheGeometrias = new Map();
+
+function codigoComparable(valor){
+  const texto = String(valor ?? '');
+  return /^\d+$/.test(texto) ? String(Number(texto)) : texto;
+}
+
+async function cargarGeometria(referencia){
+  if(!referencia?.nivel || !referencia?.version){
+    throw new Error('La respuesta no contiene una referencia geográfica válida.');
+  }
+  const clave = [referencia.nivel, referencia.filtro_nivel || '',
+                 referencia.filtro_codigo ?? '', referencia.version].join('|');
+  const inicio = performance.now();
+  const existente = cacheGeometrias.get(clave);
+  if(existente){
+    const geojson = await existente;
+    console.info(`[tiempo] geometria_navegador=${((performance.now()-inicio)/1000).toFixed(3)}s cache=true clave=${clave}`);
+    return geojson;
+  }
+  const parametros = new URLSearchParams({v:referencia.version});
+  if(referencia.filtro_nivel){
+    parametros.set('filtro_nivel', referencia.filtro_nivel);
+    parametros.set('filtro_codigo', referencia.filtro_codigo);
+  }
+  const promesa = fetch(
+    `${BASE_API}/api/geometrias/${encodeURIComponent(referencia.nivel)}?${parametros}`,
+    {headers:{'Accept':'application/geo+json'}}
+  ).then(async respuesta => {
+    if(!respuesta.ok){
+      let error; try{ error = await respuesta.json(); }catch{}
+      throw new Error(error?.detail || 'No se pudo descargar la cartografía.');
+    }
+    const geojson = await respuesta.json();
+    if(geojson?.type !== 'FeatureCollection' || !Array.isArray(geojson.features)){
+      throw new Error('La cartografía descargada no es válida.');
+    }
+    return geojson;
+  }).catch(error => {
+    cacheGeometrias.delete(clave);
+    throw error;
+  });
+  cacheGeometrias.set(clave, promesa);
+  const geojson = await promesa;
+  console.info(`[tiempo] geometria_navegador=${((performance.now()-inicio)/1000).toFixed(3)}s cache=false clave=${clave}`);
+  return geojson;
+}
+
+async function geojsonConResultados(data){
+  // Compatibilidad con respuestas aprobadas antes de separar la cartografía.
+  if(data.geojson?.type === 'FeatureCollection') return data.geojson;
+  const geometria = await cargarGeometria(data.geometria);
+  const porCodigo = new Map((data.datos || []).map(
+    fila => [codigoComparable(fila.codigo), fila]
+  ));
+  const esTorta = data.tipo_visualizacion === 'tortas_mapa';
+  return {
+    type:'FeatureCollection',
+    features:geometria.features.map(feature => {
+      const propiedadesBase = feature.properties || {};
+      const dato = porCodigo.get(codigoComparable(propiedadesBase.codigo));
+      const propiedades = {...propiedadesBase};
+      if(esTorta){
+        propiedades.distribucion = dato?.distribucion || [];
+        propiedades.total = Number(dato?.total) || 0;
+      }else{
+        propiedades.valor = dato?.valor ?? null;
+      }
+      return {...feature, properties:propiedades};
+    })
+  };
+}
+
+function colorPara(valor, min, max){
+  // Un valor ausente es distinto de un cero observado.
+  if(!Number.isFinite(valor) || !Number.isFinite(min) || !Number.isFinite(max)) return '#d1d5db';
+  if(max === min) return "#2f5d50";
+  const t = Math.max(0, Math.min(1, (valor - min) / (max - min)));
+  // interpola entre un verde pálido y el verde acento
+  const r = Math.round(238 + (47-238)*t);
+  const g = Math.round(242 + (93-242)*t);
+  const b = Math.round(238 + (80-238)*t);
+  return `rgb(${r},${g},${b})`;
+}
+
+// La barra representa procesos terminados, no una estimación de segundos.
+function mostrarAvance(mensaje, etapaActual, esError=false){
+  const total = totalServidor + 1;
+  const panel = document.getElementById('estado');
+  panel.classList.add('visible');
+  panel.classList.remove('desvaneciendo');
+  panel.classList.remove('cerrado');
+  panel.classList.toggle('error', esError);
+  document.getElementById('estado-mensaje').textContent = mensaje;
+  const porcentaje = Math.round(100 * completados / total);
+  const barra = document.getElementById('progreso-barra');
+  barra.setAttribute('aria-valuemax', total);
+  barra.setAttribute('aria-valuenow', completados);
+  barra.setAttribute('aria-valuetext', `${completados} de ${total} procesos completados`);
+  document.getElementById('progreso-relleno').style.width = `${porcentaje}%`;
+  document.getElementById('progreso-texto').textContent =
+    `${completados} de ${total} procesos completados · ${porcentaje} %`;
+  const lista = document.getElementById('progreso-etapas');
+  lista.replaceChildren();
+  for(let i=1; i<=total; i++){
+    const elemento = document.createElement('li');
+    elemento.textContent = i === total ? 'Mostrar el resultado' : (ETAPAS[i-1] || `Proceso ${i}`);
+    elemento.classList.toggle('completada', i <= completados);
+    elemento.classList.toggle('actual', !esError && i === etapaActual && i > completados);
+    lista.appendChild(elemento);
+  }
+}
+
+function cancelarCierreEstado(){
+  clearTimeout(cierreEstadoTimer);
+  clearTimeout(ocultarEstadoTimer);
+  cierreEstadoTimer = ocultarEstadoTimer = null;
+  document.getElementById('estado').classList.remove('desvaneciendo');
+}
+
+function desvanecerEstadoExito(){
+  cancelarCierreEstado();
+  cierreEstadoTimer = setTimeout(() => {
+    const panel = document.getElementById('estado');
+    panel.classList.add('desvaneciendo');
+    ocultarEstadoTimer = setTimeout(() => {
+      panel.classList.remove('visible', 'desvaneciendo');
+    }, 500);
+  }, 3000);
+}
+
+// Valida los avisos del servidor y no retrocede ni inventa etapas completadas.
+function recibirProgreso(aviso){
+  if(!Number.isInteger(aviso.total) || aviso.total < 1 || aviso.total > 100 ||
+     !Number.isInteger(aviso.etapa) || aviso.etapa < 1 || aviso.etapa > aviso.total ||
+     !Number.isInteger(aviso.completados) || aviso.completados < 0 || aviso.completados > aviso.total ||
+     !['en_curso','completado'].includes(aviso.estado)){
+    throw new Error('El servidor envió un aviso de avance no válido.');
+  }
+  const esperados = aviso.estado === 'completado' ? aviso.etapa : aviso.etapa - 1;
+  if(aviso.completados !== esperados) throw new Error('El avance recibido no corresponde a la etapa indicada.');
+  if(aviso.completados < completados) return;
+  totalServidor = aviso.total;
+  completados = aviso.completados;
+  mostrarAvance(aviso.mensaje || 'Preparando el mapa…', aviso.etapa);
+}
+
+// Decodifica eventos SSE aunque lleguen partidos entre bytes o entre líneas.
+async function leerConsulta(resp, onProgreso){
+  if(!resp.body) throw new Error('El navegador no permite leer el avance de la consulta.');
+  const lector = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let pendiente = '';
+  try{
+    while(true){
+      const {value, done} = await lector.read();
+      pendiente += done ? decoder.decode() : decoder.decode(value, {stream:true});
+      let separador;
+      while((separador = /\r?\n\r?\n/.exec(pendiente)) !== null){
+        const bloque = pendiente.slice(0, separador.index);
+        pendiente = pendiente.slice(separador.index + separador[0].length);
+        let evento = 'message';
+        const datos = [];
+        for(const linea of bloque.split(/\r?\n/)){
+          if(linea.startsWith('event:')) evento = linea.slice(6).trim();
+          if(linea.startsWith('data:')) datos.push(linea.slice(5).replace(/^ /, ''));
+        }
+        // Los comentarios de conexión no representan progreso.
+        if(datos.length === 0) continue;
+        let contenido;
+        try{ contenido = JSON.parse(datos.join('\n')); }
+        catch{ throw new Error('La respuesta del servidor llegó incompleta o no se pudo leer.'); }
+        if(evento === 'progreso') onProgreso(contenido);
+        else if(evento === 'alternativas') return {alternativas: contenido};
+        else if(evento === 'error') throw new Error(contenido.mensaje || 'No se pudo completar la consulta.');
+        else if(evento === 'resultado') return contenido;
+      }
+      if(done) throw new Error('Se interrumpió la conexión antes de recibir el mapa.');
+    }
+  } finally {
+    // Cierra también en errores para no mantener una consulta abandonada.
+    try{ await lector.cancel(); }catch{}
+    lector.releaseLock();
+  }
+}
+
+function bloquearConsulta(bloqueada){
+  document.getElementById('btn-consultar').disabled = bloqueada;
+  document.getElementById('pregunta').disabled = bloqueada;
+  document.querySelectorAll('.ejemplos button').forEach(b => { b.disabled = bloqueada; });
+  document.getElementById('mapa').setAttribute('aria-busy', bloqueada ? 'true' : 'false');
+}
+
+// Da al navegador oportunidad de dibujar el estado antes de procesar geometrías.
+function siguienteCuadro(){
+  return new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+async function consultar(seleccion=null){
+  if(consultaEnCurso) return;
+  if(seleccion === null) seleccionAcumulada = {};
+  else seleccionAcumulada = {...seleccionAcumulada, ...seleccion};
+  const pregunta = document.getElementById('pregunta').value.trim();
+  if(!pregunta) return;
+  consultaEnCurso = true;
+  completados = 0;
+  totalServidor = 5;
+  cancelarCierreEstado();
+  resultadoActual = null;
+  document.getElementById('acciones-resultado').classList.remove('visible');
+  document.getElementById('feedback-mensaje').textContent = '';
+  document.querySelectorAll('#acciones-resultado button').forEach(b => b.classList.remove('activa'));
+  bloquearConsulta(true);
+  document.getElementById('estado-titulo').textContent = 'Preparando la visualización';
+  document.getElementById('estado-cerrar').hidden = true;
+  mostrarAvance('Enviando la pregunta…', 1);
+  try{
+    const resp = await fetch(URL_API, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Accept':'text/event-stream'},
+      body:JSON.stringify({pregunta, ...seleccionAcumulada})
+    });
+    if(!resp.ok){
+      if(resp.status === 404 || resp.status === 405){
+        throw new Error('Falta instalar la actualización del servidor que informa el avance de las consultas.');
+      }
+      let error;
+      try{ error = await resp.json(); }catch{}
+      throw new Error(typeof error?.detail === 'string' ? error.detail : 'El servidor no pudo iniciar la consulta.');
+    }
+    if(!resp.headers.get('content-type')?.includes('text/event-stream')){
+      throw new Error('El servidor no está enviando el avance esperado. Revisar que esté instalada la última actualización.');
+    }
+    const data = await leerConsulta(resp, recibirProgreso);
+    if(data.alternativas){
+      mostrarAlternativas(data.alternativas);
+      return;
+    }
+    if(completados !== totalServidor){
+      throw new Error('No se recibió la confirmación de todas las etapas del servidor.');
+    }
+    mostrarAvance('Mostrando los resultados…', totalServidor + 1);
+    await siguienteCuadro();
+    await siguienteCuadro();
+    if(data?.tipo_visualizacion !== 'matriz_od'){
+      finalizarCambioVisualizacionV22(data); // v26-restore-base-map-before-render
+    }
+    if(data?.tipo_visualizacion === 'matriz_od'){ // v22-dispatch-matriz-od
+      await pintarMatrizODV22(data);
+    } else if(data.tipo_visualizacion === 'barras_mapa') await pintarBarrasMapa(data);
+    else if(data.tipo_visualizacion === 'tortas_mapa') await pintarTortasMapa(data);
+    else if(data.tipo_visualizacion === 'barras') await pintarBarras(data);
+    else if(data.tipo_visualizacion === 'torta') await pintarTorta(data);
+    else await pintarGeoJSON(data);
+    finalizarCambioVisualizacionV7(data); // v7-finalize-visualization
+    finalizarCambioVisualizacionV22(data); // v22-finalize-visualization
+    // Incluye el dibujo local: el fin del servidor equivale a 5/6, no a 100 %.
+    await siguienteCuadro();
+    await siguienteCuadro();
+    completados = totalServidor + 1;
+    document.getElementById('estado-titulo').textContent = 'Visualización lista';
+    mostrarAvance(descripcionCotidiana(data), null);
+    resultadoActual = data;
+    seleccionAcumulada = {};
+    document.getElementById('acciones-resultado').classList.add('visible');
+    desvanecerEstadoExito();
+  } catch(err){
+    document.getElementById('estado-titulo').textContent = 'No se pudo completar la visualización';
+    const detalle = err instanceof TypeError ? 'No se pudo conectar con el servidor local o se interrumpió la conexión.' : err.message;
+    mostrarAvance(detalle || 'Ocurrió un error durante la consulta.', null, true);
+    seleccionAcumulada = {};
+    mostrarFallo(detalle);
+  } finally {
+    consultaEnCurso = false;
+    bloquearConsulta(false);
+    document.getElementById('estado-cerrar').hidden = false;
+  }
+}
+
+function mostrarAlternativas(datos){
+  if(datos.tipo === 'seleccion_denominador') mostrarSelectorDenominadorV29(datos); // v29-selector-denominador
+  else if(datos.tipo === 'seleccion_operacion') mostrarSelectorOperacion(datos);
+  else mostrarSelectorVariables(datos);
+}
+
+// Presenta alternativas sin permitir que el modelo cambie la elección posterior.
+function mostrarSelectorVariables(datos){
+  const modal = document.getElementById('selector-variable');
+  const opciones = document.getElementById('selector-opciones');
+  document.getElementById('selector-mensaje').textContent =
+    datos.mensaje || 'La consulta puede referirse a más de una variable.';
+  opciones.replaceChildren();
+  const seleccionCenso = datos.tipo === 'seleccion_variable_censo';
+  document.getElementById('selector-aceptar').hidden = !seleccionCenso;
+  document.getElementById('selector-cancelar').hidden = seleccionCenso;
+  for(const opcion of datos.opciones || []){
+    if(seleccionCenso){
+      const etiqueta = document.createElement('label');
+      etiqueta.className = 'opcion-radio';
+      const radio = document.createElement('input');
+      radio.type = 'radio'; radio.name = 'variable-censo';
+      radio.value = JSON.stringify({tabla_seleccionada:opcion.tabla, variable_seleccionada:opcion.variable});
+      const texto = document.createElement('span');
+      const titulo = document.createElement('strong');
+      titulo.textContent = `${opcion.variable} — ${opcion.descripcion}`;
+      const detalle = document.createElement('small');
+      detalle.textContent = (opcion.categorias_ejemplo || []).join(' · ');
+      texto.append(titulo, detalle); etiqueta.append(radio, texto); opciones.appendChild(etiqueta);
+      continue;
+    }
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'opcion-variable';
+    const titulo = document.createElement('strong');
+    titulo.textContent = opcion.descripcion;
+    const detalle = document.createElement('small');
+    const categorias = Array.isArray(opcion.categorias_ejemplo)
+      ? opcion.categorias_ejemplo.join(' · ') : '';
+    detalle.textContent = `${opcion.tabla}${categorias ? ' — ' + categorias : ''}`;
+    boton.append(titulo, detalle);
+    boton.addEventListener('click', () => {
+      modal.classList.remove('visible');
+      consultar({tabla_seleccionada: opcion.tabla, variable_seleccionada: opcion.variable});
+    });
+    opciones.appendChild(boton);
+  }
+  modal.classList.add('visible');
+  opciones.querySelector('button,input')?.focus();
+}
+
+
+// v29-selector-denominador: confirma el universo antes de calcular porcentajes ambiguos.
+function mostrarSelectorDenominadorV29(datos){
+  const modal = document.getElementById('selector-operacion');
+  const opciones = document.getElementById('operacion-opciones');
+  if(!modal || !opciones){
+    throw new Error('La interfaz no contiene el selector requerido para elegir el denominador.');
+  }
+  const tituloModal = document.getElementById('operacion-titulo');
+  if(tituloModal) tituloModal.textContent = '¿Cuál debe ser el denominador?';
+  const mensaje = document.getElementById('operacion-mensaje');
+  if(mensaje){
+    mensaje.textContent = datos.mensaje ||
+      'Selecciona el universo que debe usarse como denominador o reformula la pregunta.';
+  }
+  opciones.replaceChildren();
+  const previa = {...(datos.seleccion_previa || {})};
+  Object.keys(previa).forEach(k => {
+    if(previa[k] === null || previa[k] === undefined || previa[k] === '') delete previa[k];
+  });
+
+  for(const opcion of datos.opciones || []){
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'opcion-variable';
+    const titulo = document.createElement('strong');
+    titulo.textContent = opcion.titulo || 'Usar este denominador';
+    const detalle = document.createElement('small');
+    detalle.textContent = opcion.descripcion || '';
+    boton.append(titulo, detalle);
+    boton.addEventListener('click', () => {
+      modal.classList.remove('visible');
+      consultar({...previa, denominador_seleccionado: opcion.id});
+    });
+    opciones.appendChild(boton);
+  }
+
+  const reformular = document.createElement('button');
+  reformular.type = 'button';
+  reformular.className = 'opcion-variable';
+  reformular.id = 'denominador-reformular-v29';
+  const titulo = document.createElement('strong');
+  titulo.textContent = 'Reformular la pregunta';
+  const detalle = document.createElement('small');
+  detalle.textContent = 'Volver al texto de la consulta para indicar explícitamente «sobre el total de…».';
+  reformular.append(titulo, detalle);
+  reformular.addEventListener('click', () => {
+    modal.classList.remove('visible');
+    const input = document.getElementById('pregunta');
+    input?.focus();
+    input?.select();
+  });
+  opciones.appendChild(reformular);
+  modal.classList.add('visible');
+  opciones.querySelector('button')?.focus();
+}
+
+function mostrarSelectorOperacion(datos){
+  const tituloOperacionV29 = document.getElementById('operacion-titulo');
+  if(tituloOperacionV29) tituloOperacionV29.textContent = '¿Qué deseas calcular?';
+  const modal = document.getElementById('selector-operacion');
+  const opciones = document.getElementById('operacion-opciones');
+  document.getElementById('operacion-mensaje').textContent = datos.mensaje || 'Elige cómo representar la variable.';
+  opciones.replaceChildren();
+  for(const opcion of datos.opciones || []){
+    const boton = document.createElement('button');
+    boton.type = 'button'; boton.className = 'opcion-variable';
+    const titulo = document.createElement('strong'); titulo.textContent = opcion.titulo;
+    const detalle = document.createElement('small'); detalle.textContent = opcion.descripcion;
+    boton.append(titulo, detalle);
+    boton.addEventListener('click', () => {
+      modal.classList.remove('visible');
+      consultar({tabla_seleccionada: datos.tabla, variable_seleccionada: datos.variable,
+                 operacion_seleccionada: opcion.id});
+    });
+    opciones.appendChild(boton);
+  }
+  modal.classList.add('visible');
+  opciones.querySelector('button')?.focus();
+}
+
+function mostrarFallo(detalle){
+  document.getElementById('fallo-mensaje').textContent =
+    `${detalle || 'No pudimos generar la visualización.'} Reformula indicando el cálculo, la variable y el nivel territorial.`;
+  document.getElementById('modal-fallo').classList.add('visible');
+  document.getElementById('fallo-reformular').focus();
+}
+
+// El resultado legible proviene del servidor; nunca muestra códigos de variables.
+function descripcionCotidiana(data){
+  const interp = data.interpretacion || {};
+  if(typeof interp.descripcion === 'string' && interp.descripcion.trim()) return interp.descripcion;
+  const operaciones = {
+    conteo:'Cantidad', porcentaje:'Porcentaje', porcentaje_rango:'Porcentaje',
+    promedio:'Promedio'
+  };
+  const nivel = {region:'región', provincia:'provincia', comuna:'comuna'}[data.nivel_geografico] || 'territorio';
+  return `${operaciones[interp.operacion] || 'Resultados'} por ${nivel}.`;
+}
+
+async function pintarGeoJSON(data){
+  if(data?.tipo_visualizacion === 'barras_mapa') return pintarBarrasMapa(data); // v6-intercept-p32
+  document.body.classList.remove('p32-mapa-activo'); // v6-reset-p32
+  limpiarBarrasP32Mapa(); // v5-clean-p32-map
+  // v4-hide-bars-map
+  document.getElementById('grafico-barras')?.classList.remove('visible');
+  document.getElementById('grafico-torta').classList.remove('visible');
+  document.getElementById('mapa').classList.remove('oculto');
+  mapa.invalidateSize(false);
+  const geojson = await geojsonConResultados(data);
+  if(!geojson || geojson.type !== 'FeatureCollection' || !Array.isArray(geojson.features)){
+    throw new Error('La respuesta no contiene un mapa válido.');
+  }
+  if(geojson.features.length === 0) throw new Error('No se encontraron zonas para mostrar con esa selección.');
+  const {min, max} = data;
+  // Los porcentajes categóricos y por rango comparten unidad y formato.
+  const esPorcentaje = ['porcentaje', 'porcentaje_rango'].includes(
+    data.interpretacion?.operacion
+  );
+  const nuevaCapa = L.geoJSON(null, {
+    style: feature => ({
+      fillColor: colorPara(feature.properties?.valor, min, max),
+      weight:0.6, color:'#4a4438', fillOpacity:0.85
+    }),
+    onEachFeature:(feature, layer) => {
+      const propiedades = feature.properties || {};
+      // textContent evita interpretar nombres o etiquetas como código HTML.
+      const popup = document.createElement('div');
+      const nombre = document.createElement('strong');
+      nombre.textContent = propiedades.nombre ?? '';
+      const valor = document.createElement('div');
+      valor.textContent = Number.isFinite(propiedades.valor)
+        ? 'Valor: ' + propiedades.valor.toLocaleString('es-CL', {maximumFractionDigits:2}) +
+          (esPorcentaje ? ' %' : '')
+        : 'Sin datos';
+      popup.append(nombre, valor);
+      layer.bindPopup(popup);
+    }
+  });
+  try{
+    // Procesa lotes sin adelantar la barra: todo el dibujo es una sola etapa.
+    for(let i=0; i<geojson.features.length; i+=25){
+      geojson.features.slice(i,i+25).forEach(feature => nuevaCapa.addData(feature));
+      await siguienteCuadro();
+    }
+    const limites = nuevaCapa.getBounds();
+    if(!limites.isValid()) throw new Error('Las zonas recibidas no contienen geometrías visibles.');
+    nuevaCapa.addTo(mapa);
+    mapa.fitBounds(limites, {padding:[20,20], animate:false});
+  }catch(error){
+    // Un fallo no elimina el último mapa que sí se pudo mostrar.
+    mapa.removeLayer(nuevaCapa);
+    throw error;
+  }
+  if(capaActual) mapa.removeLayer(capaActual);
+  capaActual = nuevaCapa;
+  document.getElementById('leyenda-titulo').textContent = descripcionCotidiana(data);
+  document.getElementById('leyenda-categorias').hidden = true;
+  document.getElementById('rango-leyenda').hidden = false;
+  const sufijo = esPorcentaje ? ' %' : '';
+  document.getElementById('leyenda-min').textContent = Number.isFinite(min) ? min.toLocaleString('es-CL', {maximumFractionDigits:1}) + sufijo : 'Sin datos';
+  document.getElementById('leyenda-max').textContent = Number.isFinite(max) ? max.toLocaleString('es-CL', {maximumFractionDigits:1}) + sufijo : 'Sin datos';
+  document.getElementById('barra-leyenda').hidden = !Number.isFinite(min) || !Number.isFinite(max);
+  document.getElementById('leyenda-sin-datos').hidden = !geojson.features.some(f => !Number.isFinite(f.properties?.valor));
+  document.getElementById('leyenda').classList.add('visible');
+}
+
+// Genera los tramos de una torta con la paleta compartida por todos los polígonos.
+function gradienteTorta(distribucion, colores){
+  let acumulado = 0;
+  const tramos = [];
+  distribucion.forEach((item, indice) => {
+    const inicio = acumulado;
+    acumulado += Number(item.porcentaje) || 0;
+    tramos.push(`${colores[indice % colores.length]} ${inicio}% ${acumulado}%`);
+  });
+  return `conic-gradient(${tramos.join(',')})`;
+}
+
+// Muestra una torta por unidad geográfica, ubicada en un punto interior del polígono.
+async function pintarTortasMapa(data){
+  const geojson = await geojsonConResultados(data);
+  if(!geojson || geojson.type !== 'FeatureCollection' ||
+     !Array.isArray(geojson.features) || geojson.features.length === 0){
+    throw new Error('La respuesta no contiene polígonos para el gráfico categórico.');
+  }
+  const colores = ['#2f5d50','#b5652c','#5578a0','#8b6c8e','#9b927c'];
+  const nuevaCapa = L.layerGroup();
+  const poligonos = L.geoJSON(geojson, {
+    style: {fillColor:'#f1eee5',weight:0.8,color:'#5d584f',fillOpacity:0.55},
+    onEachFeature:(feature, layer) => {
+      const p = feature.properties || {};
+      const popup = document.createElement('div');
+      const nombre = document.createElement('strong');
+      nombre.textContent = p.nombre ?? '';
+      popup.appendChild(nombre);
+      for(const item of p.distribucion || []){
+        const fila = document.createElement('div');
+        fila.textContent = `${item.etiqueta}: ${Number(item.valor).toLocaleString('es-CL')} (${Number(item.porcentaje || 0).toLocaleString('es-CL',{maximumFractionDigits:1})} %)`;
+        popup.appendChild(fila);
+      }
+      layer.bindPopup(popup);
+    }
+  });
+  poligonos.addTo(nuevaCapa);
+  const maxTotal = Math.max(1, ...geojson.features.map(
+    feature => Number(feature.properties?.total) || 0
+  ));
+  for(let i=0; i<geojson.features.length; i+=25){
+    for(const feature of geojson.features.slice(i,i+25)){
+      const p = feature.properties || {};
+      const distribucion = Array.isArray(p.distribucion) ? p.distribucion : [];
+      if(!distribucion.length || !Number.isFinite(p.centro_lat) ||
+         !Number.isFinite(p.centro_lon) || !(p.total > 0)) continue;
+      const tamano = Math.round(24 + 30 * Math.sqrt(p.total / maxTotal));
+      const icono = L.divIcon({
+        className:'marcador-torta',
+        html:`<div class="torta-local" style="width:${tamano}px;height:${tamano}px;background:${gradienteTorta(distribucion,colores)}"></div>`,
+        iconSize:[tamano,tamano],iconAnchor:[tamano/2,tamano/2]
+      });
+      const marcador = L.marker([p.centro_lat,p.centro_lon], {icon:icono});
+      const popup = document.createElement('div');
+      const nombre = document.createElement('strong');
+      nombre.textContent = p.nombre ?? '';
+      popup.appendChild(nombre);
+      distribucion.forEach(item => {
+        const fila = document.createElement('div');
+        fila.textContent = `${item.etiqueta}: ${Number(item.valor).toLocaleString('es-CL')} (${Number(item.porcentaje || 0).toLocaleString('es-CL',{maximumFractionDigits:1})} %)`;
+        popup.appendChild(fila);
+      });
+      marcador.bindPopup(popup).addTo(nuevaCapa);
+    }
+    await siguienteCuadro();
+  }
+  const limites = poligonos.getBounds();
+  if(!limites.isValid()) throw new Error('Los polígonos no contienen geometrías visibles.');
+  nuevaCapa.addTo(mapa);
+  if(capaActual) mapa.removeLayer(capaActual);
+  capaActual = nuevaCapa;
+  document.getElementById('grafico-torta').classList.remove('visible');
+  document.getElementById('mapa').classList.remove('oculto');
+  mapa.invalidateSize(false);
+  mapa.fitBounds(limites,{padding:[24,24],animate:false});
+
+  const lista = document.getElementById('leyenda-categorias');
+  lista.replaceChildren();
+  (data.categorias_grafico || []).forEach((categoria, indice) => {
+    const fila = document.createElement('li');
+    const color = document.createElement('span');
+    color.className = 'torta-color';
+    color.style.background = colores[indice % colores.length];
+    const etiqueta = document.createElement('span');
+    etiqueta.textContent = categoria.etiqueta;
+    fila.append(color,etiqueta);
+    lista.appendChild(fila);
+  });
+  document.getElementById('leyenda-titulo').textContent = descripcionCotidiana(data);
+  document.getElementById('barra-leyenda').hidden = true;
+  document.getElementById('rango-leyenda').hidden = true;
+  document.getElementById('leyenda-sin-datos').hidden = true;
+  lista.hidden = false;
+  document.getElementById('leyenda').classList.add('visible');
+}
+
+// Dibuja hasta cuatro categorías principales y una quinta categoría «Otros».
+
+// v4: compara las seis dimensiones P32. No usa torta porque no son excluyentes.
+
+// v5: seis mini barras P32 sobre cada zona geográfica, sin ocultar el mapa.
+let capaBarrasP32 = null;
+let controlLeyendaP32 = null;
+const COLORES_P32 = ['#4c78a8','#f58518','#54a24b','#e45756','#72b7b2','#b279a2'];
+
+function limpiarBarrasP32Mapa(){
+  if(capaBarrasP32){
+    try{ mapa.removeLayer(capaBarrasP32); }catch{}
+    capaBarrasP32 = null;
+  }
+  if(controlLeyendaP32){
+    try{ mapa.removeControl(controlLeyendaP32); }catch{}
+    controlLeyendaP32 = null;
+  }
+}
+
+function claveCodigoP32(valor){
+  const n = Number(valor);
+  return Number.isFinite(n) ? String(n) : String(valor ?? '');
+}
+
+async function cargarGeometriaP32(ref){
+  if(!ref || !ref.nivel) throw new Error('La respuesta P32 no contiene referencia de cartografía.');
+  const qs = new URLSearchParams();
+  if(ref.filtro_nivel) qs.set('filtro_nivel', ref.filtro_nivel);
+  if(ref.filtro_codigo !== null && ref.filtro_codigo !== undefined) qs.set('filtro_codigo', ref.filtro_codigo);
+  if(ref.version) qs.set('v', ref.version);
+  const prefijo = typeof BASE_API === 'string' ? BASE_API : '';
+  const url = `${prefijo}/api/geometrias/${encodeURIComponent(ref.nivel)}${qs.toString() ? '?' + qs.toString() : ''}`;
+  const resp = await fetch(url, {headers:{'Accept':'application/geo+json'}});
+  if(!resp.ok) throw new Error('No se pudo cargar la cartografía para los gráficos P32.');
+  const geo = await resp.json();
+  if(!geo || geo.type !== 'FeatureCollection' || !Array.isArray(geo.features)){
+    throw new Error('La cartografía P32 recibida no es válida.');
+  }
+  return geo;
+}
+
+function iconoBarrasP32(barras){
+  const valores = barras.map(x => Number(x.valor)).filter(Number.isFinite);
+  const maximo = Math.max(...valores, 0);
+  const partes = barras.map((item, i) => {
+    const valor = Number(item.valor);
+    const alto = Number.isFinite(valor) && maximo > 0 ? Math.max(3, Math.round(36 * valor / maximo)) : 2;
+    const etiqueta = String(item.etiqueta || item.variable || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const mostrado = Number.isFinite(valor) ? valor.toLocaleString('es-CL',{maximumFractionDigits:1}) : 'Sin datos';
+    return `<span class="p32-mini-bar" style="height:${alto}px;background:${COLORES_P32[i % COLORES_P32.length]}" title="${etiqueta}: ${mostrado}"></span>`;
+  }).join('');
+  return L.divIcon({
+    className:'p32-marker-wrap',
+    html:`<div class="p32-mini-chart">${partes}</div>`,
+    iconSize:[68,46], iconAnchor:[34,23], popupAnchor:[0,-22]
+  });
+}
+
+function popupBarrasP32(territorio, data){
+  const cont = document.createElement('div');
+  cont.className = 'p32-popup';
+  const h = document.createElement('h3');
+  h.textContent = territorio.nombre || String(territorio.codigo || 'Territorio');
+  const sub = document.createElement('p');
+  sub.textContent = `${data.severidad_etiqueta || ''}${data.metrica === 'porcentaje' ? ' · porcentaje sobre respuestas válidas' : ''}`;
+  cont.append(h, sub);
+  for(const item of territorio.barras || []){
+    const fila = document.createElement('div'); fila.className='p32-popup-row';
+    const etiqueta = document.createElement('span'); etiqueta.textContent = item.etiqueta || item.variable || '';
+    const valor = document.createElement('strong');
+    const c = Number(item.conteo), p = Number(item.porcentaje);
+    valor.textContent = data.metrica === 'porcentaje'
+      ? (Number.isFinite(p) ? `${p.toLocaleString('es-CL',{maximumFractionDigits:1})} %` : 'Sin datos')
+      : (Number.isFinite(c) ? c.toLocaleString('es-CL') : 'Sin datos');
+    fila.append(etiqueta, valor); cont.appendChild(fila);
+  }
+  return cont;
+}
+
+function agregarLeyendaP32(data){
+  if(controlLeyendaP32){ try{ mapa.removeControl(controlLeyendaP32); }catch{} }
+  controlLeyendaP32 = L.control({position:'bottomright'});
+  controlLeyendaP32.onAdd = function(){
+    const div = L.DomUtil.create('div','p32-legend');
+    const titulo = document.createElement('strong');
+    titulo.textContent = data.severidad_etiqueta || 'Dimensiones funcionales P32';
+    div.appendChild(titulo);
+    (data.dimensiones || []).forEach((item,i) => {
+      const fila=document.createElement('div'); fila.className='p32-legend-item';
+      const color=document.createElement('span'); color.className='p32-legend-color'; color.style.background=COLORES_P32[i % COLORES_P32.length];
+      const txt=document.createElement('span'); txt.textContent=item.etiqueta || item.variable || '';
+      fila.append(color,txt); div.appendChild(fila);
+    });
+    L.DomEvent.disableClickPropagation(div);
+    return div;
+  };
+  controlLeyendaP32.addTo(mapa);
+}
+
+async function pintarBarrasMapa(data){
+  const territorios = Array.isArray(data.datos) ? data.datos : [];
+  if(territorios.length === 0) throw new Error('No hay resultados P32 para mostrar en el mapa.');
+  if(territorios.some(x => !Array.isArray(x.barras) || x.barras.length !== 6)){
+    throw new Error('Alguna zona no contiene las seis dimensiones funcionales P32.');
+  }
+
+  document.getElementById('grafico-barras')?.classList.remove('visible');
+  document.getElementById('grafico-torta')?.classList.remove('visible');
+  document.getElementById('mapa')?.classList.remove('oculto');
+  document.getElementById('leyenda')?.classList.remove('visible');
+  mapa.invalidateSize(false);
+  limpiarBarrasP32Mapa();
+
+  const geo = await cargarGeometriaP32(data.geometria);
+  const porCodigo = new Map(territorios.map(x => [claveCodigoP32(x.codigo), x]));
+  const nuevaCapa = L.geoJSON(geo, {
+    style: {weight:.7,color:'#766f64',fillColor:'#f3f2ec',fillOpacity:.28},
+    onEachFeature: (feature, layer) => {
+      const t = porCodigo.get(claveCodigoP32(feature.properties?.codigo));
+      if(t) layer.bindPopup(popupBarrasP32(t, data));
+    }
+  });
+
+  const marcadores = L.layerGroup();
+  for(const feature of geo.features){
+    const props = feature.properties || {};
+    const t = porCodigo.get(claveCodigoP32(props.codigo));
+    if(!t) continue;
+    let lat = Number(props.centro_lat), lon = Number(props.centro_lon);
+    if(!Number.isFinite(lat) || !Number.isFinite(lon)){
+      const temporal = L.geoJSON(feature);
+      const centro = temporal.getBounds().getCenter(); lat = centro.lat; lon = centro.lng;
+    }
+    const marker = L.marker([lat,lon], {icon:iconoBarrasP32(t.barras), keyboard:true});
+    marker.bindPopup(popupBarrasP32(t, data));
+    marker.addTo(marcadores);
+  }
+
+  nuevaCapa.addTo(mapa);
+  if(typeof capaActual !== 'undefined' && capaActual && capaActual !== nuevaCapa){
+    try{ mapa.removeLayer(capaActual); }catch{}
+  }
+  if(typeof capaActual !== 'undefined') capaActual = nuevaCapa;
+  marcadores.addTo(mapa);
+  capaBarrasP32 = marcadores;
+  const limites = nuevaCapa.getBounds();
+  if(limites.isValid()) mapa.fitBounds(limites,{padding:[24,24],animate:false});
+  agregarLeyendaP32(data);
+}
+
+async function pintarBarras(data){
+  document.body.classList.remove('p32-mapa-activo'); // v6-reset-p32-oldbars
+  limpiarBarrasP32Mapa(); // v5-clean-p32-oldbars
+  const barras = Array.isArray(data.barras) ? data.barras : [];
+  if(barras.length !== 6) throw new Error('La respuesta P32 no contiene las seis dimensiones funcionales.');
+  document.getElementById('grafico-torta')?.classList.remove('visible');
+  document.getElementById('mapa')?.classList.add('oculto');
+  document.getElementById('leyenda')?.classList.remove('visible');
+  const panel = document.getElementById('grafico-barras');
+  const lista = document.getElementById('barras-lista');
+  lista.replaceChildren();
+  const valores = barras.map(x => Number(x.valor)).filter(Number.isFinite);
+  const maximo = Math.max(...valores, 0);
+  barras.forEach(item => {
+    const valor = Number(item.valor);
+    const fila = document.createElement('div');
+    fila.className = 'barra-fila';
+    const etiqueta = document.createElement('div');
+    etiqueta.className = 'barra-etiqueta';
+    etiqueta.textContent = item.etiqueta || item.variable || '';
+    const pista = document.createElement('div');
+    pista.className = 'barra-pista';
+    const relleno = document.createElement('div');
+    relleno.className = 'barra-relleno';
+    relleno.style.width = Number.isFinite(valor) && maximo > 0 ? `${100 * valor / maximo}%` : '0%';
+    pista.appendChild(relleno);
+    const salida = document.createElement('div');
+    salida.className = 'barra-valor';
+    const conteo = Number(item.conteo);
+    const porcentaje = Number(item.porcentaje);
+    if(data.metrica === 'porcentaje'){
+      salida.textContent = Number.isFinite(porcentaje)
+        ? `${porcentaje.toLocaleString('es-CL',{maximumFractionDigits:1})} % · ${Number.isFinite(conteo) ? conteo.toLocaleString('es-CL') : '—'} personas`
+        : 'Sin datos';
+    }else{
+      salida.textContent = Number.isFinite(conteo)
+        ? `${conteo.toLocaleString('es-CL')}${Number.isFinite(porcentaje) ? ` · ${porcentaje.toLocaleString('es-CL',{maximumFractionDigits:1})} %` : ''}`
+        : 'Sin datos';
+    }
+    fila.append(etiqueta, pista, salida);
+    lista.appendChild(fila);
+  });
+  document.getElementById('barras-titulo').textContent = descripcionCotidiana(data);
+  document.getElementById('barras-nota').textContent = data.nota ||
+    'Las dimensiones no son mutuamente excluyentes; una misma persona puede aparecer en más de una barra.';
+  panel.classList.add('visible');
+}
+
+async function pintarTorta(data){
+  document.body.classList.remove('p32-mapa-activo'); // v6-reset-p32-pie
+  limpiarBarrasP32Mapa(); // v5-clean-p32-pie
+  // v4-hide-bars-pie
+  document.getElementById('grafico-barras')?.classList.remove('visible');
+  const categorias = data.grafico?.categorias;
+  if(!Array.isArray(categorias) || categorias.length === 0){
+    throw new Error('La respuesta no contiene categorías para el gráfico circular.');
+  }
+  const colores = ['#2f5d50','#b5652c','#5578a0','#8b6c8e','#9b927c'];
+  let acumulado = 0;
+  const tramos = categorias.map((item, indice) => {
+    const inicio = acumulado;
+    acumulado += Number(item.porcentaje) || 0;
+    return `${colores[indice % colores.length]} ${inicio}% ${acumulado}%`;
+  });
+  const dibujo = document.getElementById('torta-dibujo');
+  dibujo.style.background = `conic-gradient(${tramos.join(',')})`;
+  dibujo.setAttribute('aria-label', categorias.map(item =>
+    `${item.etiqueta}: ${(Number(item.porcentaje) || 0).toLocaleString('es-CL', {maximumFractionDigits:1})} %`
+  ).join('; '));
+  const leyenda = document.getElementById('torta-leyenda');
+  leyenda.replaceChildren();
+  categorias.forEach((item, indice) => {
+    const fila = document.createElement('li');
+    const color = document.createElement('span');
+    color.className = 'torta-color';
+    color.style.background = colores[indice % colores.length];
+    const etiqueta = document.createElement('span');
+    etiqueta.textContent = item.etiqueta;
+    const valor = document.createElement('span');
+    valor.className = 'torta-valor';
+    valor.textContent = `${Number(item.valor).toLocaleString('es-CL')} · ${Number(item.porcentaje).toLocaleString('es-CL', {maximumFractionDigits:1})} %`;
+    fila.append(color, etiqueta, valor);
+    leyenda.appendChild(fila);
+  });
+  document.getElementById('torta-titulo').textContent = descripcionCotidiana(data);
+  document.getElementById('leyenda').classList.remove('visible');
+  document.getElementById('mapa').classList.add('oculto');
+  document.getElementById('grafico-torta').classList.add('visible');
+}
+
+// Bloquea consultas simultáneas desde clic, Enter o botones de ejemplo.
+document.getElementById('btn-consultar').addEventListener('click', () => consultar());
+document.getElementById('pregunta').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); consultar(); }
+});
+document.querySelectorAll('.ejemplos button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(consultaEnCurso) return;
+    document.getElementById('pregunta').value = btn.dataset.q;
+    consultar();
+  });
+});
+document.getElementById('estado-cerrar').addEventListener('click', () => {
+  if(!consultaEnCurso){
+    cancelarCierreEstado();
+    document.getElementById('estado').classList.remove('visible');
+  }
+});
+document.getElementById('selector-cancelar').addEventListener('click', () => {
+  document.getElementById('selector-variable').classList.remove('visible');
+});
+document.getElementById('selector-reformular').addEventListener('click', () => {
+  document.getElementById('selector-variable').classList.remove('visible');
+  seleccionAcumulada = {};
+  document.getElementById('pregunta').focus();
+});
+document.getElementById('selector-aceptar').addEventListener('click', () => {
+  const elegida = document.querySelector('input[name="variable-censo"]:checked');
+  if(!elegida) return;
+  document.getElementById('selector-variable').classList.remove('visible');
+  consultar(JSON.parse(elegida.value));
+});
+document.getElementById('operacion-reformular').addEventListener('click', () => {
+  document.getElementById('selector-operacion').classList.remove('visible');
+  seleccionAcumulada = {};
+  document.getElementById('pregunta').focus();
+});
+document.getElementById('fallo-reformular').addEventListener('click', () => {
+  document.getElementById('modal-fallo').classList.remove('visible');
+  document.getElementById('pregunta').focus();
+});
+document.querySelectorAll('#fallo-ejemplos button').forEach(boton => {
+  boton.addEventListener('click', () => {
+    document.getElementById('pregunta').value = boton.textContent.trim();
+    document.getElementById('modal-fallo').classList.remove('visible');
+    document.getElementById('pregunta').focus();
+  });
+});
+
+async function enviarRetroalimentacion(valor){
+  if(!resultadoActual?.feedback_id) return;
+  const respuesta = await fetch(BASE_API + '/api/retroalimentacion', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({feedback_id:resultadoActual.feedback_id, valor})
+  });
+  if(!respuesta.ok){
+    document.getElementById('feedback-mensaje').textContent = 'No se pudo guardar la valoración.';
+    return;
+  }
+  document.getElementById(valor === 'positivo' ? 'feedback-positivo' : 'feedback-negativo').classList.add('activa');
+  document.getElementById('feedback-mensaje').textContent =
+    valor === 'positivo' ? 'Respuesta guardada para reutilizarla.' : 'Gracias por ayudarnos a mejorar.';
+  if(valor === 'negativo') mostrarFallo('Sentimos no haber satisfecho tus expectativas.');
+}
+
+document.getElementById('feedback-positivo').addEventListener('click', () => enviarRetroalimentacion('positivo'));
+document.getElementById('feedback-negativo').addEventListener('click', () => enviarRetroalimentacion('negativo'));
+document.getElementById('btn-descargar').addEventListener('click', async () => {
+  if(!resultadoActual?.feedback_id) return;
+  const boton = document.getElementById('btn-descargar');
+  boton.disabled = true;
+  try{
+    const respuesta = await fetch(BASE_API + `/api/consulta/${encodeURIComponent(resultadoActual.feedback_id)}/excel`);
+    if(!respuesta.ok){
+      let error; try{ error = await respuesta.json(); }catch{}
+      throw new Error(error?.detail || 'No se pudo generar el Excel.');
+    }
+    const blob = await respuesta.blob();
+    const disposicion = respuesta.headers.get('content-disposition') || '';
+    const coincidencia = /filename="?([^";]+)"?/i.exec(disposicion);
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(blob);
+    enlace.download = coincidencia?.[1] || 'resultados_censo.xlsx';
+    document.body.appendChild(enlace); enlace.click(); enlace.remove();
+    URL.revokeObjectURL(enlace.href);
+  }catch(error){
+    mostrarFallo(error.message);
+  }finally{ boton.disabled = false; }
+});
+
+
+// v6: refuerzo del render P32. Se instala después de la v5 y sustituye helpers.
+function valorBarraP32V6(item, data){
+  const principal = data?.metrica === 'porcentaje' ? item?.porcentaje : item?.conteo;
+  const n = Number(principal);
+  if(Number.isFinite(n)) return n;
+  const respaldo = Number(item?.valor);
+  return Number.isFinite(respaldo) ? respaldo : null;
+}
+
+function escaparP32V6(valor){
+  return String(valor ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function iconoBarrasP32V6(barras, data){
+  const valores = (barras || []).map(x => valorBarraP32V6(x, data));
+  const validos = valores.filter(Number.isFinite);
+  const maximo = Math.max(...validos, 0);
+  const anchoBarra = 9, separacion = 3, baseY = 46, maxAlto = 38, inicioX = 7;
+  const rects = (barras || []).map((item, i) => {
+    const valor = valores[i];
+    const alto = Number.isFinite(valor) && maximo > 0 ? Math.max(4, Math.round(maxAlto * valor / maximo)) : 2;
+    const x = inicioX + i * (anchoBarra + separacion);
+    const y = baseY - alto;
+    const color = (typeof COLORES_P32 !== 'undefined' && COLORES_P32[i]) || '#4c78a8';
+    const etiqueta = escaparP32V6(item?.etiqueta || item?.variable || '');
+    const mostrado = Number.isFinite(valor)
+      ? valor.toLocaleString('es-CL',{maximumFractionDigits:1}) : 'Sin datos';
+    return `<rect x="${x}" y="${y}" width="${anchoBarra}" height="${alto}" rx="1.5" fill="${color}"><title>${etiqueta}: ${mostrado}</title></rect>`;
+  }).join('');
+  const eje = '<line x1="5" y1="46.5" x2="80" y2="46.5" stroke="#7c817c" stroke-width="0.7"/>';
+  return L.divIcon({
+    className:'p32-marker-wrap-v6',
+    html:`<div class="p32-mini-svg-wrap"><svg viewBox="0 0 84 52" aria-label="Gráfico de seis barras P32">${eje}${rects}</svg></div>`,
+    iconSize:[88,58], iconAnchor:[44,29], popupAnchor:[0,-28]
+  });
+}
+
+// Sustituye la versión v5 sin depender de cómo esté estructurado el dispatcher.
+iconoBarrasP32 = function(barras, data){ return iconoBarrasP32V6(barras, data || window.__p32DataActual); };
+
+const __pintarBarrasMapaV5 = pintarBarrasMapa;
+pintarBarrasMapa = async function(data){
+  document.body.classList.add('p32-mapa-activo');
+  window.__p32DataActual = data;
+  const territorios = Array.isArray(data?.datos) ? data.datos : [];
+  if(!territorios.length) throw new Error('No hay resultados P32 para mostrar en el mapa.');
+  const conDatos = territorios.filter(t => Array.isArray(t?.barras) && t.barras.some(b => Number.isFinite(valorBarraP32V6(b, data))));
+  if(!conDatos.length){
+    throw new Error('El servidor devolvió las dimensiones P32, pero ninguna contiene valores numéricos.');
+  }
+
+  // La v5 hace toda la gestión de geometrías, popups y leyenda. Solo necesita
+  // que iconoBarrasP32 conozca la métrica actual para dibujar valores reales.
+  try{
+    return await __pintarBarrasMapaV5(data);
+  } finally {
+    window.__p32DataActual = null;
+  }
+};
+
+
+// v7: limpieza universal de residuos P32 al cambiar de visualización.
+function finalizarCambioVisualizacionV7(data){
+  if(data?.tipo_visualizacion === 'barras_mapa') return;
+
+  // Retira exclusivamente la capa y leyenda de mini barras P32. No toca
+  // las capas recién dibujadas por la nueva visualización.
+  if(typeof limpiarBarrasP32Mapa === 'function'){
+    limpiarBarrasP32Mapa();
+  }
+
+  // La v6 usa esta clase para ocultar la leyenda coroplética durante P32.
+  // Al cambiar de visualización debe desaparecer siempre.
+  document.body.classList.remove('p32-mapa-activo');
+  window.__p32DataActual = null;
+
+  // El panel de barras de la antigua v4 no debe quedar visible al volver
+  // a mapas, tortas u otras visualizaciones.
+  if(data?.tipo_visualizacion !== 'barras'){
+    document.getElementById('grafico-barras')?.classList.remove('visible');
+  }
+}
+
+</script>
+
+<script id="v19-selector-close">
+// v19-selector-close: accesibilidad y cierre explícito del selector de variables.
+(function instalarCierreSelectorV19(){
+  const modal = document.getElementById('selector-variable');
+  if(!modal) return;
+  const contenido = modal.querySelector('.selector-contenido');
+  if(!contenido) return;
+
+  contenido.style.position = contenido.style.position || 'relative';
+
+  let cerrar = document.getElementById('selector-cerrar-v19');
+  if(!cerrar){
+    cerrar = document.createElement('button');
+    cerrar.id = 'selector-cerrar-v19';
+    cerrar.type = 'button';
+    cerrar.textContent = '×';
+    cerrar.setAttribute('aria-label', 'Cerrar selección de variable');
+    Object.assign(cerrar.style, {
+      position: 'absolute',
+      top: '8px',
+      right: '10px',
+      width: '34px',
+      height: '34px',
+      lineHeight: '28px',
+      fontSize: '26px',
+      cursor: 'pointer',
+      border: '1px solid #9ca3af',
+      borderRadius: '4px',
+      background: '#fff',
+      color: '#1f2937'
+    });
+    contenido.insertBefore(cerrar, contenido.firstChild);
+  }
+
+  function cerrarSelectorV19(){
+    modal.classList.remove('visible');
+    document.getElementById('pregunta')?.focus();
+  }
+
+  if(!cerrar.dataset.v19Bound){
+    cerrar.addEventListener('click', cerrarSelectorV19);
+    cerrar.dataset.v19Bound = '1';
+  }
+  const cancelar = document.getElementById('selector-cancelar');
+  if(cancelar && !cancelar.dataset.v19Bound){
+    cancelar.addEventListener('click', cerrarSelectorV19);
+    cancelar.dataset.v19Bound = '1';
+  }
+  if(!document.documentElement.dataset.selectorEscapeV19){
+    document.addEventListener('keydown', (event) => {
+      if(event.key === 'Escape' && modal.classList.contains('visible')){
+        event.preventDefault();
+        cerrarSelectorV19();
+      }
+    });
+    document.documentElement.dataset.selectorEscapeV19 = '1';
+  }
+})();
+</script>
+
+
+<style id="v22-matriz-od-style">
+#matriz-od-v22{display:none;margin:16px 0;padding:16px;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+#matriz-od-v22.visible{display:block}
+#matriz-od-v22 h3{margin:0 0 6px;font-size:1.12rem}
+#matriz-od-v22 .od-subtitulo{margin:0 0 14px;color:#4b5563}
+#matriz-od-v22 .od-controles{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:end;margin-bottom:12px}
+#matriz-od-v22 label{font-size:.82rem;font-weight:600;color:#374151;display:flex;flex-direction:column;gap:4px}
+#matriz-od-v22 select{min-width:150px;padding:6px 8px;border:1px solid #9ca3af;border-radius:4px;background:#fff}
+#matriz-od-v22 .od-check{flex-direction:row;align-items:center;padding-bottom:7px;font-weight:500}
+#matriz-od-v22 .od-resumen{font-size:.86rem;color:#374151;margin:8px 0 10px}
+#matriz-od-v22 .od-scroll{max-height:62vh;overflow:auto;border:1px solid #d1d5db;background:#fff}
+#matriz-od-v22 table{border-collapse:separate;border-spacing:0;font-size:.78rem;min-width:max-content}
+#matriz-od-v22 th,#matriz-od-v22 td{border-right:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;padding:5px 7px;text-align:right;white-space:nowrap}
+#matriz-od-v22 th{background:#174a7e;color:#fff;font-weight:600;position:sticky;z-index:2}
+#matriz-od-v22 thead th{top:0}
+#matriz-od-v22 tbody th{left:0;text-align:left;z-index:1}
+#matriz-od-v22 thead th:first-child{left:0;z-index:4}
+#matriz-od-v22 td.od-diagonal{outline:2px solid rgba(23,74,126,.35);outline-offset:-2px}
+#matriz-od-v22 .od-ranking{margin-top:16px}
+#matriz-od-v22 .od-ranking h4{margin:0 0 8px}
+#matriz-od-v22 .od-barra-fila{display:grid;grid-template-columns:minmax(220px,1fr) 3fr 90px;gap:8px;align-items:center;margin:5px 0;font-size:.8rem}
+#matriz-od-v22 .od-barra-track{height:14px;background:#eef2f7;border-radius:3px;overflow:hidden}
+#matriz-od-v22 .od-barra{height:100%;background:#174a7e;min-width:1px}
+#matriz-od-v22 .od-barra-valor{text-align:right;font-variant-numeric:tabular-nums}
+@media(max-width:800px){#matriz-od-v22 .od-barra-fila{grid-template-columns:1fr 2fr 70px}.od-controles label{width:100%}}
+</style>
+
+
+<script id="v22-matriz-od">
+(function instalarMatrizODV22(){
+  function panel(){
+    let p=document.getElementById('matriz-od-v22');
+    if(p) return p;
+    p=document.createElement('section'); p.id='matriz-od-v22';
+    p.innerHTML=`
+      <h3 id="od-titulo-v22">Movilidad laboral entre comunas</h3>
+      <p class="od-subtitulo" id="od-subtitulo-v22"></p>
+      <div class="od-controles">
+        <label>Métrica<select id="od-metrica-v22"><option value="cantidad">Cantidad</option><option value="porcentaje_origen">% por comuna de residencia</option><option value="porcentaje_destino">% por comuna de trabajo</option></select></label>
+        <label>Mostrar<select id="od-top-v22"><option value="20">20 principales flujos</option><option value="50">50 principales flujos</option><option value="100">100 principales flujos</option><option value="all">Todas las combinaciones</option></select></label>
+        <label>Región de residencia<select id="od-region-o-v22"><option value="all">Todas</option></select></label>
+        <label>Región de trabajo<select id="od-region-d-v22"><option value="all">Todas</option></select></label>
+        <label class="od-check"><input type="checkbox" id="od-diagonal-v22"> Incluir misma comuna</label>
+      </div>
+      <div class="od-resumen" id="od-resumen-v22"></div>
+      <div class="od-scroll"><table id="od-tabla-v22"></table></div>
+      <div class="od-ranking"><h4>Principales flujos seleccionados</h4><div id="od-ranking-v22"></div></div>`;
+    const mapa=document.getElementById('map')||document.getElementById('mapa')||document.querySelector('.leaflet-container');
+    if(mapa?.parentNode) mapa.parentNode.insertBefore(p,mapa); else document.body.appendChild(p);
+    ['od-metrica-v22','od-top-v22','od-region-o-v22','od-region-d-v22','od-diagonal-v22'].forEach(id=>{
+      document.getElementById(id)?.addEventListener('change',render);
+    });
+    return p;
+  }
+
+  const fmtInt=new Intl.NumberFormat('es-CL',{maximumFractionDigits:0});
+  const fmtPct=new Intl.NumberFormat('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1});
+  function nombreMetrica(k){return k==='porcentaje_origen'?'% origen':k==='porcentaje_destino'?'% destino':'Cantidad'}
+  function valorFmt(k,v){return k==='cantidad'?fmtInt.format(v||0):`${fmtPct.format(v||0)} %`}
+  function ocultarMapas(ocultar){
+    ['map','mapa','grafico-barras'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=ocultar?'none':'';});
+    document.querySelectorAll('.leaflet-container').forEach(el=>el.style.display=ocultar?'none':'');
+  }
+  function llenarRegiones(select, flujos, lado){
+    const mapa=new Map();
+    for(const f of flujos){mapa.set(f[`${lado}_region_codigo`],f[`${lado}_region_nombre`]);}
+    const actual=select.value;
+    select.innerHTML='<option value="all">Todas</option>'+[...mapa.entries()].sort((a,b)=>String(a[1]).localeCompare(String(b[1]),'es')).map(([c,n])=>`<option value="${c}">${n}</option>`).join('');
+    if([...select.options].some(o=>o.value===actual)) select.value=actual;
+  }
+  function flujosFiltrados(){
+    const d=window.__odV22Data; if(!d) return [];
+    const ro=document.getElementById('od-region-o-v22')?.value||'all';
+    const rd=document.getElementById('od-region-d-v22')?.value||'all';
+    const diagonal=document.getElementById('od-diagonal-v22')?.checked;
+    let f=(d.flujos_od||[]).filter(x=>(ro==='all'||String(x.origen_region_codigo)===ro)&&(rd==='all'||String(x.destino_region_codigo)===rd)&&(diagonal||!x.misma_comuna));
+    // Recalcula porcentajes sobre el ámbito visible ANTES de aplicar Top N.
+    // Así los cambios de región/diagonal en la UI mantienen denominadores coherentes.
+    const totO=new Map(), totD=new Map();
+    for(const x of f){totO.set(x.origen_codigo,(totO.get(x.origen_codigo)||0)+(x.cantidad||0));totD.set(x.destino_codigo,(totD.get(x.destino_codigo)||0)+(x.cantidad||0));}
+    f=f.map(x=>({...x,porcentaje_origen:100*(x.cantidad||0)/(totO.get(x.origen_codigo)||1),porcentaje_destino:100*(x.cantidad||0)/(totD.get(x.destino_codigo)||1)}));
+    f.sort((a,b)=>(b.cantidad||0)-(a.cantidad||0)||a.origen_nombre.localeCompare(b.origen_nombre,'es'));
+    const top=document.getElementById('od-top-v22')?.value||'20';
+    if(top!=='all') f=f.slice(0,Number(top));
+    return f;
+  }
+  function render(){
+    const d=window.__odV22Data; if(!d) return;
+    const flujos=flujosFiltrados();
+    const metrica=document.getElementById('od-metrica-v22')?.value||'cantidad';
+    const tabla=document.getElementById('od-tabla-v22');
+    const origenes=[...new Map(flujos.map(f=>[f.origen_codigo,{codigo:f.origen_codigo,nombre:f.origen_nombre,total:0}])).values()];
+    const destinos=[...new Map(flujos.map(f=>[f.destino_codigo,{codigo:f.destino_codigo,nombre:f.destino_nombre,total:0}])).values()];
+    for(const f of flujos){origenes.find(x=>x.codigo===f.origen_codigo).total+=f.cantidad||0;destinos.find(x=>x.codigo===f.destino_codigo).total+=f.cantidad||0;}
+    origenes.sort((a,b)=>b.total-a.total||a.nombre.localeCompare(b.nombre,'es')); destinos.sort((a,b)=>b.total-a.total||a.nombre.localeCompare(b.nombre,'es'));
+    const lookup=new Map(flujos.map(f=>[`${f.origen_codigo}|${f.destino_codigo}`,f]));
+    const max=Math.max(0,...flujos.map(f=>Number(f[metrica])||0));
+    let html='<thead><tr><th>Residencia ↓ / Trabajo →</th>'+destinos.map(d=>`<th>${d.nombre}</th>`).join('')+'<th>Total cantidad origen</th></tr></thead><tbody>';
+    for(const o of origenes){
+      html+=`<tr><th>${o.nombre}</th>`;
+      for(const de of destinos){
+        const f=lookup.get(`${o.codigo}|${de.codigo}`); const val=f?Number(f[metrica]):null;
+        const alpha=val==null||max<=0?0:0.08+0.82*(val/max);
+        const style=val==null?'':`background:rgba(23,74,126,${alpha.toFixed(3)});color:${alpha>.55?'#fff':'#111827'}`;
+        const tip=f?`${o.nombre} → ${de.nombre}\nCantidad: ${fmtInt.format(f.cantidad)}\n% origen: ${fmtPct.format(f.porcentaje_origen)} %\n% destino: ${fmtPct.format(f.porcentaje_destino)} %`:'';
+        html+=`<td class="${o.codigo===de.codigo?'od-diagonal':''}" style="${style}" title="${tip.replaceAll('"','&quot;')}">${val==null?'':valorFmt(metrica,val)}</td>`;
+      }
+      html+=`<td><strong>${fmtInt.format(o.total)}</strong></td></tr>`;
+    }
+    html+='<tr><th>Total cantidad destino</th>'+destinos.map(x=>`<td><strong>${fmtInt.format(x.total)}</strong></td>`).join('')+`<td><strong>${fmtInt.format(flujos.reduce((a,b)=>a+(b.cantidad||0),0))}</strong></td></tr></tbody>`;
+    tabla.innerHTML=html;
+    document.getElementById('od-resumen-v22').textContent=`${flujos.length} flujos visibles · ${origenes.length} comunas de residencia · ${destinos.length} comunas de trabajo · ${nombreMetrica(metrica)}`;
+    const rank=document.getElementById('od-ranking-v22'); const topR=[...flujos].sort((a,b)=>b.cantidad-a.cantidad).slice(0,20); const mx=Math.max(1,...topR.map(x=>x.cantidad||0));
+    rank.innerHTML=topR.map(f=>`<div class="od-barra-fila"><span>${f.origen_nombre} → ${f.destino_nombre}</span><div class="od-barra-track"><div class="od-barra" style="width:${100*(f.cantidad||0)/mx}%"></div></div><span class="od-barra-valor">${fmtInt.format(f.cantidad||0)}</span></div>`).join('')||'<p>Sin flujos para los filtros seleccionados.</p>';
+  }
+
+  window.pintarMatrizODV22=async function(data){
+    window.__odV22Data=data; const p=panel(); p.classList.add('visible'); ocultarMapas(true);
+    document.getElementById('od-titulo-v22').textContent=data?.interpretacion?.descripcion||'Movilidad laboral entre comunas';
+    document.getElementById('od-subtitulo-v22').textContent=data?.nota||'';
+    const flujos=data.flujos_od||[];
+    llenarRegiones(document.getElementById('od-region-o-v22'),flujos,'origen'); llenarRegiones(document.getElementById('od-region-d-v22'),flujos,'destino');
+    document.getElementById('od-metrica-v22').value=data?.config_od?.metrica||'cantidad';
+    document.getElementById('od-diagonal-v22').checked=Boolean(data?.config_od?.incluir_diagonal);
+    const top=data?.config_od?.mostrar_todas?'all':String(data?.config_od?.top_n||20); const topSel=document.getElementById('od-top-v22'); if([...topSel.options].some(o=>o.value===top))topSel.value=top; else topSel.value='20';
+    render(); p.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  window.finalizarCambioVisualizacionV22=function(data){
+    if(data?.tipo_visualizacion==='matriz_od') return;
+    document.getElementById('matriz-od-v22')?.classList.remove('visible'); window.__odV22Data=null; ocultarMapas(false);
+  };
+})();
+</script>
+
+
+<script id="v23-od-migracion">
+(function adaptarMatrizODV23(){
+  if(window.__v23ODInstalado) return; window.__v23ODInstalado=true;
+  const original=window.pintarMatrizODV22;
+  if(typeof original!=='function') return;
+  let ultimo=null, observer=null;
+  function textNode(label, texto){
+    if(!label) return;
+    const n=[...label.childNodes].find(x=>x.nodeType===Node.TEXT_NODE);
+    if(n && n.nodeValue!==texto) n.nodeValue=texto;
+  }
+  function adaptar(){
+    const d=ultimo; if(!d) return;
+    const c=d.config_od||{};
+    const unidad=c.unidad||'comuna', plural=c.unidad_plural||(unidad==='región'?'regiones':'comunas');
+    const o=c.origen_etiqueta||(unidad==='región'?'Región de residencia':'Comuna de residencia');
+    const de=c.destino_etiqueta||(unidad==='región'?'Región de trabajo':'Comuna de trabajo');
+    const oc=c.origen_corto||'Origen', dc=c.destino_corto||'Destino';
+    const met=document.getElementById('od-metrica-v22');
+    if(met?.options?.length>=3){met.options[1].textContent=`% por ${o.toLowerCase()}`;met.options[2].textContent=`% por ${de.toLowerCase()}`;}
+    textNode(document.getElementById('od-region-o-v22')?.parentElement,(c.region_origen_etiqueta||'Región de origen'));
+    textNode(document.getElementById('od-region-d-v22')?.parentElement,(c.region_destino_etiqueta||'Región de destino'));
+    const chk=document.getElementById('od-diagonal-v22');
+    if(chk?.parentElement){
+      const nodes=[...chk.parentElement.childNodes].filter(x=>x.nodeType===Node.TEXT_NODE);
+      if(nodes.length){const t=' '+(c.diagonal_etiqueta||`Incluir misma ${unidad}`); if(nodes[nodes.length-1].nodeValue!==t)nodes[nodes.length-1].nodeValue=t;}
+    }
+    const h4=document.querySelector('#matriz-od-v22 .od-ranking h4');
+    const rt=c.ranking_titulo||'Principales flujos seleccionados'; if(h4&&h4.textContent!==rt)h4.textContent=rt;
+    const th=document.querySelector('#od-tabla-v22 thead th:first-child');
+    const cab=`${o} ↓ / ${de} →`; if(th&&th.textContent!==cab)th.textContent=cab;
+    const thead=[...document.querySelectorAll('#od-tabla-v22 thead th')];
+    const lastHead=thead[thead.length-1]; if(lastHead&&lastHead.textContent!=='Total cantidad origen') lastHead.textContent='Total cantidad origen';
+    const totalRow=document.querySelector('#od-tabla-v22 tbody tr:last-child th');
+    if(totalRow&&totalRow.textContent!=='Total cantidad destino') totalRow.textContent='Total cantidad destino';
+    const res=document.getElementById('od-resumen-v22');
+    if(res){
+      let t=res.textContent||'';
+      t=t.replace(/comunas de residencia/g,`${plural} de origen`).replace(/comunas de trabajo/g,`${plural} de destino`);
+      if(res.textContent!==t)res.textContent=t;
+    }
+    const p=document.getElementById('od-subtitulo-v22');
+    if(p && c.dominio==='migracion_interna' && !(p.textContent||'').includes('2019')){
+      p.textContent=d.nota||'Migración interna 2019–2024: origen = residencia en abril de 2019; destino = residencia actual.';
+    }
+  }
+  window.pintarMatrizODV22=async function(data){
+    ultimo=data; await original(data); adaptar();
+    const tabla=document.getElementById('od-tabla-v22'), resumen=document.getElementById('od-resumen-v22');
+    if(observer)observer.disconnect(); observer=new MutationObserver(()=>queueMicrotask(adaptar));
+    if(tabla)observer.observe(tabla,{subtree:true,childList:true,characterData:true});
+    if(resumen)observer.observe(resumen,{subtree:true,childList:true,characterData:true});
+  };
+})();
+</script>
+
+
+<style id="v25-mapa-matriz-interfaz-style">
+/* v25-mapa-matriz-interfaz: acciones en la misma línea visual de los ejemplos. */
+#acciones-resultado.v25-en-ejemplos{
+  position:static !important;
+  inset:auto !important;
+  top:auto !important;
+  right:auto !important;
+  z-index:auto !important;
+  margin-left:auto;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  align-items:center;
+  gap:7px;
+  flex:0 0 auto;
+}
+#acciones-resultado.v25-en-ejemplos.visible{display:flex;}
+#acciones-resultado.v25-en-ejemplos .accion-resultado{
+  height:30px;
+  min-width:34px;
+  border-radius:5px;
+  background:#fffdf8;
+}
+#acciones-resultado.v25-en-ejemplos #btn-descargar{height:30px;}
+#acciones-resultado.v25-en-ejemplos #feedback-mensaje{
+  max-width:190px;
+  line-height:1.25;
+}
+
+/* Pestañas OD: quedan después de la descripción y antes de los selectores. */
+#matriz-od-v22 .od-pestanas-v25{
+  display:flex;
+  gap:4px;
+  margin:2px 0 14px;
+  border-bottom:1px solid var(--linea,#d8d2c2);
+}
+#matriz-od-v22 .od-pestana-v25{
+  appearance:none;
+  border:0;
+  border-bottom:3px solid transparent;
+  background:transparent;
+  color:#5a5245;
+  padding:8px 15px 9px;
+  margin-bottom:-1px;
+  font:inherit;
+  font-size:.86rem;
+  font-weight:600;
+  cursor:pointer;
+}
+#matriz-od-v22 .od-pestana-v25:hover{background:#f3f5f1;color:var(--acento,#2f5d50);}
+#matriz-od-v22 .od-pestana-v25[aria-selected="true"]{
+  color:var(--acento,#2f5d50);
+  border-bottom-color:var(--acento,#2f5d50);
+  background:#eef2ee;
+}
+#matriz-od-v22 .od-pestana-v25:focus-visible{outline:2px solid var(--cobre,#b5652c);outline-offset:2px;}
+
+/* Vista cartográfica OD. El mapa usa los datos ya calculados y solo pide geometría. */
+#od-vista-mapa-v25{display:none;}
+#od-vista-mapa-v25.visible{display:block;}
+#od-mapa-v25{
+  width:100%;
+  height:min(62vh,620px);
+  min-height:420px;
+  border:1px solid #d1d5db;
+  border-radius:5px;
+  overflow:hidden;
+  background:#eef0ec;
+}
+#od-mapa-estado-v25{margin:9px 0 0;color:#4b5563;font-size:.8rem;line-height:1.4;}
+#od-mapa-leyenda-v25{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 18px;
+  margin:9px 0 0;
+  color:#4b5563;
+  font-size:.78rem;
+}
+#od-mapa-leyenda-v25 span{display:inline-flex;align-items:center;gap:6px;}
+#od-mapa-leyenda-v25 .muestra-linea{width:28px;height:0;border-top:3px solid var(--cobre,#b5652c);}
+#od-mapa-leyenda-v25 .muestra-flecha{font-size:1rem;color:var(--cobre,#b5652c);}
+.od-flecha-flujo-v25{background:transparent !important;border:0 !important;}
+.od-flecha-flujo-v25 span{
+  display:block;
+  color:#8a4a1e;
+  font-size:17px;
+  line-height:17px;
+  font-weight:700;
+  text-shadow:0 1px 2px #fff,0 0 3px #fff;
+  transform:rotate(var(--angulo,0deg));
+  transform-origin:center;
+}
+.od-popup-v25{min-width:220px;line-height:1.45;}
+.od-popup-v25 strong{display:block;margin-bottom:4px;}
+
+/* La matriz actual queda en su propia vista y conserva sus selectores/estado. */
+#matriz-od-v22.v25-vista-mapa .od-scroll,
+#matriz-od-v22.v25-vista-mapa .od-ranking{display:none;}
+#matriz-od-v22.v25-vista-matriz #od-vista-mapa-v25{display:none;}
+
+/* Ranking desplegable con flecha y transición discreta. */
+#matriz-od-v22 .od-ranking-cabecera-v25{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+  cursor:pointer;
+}
+#matriz-od-v22 .od-ranking-cabecera-v25 h4{margin:0;}
+#matriz-od-v22 .od-ranking-toggle-v25{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border:1px solid #d1d5db;
+  border-radius:5px;
+  background:#fff;
+  color:var(--acento,#2f5d50);
+  cursor:pointer;
+}
+#matriz-od-v22 .od-ranking-flecha-v25{
+  display:inline-block;
+  font-size:1.15rem;
+  line-height:1;
+  transform:rotate(90deg);
+  transition:transform 220ms ease;
+}
+#matriz-od-v22 .od-ranking-toggle-v25[aria-expanded="false"] .od-ranking-flecha-v25{transform:rotate(0deg);}
+#od-ranking-v22.od-ranking-contenido-v25{
+  overflow:hidden;
+  opacity:1;
+  transition:max-height 220ms ease,opacity 180ms ease;
+}
+#od-ranking-v22.od-ranking-contenido-v25.v25-colapsado{opacity:0;}
+
+@media(max-width:850px){
+  #acciones-resultado.v25-en-ejemplos{
+    width:100%;
+    margin-left:0;
+    margin-top:4px;
+    justify-content:flex-start;
+  }
+  #acciones-resultado.v25-en-ejemplos #feedback-mensaje{max-width:none;}
+  #od-mapa-v25{min-height:360px;height:55vh;}
+}
+@media(prefers-reduced-motion:reduce){
+  #matriz-od-v22 .od-ranking-flecha-v25,
+  #od-ranking-v22.od-ranking-contenido-v25{transition:none;}
+}
+</style>
+
+
+<script id="v25-mapa-matriz-interfaz">
+(function instalarInterfazV25(){
+  'use strict';
+  if(window.__interfazV25Instalada) return;
+  window.__interfazV25Instalada=true;
+
+  // -----------------------------------------------------------------------
+  // 1. Reubica feedback/Excel junto a los botones de ejemplo.
+  //    Se hace al final de la carga para conservar todos los listeners previos.
+  // -----------------------------------------------------------------------
+  function reubicarAccionesV25(){
+    const acciones=document.getElementById('acciones-resultado');
+    const ejemplos=document.querySelector('.ejemplos');
+    if(!acciones || !ejemplos || acciones.classList.contains('v25-en-ejemplos')) return;
+    acciones.classList.add('v25-en-ejemplos');
+    ejemplos.appendChild(acciones);
+  }
+  reubicarAccionesV25();
+
+  // -----------------------------------------------------------------------
+  // 2. Estado del mapa OD. La consulta estadística no se repite al cambiar
+  //    de pestaña: todo se deriva de window.__odV22Data y de los selectores.
+  // -----------------------------------------------------------------------
+  let mapaODV25=null;
+  let capaODV25=null;
+  let vistaODV25='mapa';
+  let secuenciaRenderV25=0;
+  const cacheGeometriasV25=new Map();
+
+  function apiBaseV25(){
+    try{ return typeof BASE_API!=='undefined' ? BASE_API : ''; }
+    catch(_){ return location.protocol==='file:' ? 'http://localhost:8000' : ''; }
+  }
+
+  function normalizarCodigoV25(valor){
+    if(valor===null || valor===undefined) return '';
+    const numero=Number(valor);
+    return Number.isFinite(numero) ? String(Math.trunc(numero)) : String(valor);
+  }
+
+  async function cargarGeometriasV25(nivel){
+    const clave=String(nivel||'comuna').toLowerCase();
+    if(cacheGeometriasV25.has(clave)) return cacheGeometriasV25.get(clave);
+    const promesa=(async()=>{
+      const respuesta=await fetch(`${apiBaseV25()}/api/geometrias/${encodeURIComponent(clave)}`,{headers:{'Accept':'application/geo+json'}});
+      if(!respuesta.ok) throw new Error(`No se pudieron cargar las geometrías de ${clave}.`);
+      const geo=await respuesta.json();
+      if(geo?.type!=='FeatureCollection' || !Array.isArray(geo.features))
+        throw new Error('La geometría recibida no tiene un formato válido.');
+      return geo;
+    })();
+    cacheGeometriasV25.set(clave,promesa);
+    try{return await promesa;}catch(error){cacheGeometriasV25.delete(clave);throw error;}
+  }
+
+  // Reproduce la lógica visible de v22 para que mapa y matriz compartan filtros.
+  function flujosVisiblesV25(){
+    const data=window.__odV22Data;
+    if(!data) return [];
+    const regionOrigen=document.getElementById('od-region-o-v22')?.value||'all';
+    const regionDestino=document.getElementById('od-region-d-v22')?.value||'all';
+    const incluirDiagonal=Boolean(document.getElementById('od-diagonal-v22')?.checked);
+    let flujos=(data.flujos_od||[]).filter(f=>
+      (regionOrigen==='all' || String(f.origen_region_codigo)===regionOrigen) &&
+      (regionDestino==='all' || String(f.destino_region_codigo)===regionDestino) &&
+      (incluirDiagonal || !(f.misma_comuna || f.misma_unidad))
+    );
+
+    // Los porcentajes se recalculan sobre el subconjunto visible, igual que en v22.
+    const totalesOrigen=new Map(),totalesDestino=new Map();
+    for(const f of flujos){
+      totalesOrigen.set(f.origen_codigo,(totalesOrigen.get(f.origen_codigo)||0)+(Number(f.cantidad)||0));
+      totalesDestino.set(f.destino_codigo,(totalesDestino.get(f.destino_codigo)||0)+(Number(f.cantidad)||0));
+    }
+    flujos=flujos.map(f=>({
+      ...f,
+      porcentaje_origen:100*(Number(f.cantidad)||0)/(totalesOrigen.get(f.origen_codigo)||1),
+      porcentaje_destino:100*(Number(f.cantidad)||0)/(totalesDestino.get(f.destino_codigo)||1)
+    }));
+    flujos.sort((a,b)=>(Number(b.cantidad)||0)-(Number(a.cantidad)||0)||String(a.origen_nombre).localeCompare(String(b.origen_nombre),'es'));
+    const top=document.getElementById('od-top-v22')?.value||'20';
+    if(top!=='all') flujos=flujos.slice(0,Number(top));
+    return flujos;
+  }
+
+  function crearPopupFlujoV25(f){
+    const cont=document.createElement('div');
+    cont.className='od-popup-v25';
+    const titulo=document.createElement('strong');
+    titulo.textContent=`${f.origen_nombre} → ${f.destino_nombre}`;
+    const cantidad=document.createElement('div');
+    cantidad.textContent=`Cantidad: ${Number(f.cantidad||0).toLocaleString('es-CL')}`;
+    const pOrigen=document.createElement('div');
+    pOrigen.textContent=`% origen: ${Number(f.porcentaje_origen||0).toLocaleString('es-CL',{maximumFractionDigits:1})} %`;
+    const pDestino=document.createElement('div');
+    pDestino.textContent=`% destino: ${Number(f.porcentaje_destino||0).toLocaleString('es-CL',{maximumFractionDigits:1})} %`;
+    cont.append(titulo,cantidad,pOrigen,pDestino);
+    return cont;
+  }
+
+  function anguloFlujoV25(origen,destino){
+    const lat1=origen.lat*Math.PI/180,lat2=destino.lat*Math.PI/180;
+    const dLon=(destino.lng-origen.lng)*Math.PI/180;
+    const y=Math.sin(dLon)*Math.cos(lat2);
+    const x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+    const rumbo=Math.atan2(y,x)*180/Math.PI;
+    // El glifo ➤ apunta a la derecha; -90 convierte el rumbo (0°=norte) a rotación CSS (0°=derecha).
+    return rumbo-90;
+  }
+
+  function puntoMedioV25(a,b){return [(a.lat+b.lat)/2,(a.lng+b.lng)/2];}
+
+  async function renderMapaODV25(){
+    if(vistaODV25!=='mapa' || !window.__odV22Data) return;
+    const panel=document.getElementById('matriz-od-v22');
+    const contenedor=document.getElementById('od-mapa-v25');
+    const estado=document.getElementById('od-mapa-estado-v25');
+    if(!panel || !contenedor || !estado || typeof L==='undefined') return;
+    const secuencia=++secuenciaRenderV25;
+    estado.textContent='Preparando el mapa…';
+
+    try{
+      const data=window.__odV22Data;
+      const nivel=data.nivel_geografico || data.config_od?.unidad || 'comuna';
+      const geo=await cargarGeometriasV25(nivel);
+      if(secuencia!==secuenciaRenderV25 || vistaODV25!=='mapa') return;
+
+      if(!mapaODV25){
+        mapaODV25=L.map(contenedor,{zoomControl:true,preferCanvas:true});
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+          attribution:'&copy; OpenStreetMap',maxZoom:18
+        }).addTo(mapaODV25);
+      }
+      if(capaODV25) mapaODV25.removeLayer(capaODV25);
+      capaODV25=L.layerGroup().addTo(mapaODV25);
+
+      const porCodigo=new Map();
+      for(const feature of geo.features){
+        const p=feature.properties||{};
+        const codigo=normalizarCodigoV25(p.codigo);
+        const lat=Number(p.centro_lat),lng=Number(p.centro_lon);
+        if(codigo && Number.isFinite(lat) && Number.isFinite(lng)) porCodigo.set(codigo,{feature,lat,lng});
+      }
+
+      const flujos=flujosVisiblesV25();
+      const LIMITE_MAPA=150;
+      const flujosMapa=flujos.slice(0,LIMITE_MAPA);
+      const codigos=new Set();
+      for(const f of flujosMapa){codigos.add(normalizarCodigoV25(f.origen_codigo));codigos.add(normalizarCodigoV25(f.destino_codigo));}
+
+      // Dibuja solo los territorios involucrados para mantener el mapa legible.
+      const featuresRelevantes=geo.features.filter(f=>codigos.has(normalizarCodigoV25(f.properties?.codigo)));
+      if(featuresRelevantes.length){
+        L.geoJSON({type:'FeatureCollection',features:featuresRelevantes},{
+          style:{fillColor:'#eef2ee',fillOpacity:.28,color:'#7a715f',weight:.8}
+        }).addTo(capaODV25);
+      }
+
+      const metrica=document.getElementById('od-metrica-v22')?.value||'cantidad';
+      const maximo=Math.max(1,...flujosMapa.map(f=>Number(f[metrica])||0));
+      const limites=[];
+
+      for(const f of flujosMapa){
+        const origen=porCodigo.get(normalizarCodigoV25(f.origen_codigo));
+        const destino=porCodigo.get(normalizarCodigoV25(f.destino_codigo));
+        if(!origen || !destino) continue;
+        limites.push([origen.lat,origen.lng],[destino.lat,destino.lng]);
+        const valor=Math.max(0,Number(f[metrica])||0);
+        const intensidad=Math.sqrt(valor/maximo);
+
+        // Los casos origen=destino se representan con un círculo, no con una línea nula.
+        if(normalizarCodigoV25(f.origen_codigo)===normalizarCodigoV25(f.destino_codigo)){
+          L.circleMarker([origen.lat,origen.lng],{
+            radius:5+7*intensidad,color:'#8a4a1e',weight:1.4,fillColor:'#b5652c',fillOpacity:.35+.45*intensidad
+          }).bindPopup(crearPopupFlujoV25(f)).addTo(capaODV25);
+          continue;
+        }
+
+        const linea=L.polyline([[origen.lat,origen.lng],[destino.lat,destino.lng]],{
+          color:'#b5652c',weight:1.1+5.2*intensidad,opacity:.3+.6*intensidad
+        }).bindPopup(crearPopupFlujoV25(f));
+        linea.addTo(capaODV25);
+
+        // La flecha señala dirección origen → destino sin depender de plugins externos.
+        const angulo=anguloFlujoV25(origen,destino);
+        const icono=L.divIcon({
+          className:'od-flecha-flujo-v25',
+          html:`<span style="--angulo:${angulo.toFixed(1)}deg">➤</span>`,
+          iconSize:[18,18],iconAnchor:[9,9]
+        });
+        L.marker(puntoMedioV25(origen,destino),{icon:icono,interactive:false,keyboard:false}).addTo(capaODV25);
+      }
+
+      // Marca discretamente los centros que participan en los flujos visibles.
+      for(const codigo of codigos){
+        const p=porCodigo.get(codigo);
+        if(!p) continue;
+        L.circleMarker([p.lat,p.lng],{radius:2.8,color:'#2f5d50',weight:1,fillColor:'#2f5d50',fillOpacity:.85}).addTo(capaODV25);
+      }
+
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+      mapaODV25.invalidateSize(false);
+      if(limites.length){
+        const bounds=L.latLngBounds(limites);
+        if(bounds.isValid()) mapaODV25.fitBounds(bounds,{padding:[30,30],animate:false,maxZoom:9});
+      }else{
+        mapaODV25.setView([-35.5,-71.5],4);
+      }
+
+      if(!flujos.length){
+        estado.textContent='No hay flujos para los filtros seleccionados.';
+      }else if(flujos.length>flujosMapa.length){
+        estado.textContent=`Se muestran los ${flujosMapa.length.toLocaleString('es-CL')} flujos de mayor magnitud de ${flujos.length.toLocaleString('es-CL')} visibles, para mantener legible el mapa.`;
+      }else{
+        estado.textContent=`${flujos.length.toLocaleString('es-CL')} flujos visibles. Los selectores modifican mapa y matriz con los mismos datos.`;
+      }
+    }catch(error){
+      estado.textContent=error?.message||'No se pudo preparar el mapa.';
+      if(mapaODV25){mapaODV25.invalidateSize(false);}
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // 3. Crea las pestañas en el lugar solicitado: tras título/descripción y
+  //    antes de los selectores. El mapa queda activo al mostrar un resultado.
+  // -----------------------------------------------------------------------
+  function crearPestanasV25(panel){
+    if(panel.querySelector('.od-pestanas-v25')) return;
+    const controles=panel.querySelector('.od-controles');
+    if(!controles) return;
+    const tabs=document.createElement('div');
+    tabs.className='od-pestanas-v25';
+    tabs.setAttribute('role','tablist');
+    tabs.setAttribute('aria-label','Vista del resultado');
+    tabs.innerHTML=`
+      <button type="button" class="od-pestana-v25" id="od-tab-mapa-v25" role="tab" aria-selected="true" aria-controls="od-vista-mapa-v25">Mapa</button>
+      <button type="button" class="od-pestana-v25" id="od-tab-matriz-v25" role="tab" aria-selected="false" aria-controls="od-tabla-v22">Matriz</button>`;
+    panel.insertBefore(tabs,controles);
+
+    const vistaMapa=document.createElement('section');
+    vistaMapa.id='od-vista-mapa-v25';
+    vistaMapa.setAttribute('role','tabpanel');
+    vistaMapa.setAttribute('aria-labelledby','od-tab-mapa-v25');
+    vistaMapa.innerHTML=`
+      <div id="od-mapa-v25" aria-label="Mapa de flujos origen-destino"></div>
+      <div id="od-mapa-leyenda-v25" aria-label="Leyenda del mapa">
+        <span><i class="muestra-linea" aria-hidden="true"></i> Grosor = intensidad del flujo</span>
+        <span><i class="muestra-flecha" aria-hidden="true">➤</i> Origen → destino</span>
+      </div>
+      <p id="od-mapa-estado-v25" role="status" aria-live="polite"></p>`;
+    const resumen=panel.querySelector('.od-resumen');
+    if(resumen?.nextSibling) panel.insertBefore(vistaMapa,resumen.nextSibling);
+    else panel.appendChild(vistaMapa);
+
+    document.getElementById('od-tab-mapa-v25')?.addEventListener('click',()=>activarVistaV25('mapa'));
+    document.getElementById('od-tab-matriz-v25')?.addEventListener('click',()=>activarVistaV25('matriz'));
+  }
+
+  function activarVistaV25(vista,forzar=false,renderizar=true){
+    const panel=document.getElementById('matriz-od-v22');
+    if(!panel || (!forzar && vistaODV25===vista)) return;
+    vistaODV25=vista;
+    const mapaActivo=vista==='mapa';
+    panel.classList.toggle('v25-vista-mapa',mapaActivo);
+    panel.classList.toggle('v25-vista-matriz',!mapaActivo);
+    document.getElementById('od-vista-mapa-v25')?.classList.toggle('visible',mapaActivo);
+    const tabMapa=document.getElementById('od-tab-mapa-v25');
+    const tabMatriz=document.getElementById('od-tab-matriz-v25');
+    tabMapa?.setAttribute('aria-selected',mapaActivo?'true':'false');
+    tabMatriz?.setAttribute('aria-selected',mapaActivo?'false':'true');
+    tabMapa?.setAttribute('tabindex',mapaActivo?'0':'-1');
+    tabMatriz?.setAttribute('tabindex',mapaActivo?'-1':'0');
+    if(mapaActivo){
+      // v22 puede ocultar todas las capas Leaflet; se restablece este mapa al volver a la pestaña.
+      const contenedorMapa=document.getElementById('od-mapa-v25');
+      if(contenedorMapa) contenedorMapa.style.display='';
+      if(renderizar) requestAnimationFrame(()=>{mapaODV25?.invalidateSize(false);renderMapaODV25();});
+    }else{
+      actualizarAlturaRankingV25();
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // 4. Convierte el ranking en un bloque desplegable. La flecha rota 220 ms
+  //    y el contenido cambia altura/opacidad, sin animación permanente.
+  // -----------------------------------------------------------------------
+  function prepararRankingV25(panel){
+    const ranking=panel.querySelector('.od-ranking');
+    const titulo=ranking?.querySelector('h4');
+    const contenido=document.getElementById('od-ranking-v22');
+    if(!ranking || !titulo || !contenido) return;
+    contenido.classList.add('od-ranking-contenido-v25');
+    if(!ranking.querySelector('.od-ranking-cabecera-v25')){
+      const cabecera=document.createElement('div');
+      cabecera.className='od-ranking-cabecera-v25';
+      titulo.parentNode.insertBefore(cabecera,titulo);
+      cabecera.appendChild(titulo);
+      const boton=document.createElement('button');
+      boton.type='button';
+      boton.className='od-ranking-toggle-v25';
+      boton.setAttribute('aria-expanded','true');
+      boton.setAttribute('aria-controls','od-ranking-v22');
+      boton.setAttribute('aria-label','Contraer principales flujos');
+      boton.innerHTML='<span class="od-ranking-flecha-v25" aria-hidden="true">›</span>';
+      cabecera.appendChild(boton);
+      const alternar=()=>{
+        const abierto=boton.getAttribute('aria-expanded')==='true';
+        boton.setAttribute('aria-expanded',abierto?'false':'true');
+        boton.setAttribute('aria-label',abierto?'Expandir principales flujos':'Contraer principales flujos');
+        if(abierto){
+          contenido.style.maxHeight=`${contenido.scrollHeight}px`;
+          requestAnimationFrame(()=>{contenido.style.maxHeight='0px';contenido.classList.add('v25-colapsado');});
+        }else{
+          contenido.classList.remove('v25-colapsado');
+          contenido.style.maxHeight=`${contenido.scrollHeight}px`;
+        }
+      };
+      boton.addEventListener('click',alternar);
+      cabecera.addEventListener('click',event=>{if(event.target!==boton && !boton.contains(event.target)) alternar();});
+    }
+    actualizarAlturaRankingV25();
+    if(!contenido.dataset.observadorV25){
+      const observador=new MutationObserver(()=>queueMicrotask(actualizarAlturaRankingV25));
+      observador.observe(contenido,{subtree:true,childList:true,characterData:true});
+      contenido.dataset.observadorV25='1';
+    }
+  }
+
+  function actualizarAlturaRankingV25(){
+    const contenido=document.getElementById('od-ranking-v22');
+    const boton=document.querySelector('.od-ranking-toggle-v25');
+    if(!contenido || !boton || boton.getAttribute('aria-expanded')!=='true') return;
+    contenido.style.maxHeight=`${contenido.scrollHeight}px`;
+  }
+
+  function prepararPanelV25(){
+    const panel=document.getElementById('matriz-od-v22');
+    if(!panel) return;
+    crearPestanasV25(panel);
+    prepararRankingV25(panel);
+    if(!panel.dataset.eventosMapaV25){
+      ['od-metrica-v22','od-top-v22','od-region-o-v22','od-region-d-v22','od-diagonal-v22'].forEach(id=>{
+        document.getElementById(id)?.addEventListener('change',()=>{
+          actualizarAlturaRankingV25();
+          if(vistaODV25==='mapa') renderMapaODV25();
+        });
+      });
+      panel.dataset.eventosMapaV25='1';
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // 5. Envuelve la matriz OD existente en vez de reemplazarla. Esto conserva
+  //    v22/v23 y cualquier lógica posterior de etiquetas o porcentajes.
+  // -----------------------------------------------------------------------
+  const pintarAnterior=window.pintarMatrizODV22;
+  if(typeof pintarAnterior==='function'){
+    window.pintarMatrizODV22=async function(data){
+      await pintarAnterior(data);
+      prepararPanelV25();
+      // Cada nuevo resultado OD parte en Mapa, tal como se definió para la UI.
+      activarVistaV25('mapa',true,false);
+      await renderMapaODV25();
+    };
+  }
+
+  const finalizarAnterior=window.finalizarCambioVisualizacionV22;
+  if(typeof finalizarAnterior==='function'){
+    window.finalizarCambioVisualizacionV22=function(data){
+      finalizarAnterior(data);
+      if(data?.tipo_visualizacion!=='matriz_od'){
+        secuenciaRenderV25++;
+        vistaODV25='mapa';
+      }
+    };
+  }
+
+  window.addEventListener('resize',()=>{
+    actualizarAlturaRankingV25();
+    if(vistaODV25==='mapa') mapaODV25?.invalidateSize(false);
+  });
+})();
+</script>
+
+
+<script id="v30-od-legend-cleanup">
+(function instalarLimpiezaODV30(){
+  'use strict';
+  if(window.__limpiezaODV30Instalada) return;
+  window.__limpiezaODV30Instalada=true;
+
+  function ocultarLeyendaGeneralV30(){
+    const leyenda=document.getElementById('leyenda');
+    if(leyenda) leyenda.classList.remove('visible');
+  }
+
+  // Envuelve el render OD final (incluye v22/v23/v25) para retirar cualquier
+  // leyenda coroplética que haya quedado visible desde la consulta anterior.
+  const pintarAnteriorV30=window.pintarMatrizODV22;
+  if(typeof pintarAnteriorV30==='function'){
+    window.pintarMatrizODV22=async function(data){
+      ocultarLeyendaGeneralV30();
+      await pintarAnteriorV30(data);
+      ocultarLeyendaGeneralV30();
+    };
+  }
+
+  // Las pestañas son creadas dinámicamente por v25. La delegación evita
+  // depender del orden de creación y mantiene la leyenda oculta en ambas vistas.
+  document.addEventListener('click',(event)=>{
+    const boton=event.target?.closest?.('#od-tab-mapa-v25,#od-tab-matriz-v25');
+    if(boton) ocultarLeyendaGeneralV30();
+  });
+
+  // Los controles de la matriz pueden forzar un re-render del mapa OD.
+  document.addEventListener('change',(event)=>{
+    if(event.target?.closest?.('#matriz-od-v22')) ocultarLeyendaGeneralV30();
+  });
+})();
+</script>
+
+</body>
+</html>

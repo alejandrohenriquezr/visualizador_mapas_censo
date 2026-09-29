@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visor Censo 2024 · Chile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --tinta:#1b2430;
+    --papel:#f6f3ec;
+    --cobre:#b5652c;
+    --cobre-osc:#8a4a1e;
+    --linea:#d8d2c2;
+    --acento:#2f5d50;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--papel);
+    color:var(--tinta);
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    padding:22px 28px 16px;
+    border-bottom:1px solid var(--linea);
+    background:var(--papel);
+  }
+  header h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:1.6rem;
+    margin:0 0 2px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:0;
+    font-size:0.85rem;
+    color:#5a5245;
+  }
+  #panel-consulta{
+    padding:16px 28px;
+    background:var(--papel);
+    border-bottom:1px solid var(--linea);
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  #pregunta{
+    flex:1 1 420px;
+    padding:12px 16px;
+    font-size:0.95rem;
+    font-family:inherit;
+    border:1.5px solid var(--tinta);
+    border-radius:2px;
+    background:#fff;
+    color:var(--tinta);
+  }
+  #pregunta:focus{outline:2px solid var(--cobre); outline-offset:1px;}
+  #btn-consultar{
+    padding:12px 22px;
+    background:var(--cobre);
+    color:#fff;
+    border:none;
+    border-radius:2px;
+    font-size:0.9rem;
+    font-weight:600;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  #btn-consultar:hover{background:var(--cobre-osc);}
+  #btn-consultar:disabled{background:#bcb4a4; cursor:default;}
+  .ejemplos{
+    width:100%;
+    font-size:0.8rem;
+    color:#7a715f;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .ejemplos button{
+    background:none;
+    border:1px solid var(--linea);
+    border-radius:14px;
+    padding:4px 12px;
+    font-size:0.78rem;
+    color:var(--acento);
+    cursor:pointer;
+  }
+  .ejemplos button:hover{border-color:var(--acento); background:#eef2ee;}
+  main{
+    flex:1;
+    position:relative;
+    min-height:0;
+  }
+  #mapa{height:100%; width:100%;}
+  #estado{
+    position:absolute;
+    top:14px; left:14px;
+    z-index:1000;
+    background:rgba(27,36,48,0.92);
+    color:#fff;
+    padding:10px 16px;
+    border-radius:3px;
+    font-size:0.82rem;
+    max-width:340px;
+    display:none;
+  }
+  #estado.visible{display:block;}
+  #estado.error{background:#7a2b20;}
+  #leyenda{
+    position:absolute;
+    bottom:24px; right:14px;
+    z-index:1000;
+    background:#fffdf8;
+    border:1px solid var(--linea);
+    padding:12px 14px;
+    border-radius:3px;
+    font-size:0.78rem;
+    min-width:190px;
+    display:none;
+  }
+  #leyenda.visible{display:block;}
+  #leyenda h3{
+    margin:0 0 8px; font-size:0.8rem; font-family:'Fraunces',serif; font-weight:600;
+  }
+  #barra-leyenda{
+    height:10px; border-radius:2px;
+    background:linear-gradient(to right, #eef2ee, var(--acento));
+    margin-bottom:4px;
+  }
+  #rango-leyenda{display:flex; justify-content:space-between; color:#6a6355;}
+  .leaflet-popup-content{font-family:'Inter',sans-serif; font-size:0.85rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Visor Censo 2024 · Chile</h1>
+  <p>Escribe una pregunta y se genera un mapa a partir de los datos oficiales del Censo 2024 — procesado 100% en tu computador.</p>
+</header>
+
+<div id="panel-consulta">
+  <input type="text" id="pregunta" placeholder="Ej: porcentaje de hogares con internet fija por comuna" autocomplete="off">
+  <button id="btn-consultar">Generar mapa</button>
+  <div class="ejemplos">
+    <span>Prueba:</span>
+    <button data-q="porcentaje de personas que hablan una lengua indígena por comuna">lenguas indígenas</button>
+    <button data-q="porcentaje de viviendas con hacinamiento por región">hacinamiento por región</button>
+    <button data-q="promedio de escolaridad por comuna">escolaridad promedio</button>
+    <button data-q="cantidad de personas nacidas fuera de Chile por región">migración por región</button>
+  </div>
+</div>
+
+<main>
+  <div id="mapa"></div>
+  <div id="estado"></div>
+  <div id="leyenda">
+    <h3 id="leyenda-titulo">Valor</h3>
+    <div id="barra-leyenda"></div>
+    <div id="rango-leyenda"><span id="leyenda-min">0</span><span id="leyenda-max">0</span></div>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const URL_API = "/api/consulta";
+
+const mapa = L.map('mapa', {zoomControl:true}).setView([-33.45, -70.66], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap',
+  maxZoom: 18
+}).addTo(mapa);
+
+// Chile completo por defecto
+mapa.setView([-35.5, -71.5], 4);
+
+let capaActual = null;
+
+function colorPara(valor, min, max){
+  if(max === min) return "#2f5d50";
+  const t = Math.max(0, Math.min(1, (valor - min) / (max - min)));
+  // interpola entre un verde pálido y el verde acento
+  const r = Math.round(238 + (47-238)*t);
+  const g = Math.round(242 + (93-242)*t);
+  const b = Math.round(238 + (80-238)*t);
+  return `rgb(${r},${g},${b})`;
+}
+
+function mostrarEstado(texto, esError=false){
+  const el = document.getElementById('estado');
+  el.textContent = texto;
+  el.classList.add('visible');
+  el.classList.toggle('error', esError);
+}
+function ocultarEstado(){
+  document.getElementById('estado').classList.remove('visible');
+}
+
+async function consultar(){
+  const pregunta = document.getElementById('pregunta').value.trim();
+  if(!pregunta){ return; }
+  const boton = document.getElementById('btn-consultar');
+  boton.disabled = true;
+  mostrarEstado('Interpretando la pregunta con el LLM local y consultando los datos…');
+
+  try{
+    const resp = await fetch(URL_API, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({pregunta})
+    });
+    const data = await resp.json();
+    if(!resp.ok){
+      throw new Error(data.detail || 'Error desconocido');
+    }
+    pintarGeoJSON(data);
+    ocultarEstado();
+  } catch(err){
+    mostrarEstado('No se pudo generar el mapa: ' + err.message, true);
+  } finally {
+    boton.disabled = false;
+  }
+}
+
+function pintarGeoJSON(data){
+  if(capaActual){ mapa.removeLayer(capaActual); }
+
+  const {min, max} = data;
+  capaActual = L.geoJSON(data.geojson, {
+    style: feature => ({
+      fillColor: colorPara(feature.properties.valor, min, max),
+      weight: 0.6,
+      color: '#4a4438',
+      fillOpacity: 0.85
+    }),
+    onEachFeature: (feature, layer) => {
+      const p = feature.properties;
+      const valorTxt = (typeof p.valor === 'number') ? p.valor.toLocaleString('es-CL', {maximumFractionDigits:2}) : p.valor;
+      layer.bindPopup(`<strong>${p.nombre ?? ''}</strong><br>Valor: ${valorTxt}`);
+    }
+  }).addTo(mapa);
+
+  try{ mapa.fitBounds(capaActual.getBounds(), {padding:[20,20]}); }catch(e){}
+
+  const interp = data.interpretacion || {};
+  document.getElementById('leyenda-titulo').textContent =
+    `${interp.operacion || ''} · ${interp.variable || ''}`.trim();
+  document.getElementById('leyenda-min').textContent = min.toLocaleString('es-CL', {maximumFractionDigits:1});
+  document.getElementById('leyenda-max').textContent = max.toLocaleString('es-CL', {maximumFractionDigits:1});
+  document.getElementById('leyenda').classList.add('visible');
+}
+
+document.getElementById('btn-consultar').addEventListener('click', consultar);
+document.getElementById('pregunta').addEventListener('keydown', e => { if(e.key === 'Enter') consultar(); });
+document.querySelectorAll('.ejemplos button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('pregunta').value = btn.dataset.q;
+    consultar();
+  });
+});
+</script>
+</body>
+</html>

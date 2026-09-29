@@ -1,0 +1,50 @@
+# Secretos/configuracion local
+.env
+.env.*
+!.env.example
+
+# Microdatos y cartografia pesada
+datos/*
+!datos/README.md
+cartografia/*
+!cartografia/README.md
+
+# Estado y cache
+runtime/
+migration_export/
+*.sqlite
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+*.db
+
+# Respaldos/versiones locales
+backup_*/
+backup_pre_*/
+*_backup_*/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+**/site-packages/
+**/dist-packages/
+node_modules/
+.tox/
+.nox/
+*.egg-info/
+
+# Editores/SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Salidas
+*.log
+*.tmp

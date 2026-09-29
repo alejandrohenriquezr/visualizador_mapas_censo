@@ -1,0 +1,15 @@
+{
+  "version_estructura": "32.1",
+  "origen": "C:\\mapa_censo_interactivo",
+  "destino": "C:\\mapa_censo_interactivo_github",
+  "creado": "2026-09-29T14:08:52",
+  "gdb_detectada": "Cartografia_censo2024_Pais.gdb",
+  "servicios": [
+    "frontend",
+    "backend",
+    "db",
+    "llm",
+    "cartography"
+  ],
+  "nota": "No se copiaron Parquet, FileGDB, cache, SQLite, entornos virtuales, dependencias vendorizadas, respaldos ni parches históricos."
+}

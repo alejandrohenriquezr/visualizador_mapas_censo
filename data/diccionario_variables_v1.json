@@ -1,0 +1,1594 @@
+{
+  "personas": {
+    "orden": [
+      "id_vivienda",
+      "id_hogar",
+      "id_persona",
+      "region",
+      "provincia",
+      "comuna",
+      "area",
+      "tipo_operativo",
+      "parentesco",
+      "sexo",
+      "edad",
+      "edad_quinquenal",
+      "p23_est_civil",
+      "p24_lug_resid5",
+      "p24_lug_resid5_esp",
+      "p25_lug_nacimiento",
+      "p25_lug_nacimiento_rec",
+      "p25_lug_nacimiento_esp",
+      "p26_llegada_periodo",
+      "p27_nacionalidad",
+      "p27_nacionalidad_esp",
+      "p27_nacionalidad_rec",
+      "p28_autoid_pueblo",
+      "p28_pueblo_pert",
+      "p29_afrodescendencia",
+      "p29_afrodescendencia_rec",
+      "p30_lengua_indigena",
+      "p30_lengua_indigena_rec",
+      "p31_religion",
+      "p31_religion_rec",
+      "p32a_dificultad_ver",
+      "p32b_dificultad_oir",
+      "p32c_dificultad_mover",
+      "p32d_dificultad_cogni",
+      "p32e_dificultad_cuidado",
+      "p32f_dificultad_comunic",
+      "discapacidad",
+      "p33_edu_asiste",
+      "asistencia_parv",
+      "asistencia_basica",
+      "asistencia_media",
+      "asistencia_superior",
+      "p37_alfabet",
+      "escolaridad",
+      "cine11",
+      "sit_fuerza_trabajo",
+      "p40_cise_rec",
+      "depend_econ_deficit_hab",
+      "cod_ciuo",
+      "cod_caenes",
+      "p44_lug_trab",
+      "p44_lug_trab_esp",
+      "p45_medio_transporte",
+      "p46a_tot_hijs_nac",
+      "p46b_hijas_nac",
+      "p46c_hijos_nac",
+      "p47a_tot_hijs_sobrev",
+      "p47b_hijas_sobrev",
+      "p47c_hijos_sobrev",
+      "p48_anio_nac_uh",
+      "p48_mes_nac_uh",
+      "div_genero",
+      "comuna_bajo_umbral"
+    ],
+    "variables": {
+      "id_vivienda": {
+        "descripcion": "Llave identificadora de la vivienda o de la entrevista",
+        "categorias": {}
+      },
+      "id_hogar": {
+        "descripcion": "Llave identificadora de hogar",
+        "categorias": {}
+      },
+      "id_persona": {
+        "descripcion": "Llave identificadora de persona",
+        "categorias": {}
+      },
+      "region": {
+        "descripcion": "Región",
+        "categorias": {
+          "1:16": "Ver diccionario códigos territoriales"
+        }
+      },
+      "provincia": {
+        "descripcion": "Provincia",
+        "categorias": {
+          "11:163": "Ver diccionario códigos territoriales"
+        }
+      },
+      "comuna": {
+        "descripcion": "Comuna",
+        "categorias": {
+          "1101:16305": "Ver diccionario códigos territoriales"
+        }
+      },
+      "area": {
+        "descripcion": "Área urbana o rural",
+        "categorias": {
+          "1": "Urbano",
+          "2": "Rural"
+        }
+      },
+      "tipo_operativo": {
+        "descripcion": "Tipo de operativo",
+        "categorias": {
+          "1": "Persona en situación de calle",
+          "2": "Vivienda particular",
+          "3": "Vivienda colectiva"
+        }
+      },
+      "parentesco": {
+        "descripcion": "19. ¿Qué relación de parentesco tiene con la jefa o jefe de hogar?",
+        "categorias": {
+          "1": "Jefe/a de hogar",
+          "2": "Esposo/a o cónyuge",
+          "3": "Conviviente por unión civil",
+          "4": "Conviviente de hecho o pareja",
+          "5": "Hijo/a",
+          "6": "Hijo/a del cónyuge, conviviente o pareja",
+          "7": "Hermano/a",
+          "8": "Padre/Madre",
+          "9": "Cuñado/a",
+          "10": "Suegro/a",
+          "11": "Yerno/Nuera",
+          "12": "Nieto/a",
+          "13": "Abuelo/a",
+          "14": "Otro Pariente",
+          "15": "No Pariente​",
+          "16": "Servicio doméstico puertas adentro",
+          "17": "Persona en vivienda colectiva",
+          "19": "Persona en operativo calle"
+        }
+      },
+      "sexo": {
+        "descripcion": "20. ¿Cuál es su sexo?",
+        "categorias": {
+          "1": "Hombre",
+          "2": "Mujer"
+        }
+      },
+      "edad": {
+        "descripcion": "21. ¿Cuántos años cumplidos tiene?",
+        "categorias": {
+          "-66": "Valor suprimido por anonimización"
+        }
+      },
+      "edad_quinquenal": {
+        "descripcion": "Edad en quinquenios",
+        "categorias": {
+          "0": "0-4",
+          "5": "5-9",
+          "10": "10-14",
+          "15": "15-19",
+          "20": "20-24",
+          "25": "25-29",
+          "30": "30-34",
+          "35": "35-39",
+          "40": "40-44",
+          "45": "45-49",
+          "50": "50-54",
+          "55": "55-59",
+          "60": "60-64",
+          "65": "65-69",
+          "70": "70-74",
+          "75": "75-79",
+          "80": "80-84",
+          "85": "85 o más"
+        }
+      },
+      "p23_est_civil": {
+        "descripcion": "23. ¿Cuál es su estado conyugal o civil actual?",
+        "categorias": {
+          "1": "Casado/a",
+          "2": "Conviviente o pareja sin acuerdo de unión civil",
+          "3": "Conviviente civil (con acuerdo de unión civil)",
+          "4": "Anulado/a",
+          "5": "Separado/a",
+          "6": "Divorciado/a",
+          "7": "Viudo/a",
+          "8": "Soltero/a",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p24_lug_resid5": {
+        "descripcion": "24. ¿En qué comuna o país vivía en abril de 2019?",
+        "categorias": {
+          "1": "Aún no nacía",
+          "2": "En esta comuna",
+          "3": "En otra comuna",
+          "4": "En otro país",
+          "-99": "No respuesta"
+        }
+      },
+      "p24_lug_resid5_esp": {
+        "descripcion": "Lugar específico de residencia hace 5 años",
+        "categorias": {
+          "2:16305": "Ver diccionario códigos territoriales específicos",
+          "-99": "No respuesta en país de residencia hace 5 años",
+          "NA": "No aplica",
+          "-66": "Valor suprimido por anonimización"
+        }
+      },
+      "p25_lug_nacimiento": {
+        "descripcion": "25. Cuándo nació, ¿en qué comuna o país vivía su madre?",
+        "categorias": {
+          "1": "En esta comuna",
+          "2": "En otra comuna",
+          "3": "En otro país",
+          "-99": "No respuesta"
+        }
+      },
+      "p25_lug_nacimiento_rec": {
+        "descripcion": "Nació en Chile",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta"
+        }
+      },
+      "p25_lug_nacimiento_esp": {
+        "descripcion": "Lugar específico de nacimiento",
+        "categorias": {
+          "2:16305": "Ver diccionario códigos territoriales específicos",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización"
+        }
+      },
+      "p26_llegada_periodo": {
+        "descripcion": "26. ¿En qué año llegó a vivir a Chile?",
+        "categorias": {
+          "1": "Entre 2023 y 2024",
+          "2": "Entre 2020 y 2022",
+          "3": "Entre 2017 y 2019",
+          "4": "Entre 2014 y 2016",
+          "5": "Entre 2010 y 2013",
+          "6": "Entre 2000 y 2009",
+          "7": "Entre 1990 y 1999",
+          "8": "Antes de 1990",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p27_nacionalidad": {
+        "descripcion": "27. ¿Cuál es su nacionalidad?",
+        "categorias": {
+          "1": "Chilena​ (exclusivamente)",
+          "2": "Chilena y otra (doble nacionalidad)",
+          "3": "Otra nacionalidad",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización"
+        }
+      },
+      "p27_nacionalidad_esp": {
+        "descripcion": "País de nacionalidad",
+        "categorias": {
+          "2:862": "Ver diccionario códigos territoriales específicos",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización"
+        }
+      },
+      "p27_nacionalidad_rec": {
+        "descripcion": "Nacionalidad chilena",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta"
+        }
+      },
+      "p28_autoid_pueblo": {
+        "descripcion": "28. ¿Es o se considera perteneciente a algún pueblo indígena u originario?",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta"
+        }
+      },
+      "p28_pueblo_pert": {
+        "descripcion": "28. ¿A cuál?",
+        "categorias": {
+          "1": "Mapuche",
+          "2": "Aymara",
+          "3": "Rapa Nui",
+          "4": "Atacameño o Lickanantay",
+          "5": "Quechua",
+          "6": "Colla",
+          "7": "Diaguita",
+          "8": "Kawésqar",
+          "9": "Yagán",
+          "10": "Chango",
+          "11": "Selk’nam",
+          "12": "Otro",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización",
+          "NA": "No aplica"
+        }
+      },
+      "p29_afrodescendencia": {
+        "descripcion": "29. De acuerdo con sus antepasados, tradiciones y cultura, es o se considera:",
+        "categorias": {
+          "1": "Afrodescendiente",
+          "2": "Afrochileno/a",
+          "3": "Negro/a",
+          "4": "Del Pueblo Tribal Afrodescendiente Chileno",
+          "5": "Moreno/a de Azapa",
+          "6": "Negro/a de la Chimba",
+          "7": "Ninguna de las anteriores",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización"
+        }
+      },
+      "p29_afrodescendencia_rec": {
+        "descripcion": "Afrodescendencia",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta"
+        }
+      },
+      "p30_lengua_indigena": {
+        "descripcion": "30. ¿Habla o entiende una de las siguientes lenguas indígenas u originarias?",
+        "categorias": {
+          "1": "Mapuzugún (lengua mapuche)",
+          "2": "Aymara",
+          "3": "Quechua",
+          "4": "Rapa Nui",
+          "5": "Ckunza",
+          "6": "Kawésqar",
+          "7": "Yagán",
+          "8": "Otra lengua indígena de Chile",
+          "9": "No habla ni entiende ninguna lengua indígena de Chile",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización",
+          "NA": "No aplica"
+        }
+      },
+      "p30_lengua_indigena_rec": {
+        "descripcion": "Habla o entiende alguna lengua originaria",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p31_religion": {
+        "descripcion": "31. ¿Cuál es su religión o credo?",
+        "categorias": {
+          "1": "Católica",
+          "2": "Evangélica o Protestante",
+          "5": "Iglesia de Jesucristo de los Santos de los Últimos Días",
+          "10": "Testigo de Jehová",
+          "12": "Ninguna",
+          "999": "Otra religión o credo",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización",
+          "NA": "No aplica"
+        }
+      },
+      "p31_religion_rec": {
+        "descripcion": "Tiene religión o credo",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p32a_dificultad_ver": {
+        "descripcion": "32. ¿Tiene dificultad para ver, aun usando anteojos o lentes?",
+        "categorias": {
+          "1": "No, sin dificultad",
+          "2": "Sí, algo de dificultad",
+          "3": "Sí, mucha dificultad",
+          "4": "No puede hacerlo",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p32b_dificultad_oir": {
+        "descripcion": "32. ¿Tiene dificultad para oír, aun usando un dispositivo auditivo",
+        "categorias": {
+          "1": "No, sin dificultad",
+          "2": "Sí, algo de dificultad",
+          "3": "Sí, mucha dificultad",
+          "4": "No puede hacerlo",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p32c_dificultad_mover": {
+        "descripcion": "32. ¿Tiene dificultad para caminar o subir escaleras?",
+        "categorias": {
+          "1": "No, sin dificultad",
+          "2": "Sí, algo de dificultad",
+          "3": "Sí, mucha dificultad",
+          "4": "No puede hacerlo",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p32d_dificultad_cogni": {
+        "descripcion": "32. ¿Tiene dificultad para recordar o concentrarse?",
+        "categorias": {
+          "1": "No, sin dificultad",
+          "2": "Sí, algo de dificultad",
+          "3": "Sí, mucha dificultad",
+          "4": "No puede hacerlo",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p32e_dificultad_cuidado": {
+        "descripcion": "32. ¿Tiene dificultad para realizar tareas de cuidado personal, como bañarse o vestirse?",
+        "categorias": {
+          "1": "No, sin dificultad",
+          "2": "Sí, algo de dificultad",
+          "3": "Sí, mucha dificultad",
+          "4": "No puede hacerlo",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p32f_dificultad_comunic": {
+        "descripcion": "32. ¿Tiene dificultad para hablar o comunicarse usando su idioma habitual, por ejemplo, entender o ser entendido por otras personas?",
+        "categorias": {
+          "1": "No, sin dificultad",
+          "2": "Sí, algo de dificultad",
+          "3": "Sí, mucha dificultad",
+          "4": "No puede hacerlo",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "discapacidad": {
+        "descripcion": "Discapacidad",
+        "categorias": {
+          "1": "Con discapacidad",
+          "2": "Sin discapacidad",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p33_edu_asiste": {
+        "descripcion": "33. ¿Asiste actualmente a la educación formal? Incluye educación parvularia, especial, básica, media y superior",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta"
+        }
+      },
+      "asistencia_parv": {
+        "descripcion": "Asistencia a nivel de educación parvularia o preescolar",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización",
+          "NA": "No aplica"
+        }
+      },
+      "asistencia_basica": {
+        "descripcion": "Asistencia a nivel de educación básica",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización",
+          "NA": "No aplica"
+        }
+      },
+      "asistencia_media": {
+        "descripcion": "Asistencia a nivel de educación media",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización",
+          "NA": "No aplica"
+        }
+      },
+      "asistencia_superior": {
+        "descripcion": "Asistencia a nivel de educación superior",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "-66": "Valor suprimido por anonimización",
+          "NA": "No aplica"
+        }
+      },
+      "p37_alfabet": {
+        "descripcion": "37. ¿Sabe leer y escribir?",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta"
+        }
+      },
+      "escolaridad": {
+        "descripcion": "Años de escolaridad",
+        "categorias": {
+          "-99": "No respuesta"
+        }
+      },
+      "cine11": {
+        "descripcion": "Logro educativo de acuerdo con la Clasificación Internacional Normalizada de la Educación",
+        "categorias": {
+          "1": "01: Nunca cursó un programa educativo",
+          "2": "02: Educación de la primera infancia (incluye la forma parcial)",
+          "3": "03: Primaria en forma parcial (sin conclusión del nivel)",
+          "4": "10: Educación primaria (nivel 1)",
+          "5": "14: Educación primaria (nivel 2), con orientación general",
+          "6": "24: Educación secundaria, con orientación general",
+          "7": "25: Educación secundaria, con orientación vocacional",
+          "8": "35: Educación terciaria de ciclo corto, con orientación vocacional",
+          "9": "46: Grado de educación terciaria o nivel equivalente, con orientación no especificada",
+          "10": "56: Nivel de maestría, especialización o equivalente, con orientación no especificada",
+          "11": "64: Nivel de doctorado o equivalente, con orientación académica",
+          "12": "98: Educación especial o diferencial",
+          "-99": "No respuesta"
+        }
+      },
+      "sit_fuerza_trabajo": {
+        "descripcion": "Situación en la fuerza de trabajo",
+        "categorias": {
+          "1": "Ocupado",
+          "2": "Desocupado",
+          "3": "Fuera de la fuerza de trabajo",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p40_cise_rec": {
+        "descripcion": "40. ¿Trabajó cómo…?",
+        "categorias": {
+          "1": "Independiente",
+          "2": "Dependiente",
+          "3": "Trabajador/a familiar o personal no remunerado en un negocio de un integrante de su familia",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "depend_econ_deficit_hab": {
+        "descripcion": "Dependencia económica",
+        "categorias": {
+          "1": "Económicamente independiente",
+          "2": "Económicamente dependiente",
+          "-99": "No respuesta"
+        }
+      },
+      "cod_ciuo": {
+        "descripcion": "CIUO-08.CL a 1 dígito",
+        "categorias": {
+          "1": "Directores, gerentes y administradores",
+          "2": "Profesionales, científicos e intelectuales",
+          "3": "Técnicos y profesionales de nivel medio",
+          "4": "Personal de apoyo administrativo",
+          "5": "Trabajadores de los servicios y vendedores de comercios y mercados",
+          "6": "Agricultores y trabajadores calificados agropecuarios, forestales y pesqueros",
+          "7": "Artesanos y operarios de oficios",
+          "8": "Operadores de instalaciones, máquinas y ensambladores",
+          "9": "Ocupaciones elementales",
+          "0": "Ocupaciones de las fuerza armadas",
+          "999": "Respuesta no codificable",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "cod_caenes": {
+        "descripcion": "CAENES a 1 dígito",
+        "categorias": {
+          "A": "Agricultura, ganadería, silvicultura y pesca",
+          "\nB": "Explotación de minas y canteras",
+          "\nC": "Industrias manufactureras",
+          "\nD": "Suministro de electricidad, gas, vapor y aire acondicionado",
+          "\nE": "Suministro de agua; evacuación de aguas residuales, gestión de desechos y descontaminación",
+          "\nF": "Construcción",
+          "\nG": "Comercio al por mayor y al por menor; reparación de vehículos automotores y motocicletas",
+          "\nH": "Transporte y almacenamiento",
+          "\nI": "Actividades de alojamiento y de servicio de comidas",
+          "\nJ": "Información y comunicaciones",
+          "\nK": "Actividades financieras y de seguros",
+          "\nL": "Actividades inmobiliarias",
+          "\nM": "Actividades profesionales, científicas y técnicas",
+          "\nN": "Actividades de servicios administrativos y de apoyo",
+          "\nO": "Administración pública y defensa; planes de seguridad social de afiliación obligatoria",
+          "\nP": "Enseñanza",
+          "\nQ": "Actividades de atención de la salud humana y de asistencia social",
+          "\nR": "Actividades artísticas, de entretenimiento y recreativas",
+          "\nS": "Otras actividades de servicios",
+          "\nT": "Actividades de los hogares como empleadores; actividades no diferenciadas de los hogares como productores de bienes y servicios para uso propio",
+          "\nU": "Actividades de organizaciones y órganos extraterritoriales",
+          "\n999": "Respuesta no codificable",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p44_lug_trab": {
+        "descripcion": "44. ¿En qué comuna o país se ubica su trabajo?",
+        "categorias": {
+          "1": "En su comuna, en la vivienda donde reside",
+          "2": "En su comuna, fuera de la vivienda donde reside",
+          "3": "En otra comuna",
+          "4": "En otro país",
+          "5": "Varias comunas o países",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p44_lug_trab_esp": {
+        "descripcion": "Lugar de trabajo",
+        "categorias": {
+          "2:16305": "Ver diccionario códigos territoriales específicos",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p45_medio_transporte": {
+        "descripcion": "45. ¿Cuál es el medio de transporte principal que utiliza para dirigirse a su lugar de trabajo?",
+        "categorias": {
+          "1": "Auto particular",
+          "2": "Transporte público (bus, micro, metro, tren, taxi, colectivo)",
+          "3": "Caminando",
+          "4": "Bicicleta (incluye scooter)",
+          "5": "Motocicleta",
+          "6": "Caballo, lancha o bote",
+          "7": "Otro",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p46a_tot_hijs_nac": {
+        "descripcion": "46. ¿Cuántas hijas e hijos nacidos vivos ha tenido en total?",
+        "categorias": {
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p46b_hijas_nac": {
+        "descripcion": "46. Del total de hijas e hijos nacidos vivos, ¿cuántas son mujeres?",
+        "categorias": {
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p46c_hijos_nac": {
+        "descripcion": "46. Del total de hijas e hijos nacidos vivos, ¿cuántos son hombres?",
+        "categorias": {
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p47a_tot_hijs_sobrev": {
+        "descripcion": "47. ¿Cuántas hijas e hijos están vivos actualmente?",
+        "categorias": {
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p47b_hijas_sobrev": {
+        "descripcion": "47. Del total de hijas e hijos que se encuentran vivos, ¿cuántas son mujeres?",
+        "categorias": {
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p47c_hijos_sobrev": {
+        "descripcion": "47. Del total de hijas e hijos que se encuentran vivos, ¿cuántos son hombres?",
+        "categorias": {
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p48_anio_nac_uh": {
+        "descripcion": "48. ¿En qué mes y año nació su última hija o hijo nacido vivo? Año",
+        "categorias": {
+          "-99": "No responde",
+          "NA": "No aplica"
+        }
+      },
+      "p48_mes_nac_uh": {
+        "descripcion": "48. ¿En qué mes y año nació su última hija o hijo nacido vivo? Mes",
+        "categorias": {
+          "1": "Enero",
+          "2": "Febrero",
+          "3": "Marzo",
+          "4": "Abril",
+          "5": "Mayo",
+          "6": "Junio",
+          "7": "Julio",
+          "8": "Agosto",
+          "9": "Septiembre",
+          "10": "Octubre",
+          "11": "Noviembre",
+          "12": "Diciembre",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "div_genero": {
+        "descripcion": "Diversidades de género",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "3": "No clasificable",
+          "-66": "Valor suprimido por anonimización",
+          "NA": "No aplica"
+        }
+      },
+      "comuna_bajo_umbral": {
+        "descripcion": "Comuna con menos de 6.000 personas censadas",
+        "categorias": {
+          "1": "Sí",
+          "2": "No"
+        }
+      }
+    }
+  },
+  "hogares": {
+    "orden": [
+      "id_vivienda",
+      "id_hogar",
+      "region",
+      "provincia",
+      "comuna",
+      "area",
+      "tipo_operativo",
+      "p12_tenencia_viv",
+      "p13_comb_cocina",
+      "p14_comb_calefaccion",
+      "p15a_serv_tel_movil",
+      "p15b_serv_compu",
+      "p15c_serv_tablet",
+      "p15d_serv_internet_fija",
+      "p15e_serv_internet_movil",
+      "p15f_serv_internet_satelital",
+      "tipologia_hogar",
+      "comuna_bajo_umbral"
+    ],
+    "variables": {
+      "id_vivienda": {
+        "descripcion": "Llave identificadora de la vivienda o de la entrevista",
+        "categorias": {}
+      },
+      "id_hogar": {
+        "descripcion": "Llave identificadora de hogar",
+        "categorias": {}
+      },
+      "region": {
+        "descripcion": "Región",
+        "categorias": {
+          "1:16": "Ver diccionario códigos territoriales"
+        }
+      },
+      "provincia": {
+        "descripcion": "Provincia",
+        "categorias": {
+          "11:163": "Ver diccionario códigos territoriales"
+        }
+      },
+      "comuna": {
+        "descripcion": "Comuna",
+        "categorias": {
+          "1101:16305": "Ver diccionario códigos territoriales"
+        }
+      },
+      "area": {
+        "descripcion": "Área urbana o rural",
+        "categorias": {
+          "1": "Urbano",
+          "2": "Rural"
+        }
+      },
+      "tipo_operativo": {
+        "descripcion": "Tipo de operativo",
+        "categorias": {
+          "1": "Persona en Situación de Calle",
+          "2": "Vivienda Particular",
+          "3": "Vivienda Colectiva"
+        }
+      },
+      "p12_tenencia_viv": {
+        "descripcion": "12. La vivienda que ocupa este hogar es:",
+        "categorias": {
+          "1": "Propia pagada",
+          "2": "Propia pagándose",
+          "3": "Arrendada con contrato",
+          "4": "Arrendada sin contrato",
+          "5": "Cedida por trabajo o servicio",
+          "6": "Cedida por familiar u otro",
+          "7": "Usufructo: solo uso y goce",
+          "8": "Ocupada de hecho",
+          "9": "Propiedad en sucesión o litigio",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p13_comb_cocina": {
+        "descripcion": "13. ¿Cuál es la principal fuente de energía o combustible que utilizan para cocinar?",
+        "categorias": {
+          "1": "Gas",
+          "2": "Parafina o petróleo",
+          "3": "Leña",
+          "4": "Pellet",
+          "5": "Carbón",
+          "6": "Electricidad",
+          "7": "Energía solar (ej. cocina u horno solar)",
+          "8": "No utiliza fuente de energía o combustible para cocinar",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p14_comb_calefaccion": {
+        "descripcion": "14. ¿Cuál es la principal fuente de energía o combustible que utilizan para calefaccionar?",
+        "categorias": {
+          "1": "Gas",
+          "2": "Parafina o petróleo",
+          "3": "Leña",
+          "4": "Pellet",
+          "5": "Carbón",
+          "6": "Electricidad",
+          "7": "Otra",
+          "8": "No utiliza fuente de energía o combustible para calefaccionar",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p15a_serv_tel_movil": {
+        "descripcion": "15. Este hogar, ¿dispone de teléfono móvil, celular o smartphone?",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p15b_serv_compu": {
+        "descripcion": "15. Este hogar, ¿dispone de computador (escritorio o portátil)?",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p15c_serv_tablet": {
+        "descripcion": "15. Este hogar, ¿dispone de tablet?",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p15d_serv_internet_fija": {
+        "descripcion": "15. Este hogar, ¿dispone de internet fija?",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p15e_serv_internet_movil": {
+        "descripcion": "15. Este hogar, ¿dispone de internet móvil desde un celular, tablet o BAM?",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p15f_serv_internet_satelital": {
+        "descripcion": "15. Este hogar, ¿dispone de internet por conexión satelital?",
+        "categorias": {
+          "1": "Sí",
+          "2": "No",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "tipologia_hogar": {
+        "descripcion": "Tipología de hogar",
+        "categorias": {
+          "1": "Unipersonal",
+          "2": "Nuclear monoparental",
+          "3": "Nuclear pareja sin hijos",
+          "4": "Nuclear pareja con hijos",
+          "5": "Extenso",
+          "6": "Compuesto",
+          "7": "Sin núcleo",
+          "NA": "No aplica"
+        }
+      },
+      "comuna_bajo_umbral": {
+        "descripcion": "Comuna con menos de 6.000 personas censadas",
+        "categorias": {
+          "1": "Sí",
+          "2": "No"
+        }
+      }
+    }
+  },
+  "viviendas": {
+    "orden": [
+      "id_vivienda",
+      "region",
+      "provincia",
+      "comuna",
+      "area",
+      "tipo_operativo",
+      "p2_tipo_vivienda",
+      "p3a_estado_ocupacion",
+      "p3b_estado_ocupacion",
+      "p4a_mat_paredes",
+      "p4b_mat_techo",
+      "p4c_mat_piso",
+      "p5_num_dormitorios",
+      "p6_fuente_agua",
+      "p7_distrib_agua",
+      "p8_serv_hig",
+      "p9_fuente_elect",
+      "p10_basura",
+      "p11a_num_personas",
+      "p11b_comparte_gasto",
+      "p11c_num_hogar",
+      "cant_per",
+      "cant_hog",
+      "indice_hacinamiento",
+      "comuna_bajo_umbral"
+    ],
+    "variables": {
+      "id_vivienda": {
+        "descripcion": "Llave identificadora de la vivienda o de la entrevista",
+        "categorias": {}
+      },
+      "region": {
+        "descripcion": "Región",
+        "categorias": {
+          "1:16": "Ver diccionario códigos territoriales"
+        }
+      },
+      "provincia": {
+        "descripcion": "Provincia",
+        "categorias": {
+          "11:163": "Ver diccionario códigos territoriales"
+        }
+      },
+      "comuna": {
+        "descripcion": "Comuna",
+        "categorias": {
+          "1101:16305": "Ver diccionario códigos territoriales"
+        }
+      },
+      "area": {
+        "descripcion": "Área urbana o rural",
+        "categorias": {
+          "1": "Urbano",
+          "2": "Rural"
+        }
+      },
+      "tipo_operativo": {
+        "descripcion": "Tipo de operativo",
+        "categorias": {
+          "1": "Persona en situación de calle",
+          "2": "Vivienda particular",
+          "3": "Vivienda colectiva"
+        }
+      },
+      "p2_tipo_vivienda": {
+        "descripcion": "2. Tipo de vivienda particular",
+        "categorias": {
+          "1": "Casa",
+          "3": "Departamento",
+          "5": "Vivienda tradicional indígena (ruka u otras)",
+          "6": "Pieza en casa antigua o en conventillo",
+          "7": "Mediagua, mejora, vivienda de emergencia, rancho o choza",
+          "8": "Móvil (carpa, casa rodante o similar)",
+          "9": "Otro tipo de vivienda particular",
+          "NA": "No aplica"
+        }
+      },
+      "p3a_estado_ocupacion": {
+        "descripcion": "3a. Estado de ocupación de la vivienda",
+        "categorias": {
+          "1": "Ocupada",
+          "2": "Desocupada",
+          "NA": "No aplica"
+        }
+      },
+      "p3b_estado_ocupacion": {
+        "descripcion": "3b. Estado de ocupación de la vivienda (detalle)",
+        "categorias": {
+          "1": "Moradores presentes",
+          "2": "Moradores ausentes",
+          "6": "Otras razones de no entrevista",
+          "7": "En venta o arriendo",
+          "8": "Vivienda de temporada (veraneo o de uso temporal)",
+          "9": "Abandonada",
+          "10": "Otra razón de desocupación",
+          "NA": "No aplica"
+        }
+      },
+      "p4a_mat_paredes": {
+        "descripcion": "4a. ¿Cuál es el material de construcción en las paredes exteriores?",
+        "categorias": {
+          "1": "Hormigón armado",
+          "2": "Albañilería: bloque de cemento, ladrillo o piedra",
+          "3": "Tabique forrado por ambas caras (madera o acero)",
+          "4": "Tabique sin forro interior (madera u otro)",
+          "5": "Adobe, barro, pirca, quincha u otro material artesanal",
+          "6": "Materiales precarios o de desecho: cartón, sacos, trozos de latas o plásticos, etc.",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p4b_mat_techo": {
+        "descripcion": "4b. ¿Cuál es el material de construcción en la cubierta del techo?",
+        "categorias": {
+          "1": "Tejas o tejuelas de arcilla, metálicas, de cemento, de madera, asfálticas o plásticas",
+          "2": "Losa hormigón",
+          "3": "Planchas metálicas de zinc, cobre, etc",
+          "4": "Planchas de fibrocemento tipo pizarreño",
+          "5": "Fonolita o plancha de fieltro embreado",
+          "6": "Paja, coirón, totora o caña",
+          "7": "Materiales precarios o de desecho: cartón, sacos, trozos de latas o plásticos, etc",
+          "8": "Sin cubierta sólida de techo",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p4c_mat_piso": {
+        "descripcion": "4c. ¿Cuál es el material de construcción en el piso?",
+        "categorias": {
+          "1": "Parquet, piso flotante, cerámico, madera, alfombra, flexit, cubrepiso u otro similar; sobre radier o vigas de madera",
+          "2": "Radier sin revestimiento",
+          "3": "Baldosa de cemento",
+          "4": "Capa de cemento sobre tierra",
+          "5": "Tierra",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p5_num_dormitorios": {
+        "descripcion": "5. ¿Cuántas piezas de esta vivienda se usan exclusivamente como dormitorio?",
+        "categorias": {
+          "0": "0",
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "4": "4",
+          "5": "5",
+          "6": "6 o más",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p6_fuente_agua": {
+        "descripcion": "6. El agua que usa esta vivienda proviene principalmente de:",
+        "categorias": {
+          "1": "Red pública",
+          "2": "Pozo o noria",
+          "​3": "Camión aljibe",
+          "​4": "Río, vertiente, estero, canal, lago, agua lluvia, etc.",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p7_distrib_agua": {
+        "descripcion": "7. ¿Cuál es el sistema de distribución del agua en esta vivienda?",
+        "categorias": {
+          "1": "Con llave dentro de la vivienda",
+          "2": "Con llave dentro del sitio, pero fuera de la vivienda",
+          "3": "No tiene sistema, la acarrea",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p8_serv_hig": {
+        "descripcion": "8. El servicio higiénico (WC) principal de esta vivienda es o está:",
+        "categorias": {
+          "1": "Dentro de la vivienda, conectado a una red de alcantarillado",
+          "2": "Fuera de la vivienda, conectado a una red de alcantarillado",
+          "3": "Conectado a una fosa séptica",
+          "4": "Conectado a pozo negro (letrina sanitaria o cajón)",
+          "5": "En un cajón sobre acequia o canal",
+          "6": "En un cajón conectado a otro sistema",
+          "7": "Baño químico",
+          "8": "Conectado a baño seco",
+          "9": "No tiene servicio higiénico",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p9_fuente_elect": {
+        "descripcion": "9. La electricidad de esta vivienda proviene principalmente de:",
+        "categorias": {
+          "1": "Red pública",
+          "2": "Generador con diésel o bencina",
+          "3": "Placa solar",
+          "4": "Energía eólica (viento)",
+          "5": "Otro",
+          "6": "No tiene energía eléctrica",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p10_basura": {
+        "descripcion": "10. ¿Cuál es el principal medio de eliminación de basura de esta vivienda?",
+        "categorias": {
+          "1": "La recogen los servicios de aseo",
+          "2": "La entierra y/o quema",
+          "3": "La deja en terreno eriazo, quebrada o zanja",
+          "4": "La tira al río, laguna o mar",
+          "5": "Otro",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "p11a_num_personas": {
+        "descripcion": "11. ¿Cuántas personas residen habitualmente en esta vivienda?",
+        "categorias": {}
+      },
+      "p11b_comparte_gasto": {
+        "descripcion": "11.1. De las personas que residen habitualmente en esta vivienda, ¿todas comparten los gastos para alimentación?",
+        "categorias": {
+          "1": "Sí",
+          "2": "No"
+        }
+      },
+      "p11c_num_hogar": {
+        "descripcion": "11.2. ¿Cuántos grupos tienen gastos separados de alimentación?",
+        "categorias": {}
+      },
+      "cant_per": {
+        "descripcion": "Número de personas censadas en la vivienda",
+        "categorias": {}
+      },
+      "cant_hog": {
+        "descripcion": "Número de hogares censados en la vivienda particular",
+        "categorias": {
+          "NA": "No aplica"
+        }
+      },
+      "indice_hacinamiento": {
+        "descripcion": "Índice de hacinamiento",
+        "categorias": {
+          "1": "Vivienda sin hacinamiento",
+          "2": "Vivienda con hacinamiento medio",
+          "3": "Vivienda con hacinamiento crítico",
+          "-99": "No respuesta",
+          "NA": "No aplica"
+        }
+      },
+      "comuna_bajo_umbral": {
+        "descripcion": "Comuna con menos de 6.000 personas censadas",
+        "categorias": {
+          "1": "Sí",
+          "2": "No"
+        }
+      }
+    }
+  },
+  "geografia": {
+    "region": {
+      "1": "Tarapacá",
+      "2": "Antofagasta",
+      "3": "Atacama",
+      "4": "Coquimbo",
+      "5": "Valparaíso",
+      "6": "Libertador General Bernardo O'Higgins",
+      "7": "Maule",
+      "8": "Biobío",
+      "9": "La Araucanía",
+      "10": "Los Lagos",
+      "11": "Aysén del General Carlos Ibáñez del Campo",
+      "12": "Magallanes y de la Antártica Chilena",
+      "13": "Metropolitana de Santiago",
+      "14": "Los Ríos",
+      "15": "Arica y Parinacota",
+      "16": "Ñuble"
+    },
+    "provincia": {
+      "11": "Iquique",
+      "14": "Del Tamarugal",
+      "21": "Antofagasta",
+      "22": "El Loa",
+      "23": "Tocopilla",
+      "31": "Copiapó",
+      "32": "Chañaral",
+      "33": "Huasco",
+      "41": "Elqui",
+      "42": "Choapa",
+      "43": "Limarí",
+      "51": "Valparaíso",
+      "52": "Isla de Pascua",
+      "53": "Los Andes",
+      "54": "Petorca",
+      "55": "Quillota",
+      "56": "San Antonio",
+      "57": "San Felipe de Aconcagua",
+      "58": "Marga Marga",
+      "61": "Cachapoal",
+      "62": "Cardenal Caro",
+      "63": "Colchagua",
+      "71": "Talca",
+      "72": "Cauquenes",
+      "73": "Curicó",
+      "74": "Linares",
+      "81": "Concepción",
+      "82": "Arauco",
+      "83": "Biobío",
+      "91": "Cautín",
+      "92": "Malleco",
+      "101": "Llanquihue",
+      "102": "Chiloé",
+      "103": "Osorno",
+      "104": "Palena",
+      "111": "Coyhaique",
+      "112": "Aysén",
+      "113": "Capitán Prat",
+      "114": "General Carrera",
+      "121": "Magallanes",
+      "122": "Antártica Chilena",
+      "123": "Tierra del Fuego",
+      "124": "Última Esperanza",
+      "131": "Santiago",
+      "132": "Cordillera",
+      "133": "Chacabuco",
+      "134": "Maipo",
+      "135": "Melipilla",
+      "136": "Talagante",
+      "141": "Valdivia",
+      "142": "Ranco",
+      "151": "Arica",
+      "152": "Parinacota",
+      "161": "Diguillín",
+      "162": "Itata",
+      "163": "Punilla"
+    },
+    "comuna": {
+      "1101": "Iquique",
+      "1107": "Alto Hospicio",
+      "1401": "Pozo Almonte",
+      "1402": "Camiña",
+      "1403": "Colchane",
+      "1404": "Huara",
+      "1405": "Pica",
+      "2101": "Antofagasta",
+      "2102": "Mejillones",
+      "2103": "Sierra Gorda",
+      "2104": "Taltal",
+      "2201": "Calama",
+      "2202": "Ollagüe",
+      "2203": "San Pedro de Atacama",
+      "2301": "Tocopilla",
+      "2302": "María Elena",
+      "3101": "Copiapó",
+      "3102": "Caldera",
+      "3103": "Tierra Amarilla",
+      "3201": "Chañaral",
+      "3202": "Diego de Almagro",
+      "3301": "Vallenar",
+      "3302": "Alto del Carmen",
+      "3303": "Freirina",
+      "3304": "Huasco",
+      "4101": "La Serena",
+      "4102": "Coquimbo",
+      "4103": "Andacollo",
+      "4104": "La Higuera",
+      "4105": "Paihuano",
+      "4106": "Vicuña",
+      "4201": "Illapel",
+      "4202": "Canela",
+      "4203": "Los Vilos",
+      "4204": "Salamanca",
+      "4301": "Ovalle",
+      "4302": "Combarbalá",
+      "4303": "Monte Patria",
+      "4304": "Punitaqui",
+      "4305": "Río Hurtado",
+      "5101": "Valparaíso",
+      "5102": "Casablanca",
+      "5103": "Concón",
+      "5104": "Juan Fernández",
+      "5105": "Puchuncaví",
+      "5107": "Quintero",
+      "5109": "Viña del Mar",
+      "5201": "Isla de Pascua",
+      "5301": "Los Andes",
+      "5302": "Calle Larga",
+      "5303": "Rinconada",
+      "5304": "San Esteban",
+      "5401": "La Ligua",
+      "5402": "Cabildo",
+      "5403": "Papudo",
+      "5404": "Petorca",
+      "5405": "Zapallar",
+      "5501": "Quillota",
+      "5502": "Calera",
+      "5503": "Hijuelas",
+      "5504": "La Cruz",
+      "5506": "Nogales",
+      "5601": "San Antonio",
+      "5602": "Algarrobo",
+      "5603": "Cartagena",
+      "5604": "El Quisco",
+      "5605": "El Tabo",
+      "5606": "Santo Domingo",
+      "5701": "San Felipe",
+      "5702": "Catemu",
+      "5703": "Llaillay",
+      "5704": "Panquehue",
+      "5705": "Putaendo",
+      "5706": "Santa María",
+      "5801": "Quilpué",
+      "5802": "Limache",
+      "5803": "Olmué",
+      "5804": "Villa Alemana",
+      "6101": "Rancagua",
+      "6102": "Codegua",
+      "6103": "Coinco",
+      "6104": "Coltauco",
+      "6105": "Doñihue",
+      "6106": "Graneros",
+      "6107": "Las Cabras",
+      "6108": "Machalí",
+      "6109": "Malloa",
+      "6110": "Mostazal",
+      "6111": "Olivar",
+      "6112": "Peumo",
+      "6113": "Pichidegua",
+      "6114": "Quinta de Tilcoco",
+      "6115": "Rengo",
+      "6116": "Requínoa",
+      "6117": "San Vicente",
+      "6201": "Pichilemu",
+      "6202": "La Estrella",
+      "6203": "Litueche",
+      "6204": "Marchihue",
+      "6205": "Navidad",
+      "6206": "Paredones",
+      "6301": "San Fernando",
+      "6302": "Chépica",
+      "6303": "Chimbarongo",
+      "6304": "Lolol",
+      "6305": "Nancagua",
+      "6306": "Palmilla",
+      "6307": "Peralillo",
+      "6308": "Placilla",
+      "6309": "Pumanque",
+      "6310": "Santa Cruz",
+      "7101": "Talca",
+      "7102": "Constitución",
+      "7103": "Curepto",
+      "7104": "Empedrado",
+      "7105": "Maule",
+      "7106": "Pelarco",
+      "7107": "Pencahue",
+      "7108": "Río Claro",
+      "7109": "San Clemente",
+      "7110": "San Rafael",
+      "7201": "Cauquenes",
+      "7202": "Chanco",
+      "7203": "Pelluhue",
+      "7301": "Curicó",
+      "7302": "Hualañé",
+      "7303": "Licantén",
+      "7304": "Molina",
+      "7305": "Rauco",
+      "7306": "Romeral",
+      "7307": "Sagrada Familia",
+      "7308": "Teno",
+      "7309": "Vichuquén",
+      "7401": "Linares",
+      "7402": "Colbún",
+      "7403": "Longaví",
+      "7404": "Parral",
+      "7405": "Retiro",
+      "7406": "San Javier",
+      "7407": "Villa Alegre",
+      "7408": "Yerbas Buenas",
+      "8101": "Concepción",
+      "8102": "Coronel",
+      "8103": "Chiguayante",
+      "8104": "Florida",
+      "8105": "Hualqui",
+      "8106": "Lota",
+      "8107": "Penco",
+      "8108": "San Pedro de La paz",
+      "8109": "Santa Juana",
+      "8110": "Talcahuano",
+      "8111": "Tomé",
+      "8112": "Hualpén",
+      "8201": "Lebu",
+      "8202": "Arauco",
+      "8203": "Cañete",
+      "8204": "Contulmo",
+      "8205": "Curanilahue",
+      "8206": "Los Álamos",
+      "8207": "Tirúa",
+      "8301": "Los Ángeles",
+      "8302": "Antuco",
+      "8303": "Cabrero",
+      "8304": "Laja",
+      "8305": "Mulchén",
+      "8306": "Nacimiento",
+      "8307": "Negrete",
+      "8308": "Quilaco",
+      "8309": "Quilleco",
+      "8310": "San Rosendo",
+      "8311": "Santa Bárbara",
+      "8312": "Tucapel",
+      "8313": "Yumbel",
+      "8314": "Alto Biobío",
+      "9101": "Temuco",
+      "9102": "Carahue",
+      "9103": "Cunco",
+      "9104": "Curarrehue",
+      "9105": "Freire",
+      "9106": "Galvarino",
+      "9107": "Gorbea",
+      "9108": "Lautaro",
+      "9109": "Loncoche",
+      "9110": "Melipeuco",
+      "9111": "Nueva Imperial",
+      "9112": "Padre Las Casas",
+      "9113": "Perquenco",
+      "9114": "Pitrufquén",
+      "9115": "Pucón",
+      "9116": "Saavedra",
+      "9117": "Teodoro Schmidt",
+      "9118": "Toltén",
+      "9119": "Vilcún",
+      "9120": "Villarrica",
+      "9121": "Cholchol",
+      "9201": "Angol",
+      "9202": "Collipulli",
+      "9203": "Curacautín",
+      "9204": "Ercilla",
+      "9205": "Lonquimay",
+      "9206": "Los Sauces",
+      "9207": "Lumaco",
+      "9208": "Purén",
+      "9209": "Renaico",
+      "9210": "Traiguén",
+      "9211": "Victoria",
+      "10101": "Puerto Montt",
+      "10102": "Calbuco",
+      "10103": "Cochamó",
+      "10104": "Fresia",
+      "10105": "Frutillar",
+      "10106": "Los Muermos",
+      "10107": "Llanquihue",
+      "10108": "Maullín",
+      "10109": "Puerto Varas",
+      "10201": "Castro",
+      "10202": "Ancud",
+      "10203": "Chonchi",
+      "10204": "Curaco de Vélez",
+      "10205": "Dalcahue",
+      "10206": "Puqueldón",
+      "10207": "Queilén",
+      "10208": "Quellón",
+      "10209": "Quemchi",
+      "10210": "Quinchao",
+      "10301": "Osorno",
+      "10302": "Puerto Octay",
+      "10303": "Purranque",
+      "10304": "Puyehue",
+      "10305": "Río Negro",
+      "10306": "San Juan de la Costa",
+      "10307": "San Pablo",
+      "10401": "Chaitén",
+      "10402": "Futaleufú",
+      "10403": "Hualaihué",
+      "10404": "Palena",
+      "11101": "Coyhaique",
+      "11102": "Lago Verde",
+      "11201": "Aysén",
+      "11202": "Cisnes",
+      "11203": "Guaitecas",
+      "11301": "Cochrane",
+      "11302": "O'Higgins",
+      "11303": "Tortel",
+      "11401": "Chile Chico",
+      "11402": "Río Ibáñez",
+      "12101": "Punta Arenas",
+      "12102": "Laguna Blanca",
+      "12103": "Río Verde",
+      "12104": "San Gregorio",
+      "12201": "Cabo de Hornos",
+      "12202": "Antártica",
+      "12301": "Porvenir",
+      "12302": "Primavera",
+      "12303": "Timaukel",
+      "12401": "Natales",
+      "12402": "Torres del Paine",
+      "13101": "Santiago",
+      "13102": "Cerrillos",
+      "13103": "Cerro Navia",
+      "13104": "Conchalí",
+      "13105": "El Bosque",
+      "13106": "Estación Central",
+      "13107": "Huechuraba",
+      "13108": "Independencia",
+      "13109": "La Cisterna",
+      "13110": "La Florida",
+      "13111": "La Granja",
+      "13112": "La Pintana",
+      "13113": "La Reina",
+      "13114": "Las Condes",
+      "13115": "Lo Barnechea",
+      "13116": "Lo Espejo",
+      "13117": "Lo Prado",
+      "13118": "Macul",
+      "13119": "Maipú",
+      "13120": "Ñuñoa",
+      "13121": "Pedro Aguirre Cerda",
+      "13122": "Peñalolén",
+      "13123": "Providencia",
+      "13124": "Pudahuel",
+      "13125": "Quilicura",
+      "13126": "Quinta Normal",
+      "13127": "Recoleta",
+      "13128": "Renca",
+      "13129": "San Joaquín",
+      "13130": "San Miguel",
+      "13131": "San Ramón",
+      "13132": "Vitacura",
+      "13201": "Puente Alto",
+      "13202": "Pirque",
+      "13203": "San José de Maipo",
+      "13301": "Colina",
+      "13302": "Lampa",
+      "13303": "Tiltil",
+      "13401": "San Bernardo",
+      "13402": "Buin",
+      "13403": "Calera de Tango",
+      "13404": "Paine",
+      "13501": "Melipilla",
+      "13502": "Alhué",
+      "13503": "Curacaví",
+      "13504": "María Pinto",
+      "13505": "San Pedro",
+      "13601": "Talagante",
+      "13602": "El Monte",
+      "13603": "Isla de Maipo",
+      "13604": "Padre Hurtado",
+      "13605": "Peñaflor",
+      "14101": "Valdivia",
+      "14102": "Corral",
+      "14103": "Lanco",
+      "14104": "Los Lagos",
+      "14105": "Máfil",
+      "14106": "Mariquina",
+      "14107": "Paillaco",
+      "14108": "Panguipulli",
+      "14201": "La Unión",
+      "14202": "Futrono",
+      "14203": "Lago Ranco",
+      "14204": "Río Bueno",
+      "15101": "Arica",
+      "15102": "Camarones",
+      "15201": "Putre",
+      "15202": "General Lagos",
+      "16101": "Chillán",
+      "16102": "Bulnes",
+      "16103": "Chillán Viejo",
+      "16104": "El Carmen",
+      "16105": "Pemuco",
+      "16106": "Pinto",
+      "16107": "Quillón",
+      "16108": "San Ignacio",
+      "16109": "Yungay",
+      "16201": "Quirihue",
+      "16202": "Cobquecura",
+      "16203": "Coelemu",
+      "16204": "Ninhue",
+      "16205": "Portezuelo",
+      "16206": "Ránquil",
+      "16207": "Trehuaco",
+      "16301": "San Carlos",
+      "16302": "Coihueco",
+      "16303": "Ñiquén",
+      "16304": "San Fabián",
+      "16305": "San Nicolás"
+    }
+  }
+}
