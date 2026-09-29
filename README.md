@@ -91,3 +91,16 @@ scripts\RESTAURAR_BACKUP.cmd backups\visor_censo_YYYYMMDD_HHMMSS.dump
 
 Las migraciones se encuentran en `database/migrations/` y el backend las
 aplica antes de iniciar Uvicorn.
+
+
+## Diagnóstico de rendimiento
+
+La v32.2 agrega métricas de tiempo por consulta y compresión cacheada de GeoJSON.
+Para medir la transferencia cartográfica real:
+
+```cmd
+python scripts\benchmark_cartografia.py --base http://localhost:8010
+```
+
+Las respuestas estadísticas incluyen `diagnostico.consulta_id` y tiempos por
+etapa; los endpoints HTTP agregan cabeceras de trazabilidad y `Server-Timing`.
