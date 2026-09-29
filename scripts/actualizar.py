@@ -10,6 +10,12 @@ def salud_detallada():
     if data.get("estado")!="ok": raise RuntimeError(f"Salud degradada: {data}")
     print("[salud]",json.dumps(data,ensure_ascii=False))
 
+def diagnostico_fallo():
+    print("[diagnostico] estado de servicios previo al rollback", file=sys.stderr)
+    compose("ps", check=False)
+    print("[diagnostico] logs backend/cartography/frontend", file=sys.stderr)
+    compose("logs", "--tail", "120", "backend", "cartography", "frontend", check=False)
+
 def main():
     if git("status","--porcelain"): raise RuntimeError("El árbol Git no está limpio. Commit/stash antes de actualizar.")
     if git("branch","--show-current")!="main": raise RuntimeError("ACTUALIZAR.cmd solo despliega desde main.")
@@ -27,7 +33,9 @@ def main():
         wait_services(300); run((python_executable(),"scripts/smoke_test.py",base_url())); salud_detallada()
         print("ACTUALIZACION_OK")
     except Exception as exc:
-        print("ERROR:",exc,file=sys.stderr); print("[rollback] restaurando",file=sys.stderr)
+        print("ERROR:",exc,file=sys.stderr)
+        diagnostico_fallo()
+        print("[rollback] restaurando",file=sys.stderr)
         compose("stop","frontend","backend",check=False); run(("git","reset","--hard",anterior))
         compose("build","frontend","backend","cartography"); compose("up","-d","db","llm","cartography")
         restaurar(backup,confirmar=False,validar=False); wait_services(300)

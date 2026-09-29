@@ -21,7 +21,7 @@ def descargar(base: str, nivel: str, encoding: str):
     inicio = time.perf_counter()
     with urllib.request.urlopen(req, timeout=300) as r:
         cuerpo = r.read()
-        headers = dict(r.headers.items())
+        headers = {str(k).lower(): str(v) for k, v in r.headers.items()}
     duracion = time.perf_counter() - inicio
     return cuerpo, headers, duracion
 
@@ -40,7 +40,7 @@ def main():
     for nivel in [x.strip() for x in args.niveles.split(",") if x.strip()]:
         raw, h_raw, t_raw = descargar(args.base, nivel, "identity")
         gz, h_gz, t_gz = descargar(args.base, nivel, "gzip")
-        if h_gz.get("Content-Encoding", "").lower() == "gzip":
+        if h_gz.get("content-encoding", "").lower() == "gzip":
             descomprimido = gzip.decompress(gz)
         else:
             descomprimido = gz
