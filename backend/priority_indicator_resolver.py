@@ -75,9 +75,9 @@ _INDICADORES = {
         "patrones": (r"\bindice\s+(?:de\s+)?envejecimiento\b", r"\brazon\s+(?:de\s+)?envejecimiento\b"),
         "variable": "edad",
         "descripcion": "Índice de envejecimiento",
-        "nota": "100 × población de 65 años o más / población de 0 a 14 años.",
+        "nota": "100 × población de 60 años o más / población de 0 a 14 años.",
         "universo": "Población con edad válida.",
-        "formula": "Índice de envejecimiento = (población de 65 años o más / población de 0 a 14 años) × 100",
+        "formula": "Índice de envejecimiento = (población de 60 años o más / población de 0 a 14 años) × 100",
     },
     "dependencia_total": {
         "patrones": (
@@ -88,17 +88,17 @@ _INDICADORES = {
         ),
         "variable": "edad",
         "descripcion": "Índice de dependencia total (IDD)",
-        "nota": "100 × (población de 0 a 14 años + población de 65 años o más) / población de 15 a 64 años.",
+        "nota": "100 × (población de 0 a 14 años + población de 60 años o más) / población de 15 a 59 años.",
         "universo": "Población con edad válida.",
-        "formula": "Índice de dependencia total = ((población de 0 a 14 años + población de 65 años o más) / población de 15 a 64 años) × 100",
+        "formula": "Índice de dependencia total = ((población de 0 a 14 años + población de 60 años o más) / población de 15 a 59 años) × 100",
     },
     "dependencia_juvenil": {
         "patrones": (r"\bindice\s+(?:de\s+)?dependencia\s+juvenil\b", r"\bdependencia\s+juvenil\b"),
         "variable": "edad",
         "descripcion": "Índice de dependencia juvenil",
-        "nota": "100 × población de 0 a 14 años / población de 15 a 64 años.",
+        "nota": "100 × población de 0 a 14 años / población de 15 a 59 años.",
         "universo": "Población con edad válida.",
-        "formula": "Índice de dependencia juvenil = (población de 0 a 14 años / población de 15 a 64 años) × 100",
+        "formula": "Índice de dependencia juvenil = (población de 0 a 14 años / población de 15 a 59 años) × 100",
     },
     "dependencia_mayores": {
         "patrones": (
@@ -108,9 +108,9 @@ _INDICADORES = {
         ),
         "variable": "edad",
         "descripcion": "Índice de dependencia de mayores",
-        "nota": "100 × población de 65 años o más / población de 15 a 64 años.",
+        "nota": "100 × población de 60 años o más / población de 15 a 59 años.",
         "universo": "Población con edad válida.",
-        "formula": "Índice de dependencia de mayores = (población de 65 años o más / población de 15 a 64 años) × 100",
+        "formula": "Índice de dependencia de mayores = (población de 60 años o más / población de 15 a 59 años) × 100",
     },
     "tasa_ocupacion": {
         "patrones": (r"\btasa\s+(?:de\s+)?ocupacion\b",),

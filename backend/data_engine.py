@@ -326,20 +326,20 @@ def _construir_sql_indicador_derivado_v24(intencion: dict, nivel_info: dict, rut
 
     formulas = {
         "envejecimiento": (
-            f"SUM(CASE WHEN {edad} >= 65 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN {edad} >= 60 THEN 1 ELSE 0 END)",
             f"SUM(CASE WHEN {edad} BETWEEN 0 AND 14 THEN 1 ELSE 0 END)",
         ),
         "dependencia_total": (
-            f"SUM(CASE WHEN ({edad} BETWEEN 0 AND 14) OR {edad} >= 65 THEN 1 ELSE 0 END)",
-            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 64 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN ({edad} BETWEEN 0 AND 14) OR {edad} >= 60 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 59 THEN 1 ELSE 0 END)",
         ),
         "dependencia_juvenil": (
             f"SUM(CASE WHEN {edad} BETWEEN 0 AND 14 THEN 1 ELSE 0 END)",
-            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 64 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 59 THEN 1 ELSE 0 END)",
         ),
         "dependencia_mayores": (
-            f"SUM(CASE WHEN {edad} >= 65 THEN 1 ELSE 0 END)",
-            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 64 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN {edad} >= 60 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 59 THEN 1 ELSE 0 END)",
         ),
         "tasa_ocupacion": (
             f"SUM(CASE WHEN {edad} >= 15 AND {sit} = '1' THEN 1 ELSE 0 END)",
@@ -434,23 +434,23 @@ def _construir_sql_indicador_censal_v27(intencion: dict, nivel_info: dict, ruta_
             100.0,
         ),
         "envejecimiento": (
-            f"SUM(CASE WHEN {edad} BETWEEN 65 AND 120 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN {edad} BETWEEN 60 AND 120 THEN 1 ELSE 0 END)",
             f"SUM(CASE WHEN {edad} BETWEEN 0 AND 14 THEN 1 ELSE 0 END)",
             100.0,
         ),
         "dependencia_total": (
-            f"SUM(CASE WHEN ({edad} BETWEEN 0 AND 14) OR ({edad} BETWEEN 65 AND 120) THEN 1 ELSE 0 END)",
-            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 64 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN ({edad} BETWEEN 0 AND 14) OR ({edad} BETWEEN 60 AND 120) THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 59 THEN 1 ELSE 0 END)",
             100.0,
         ),
         "dependencia_juvenil": (
             f"SUM(CASE WHEN {edad} BETWEEN 0 AND 14 THEN 1 ELSE 0 END)",
-            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 64 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 59 THEN 1 ELSE 0 END)",
             100.0,
         ),
         "dependencia_mayores": (
-            f"SUM(CASE WHEN {edad} BETWEEN 65 AND 120 THEN 1 ELSE 0 END)",
-            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 64 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN {edad} BETWEEN 60 AND 120 THEN 1 ELSE 0 END)",
+            f"SUM(CASE WHEN {edad} BETWEEN 15 AND 59 THEN 1 ELSE 0 END)",
             100.0,
         ),
         "tasa_alfabetismo": (
@@ -980,13 +980,13 @@ def _ejecutar_distribucion(intencion, progreso, inicio):
     df["codigo"] = df["codigo"].astype("Int64")
     df["categoria"] = df["categoria"].astype(str)
     etiquetas = VARIABLES[tabla]["variables"][nombre_variable]["categorias"]
-    # Se usan las mismas cuatro categorías principales en todos los polígonos,
+    # Se usan las mismas cinco categorías principales en todos los polígonos,
     # calculadas sobre el territorio completo de la consulta.
     totales_categoria = (df.groupby("categoria", as_index=False)["valor"].sum()
                          .sort_values(["valor", "categoria"], ascending=[False, True]))
     codigos_ordenados = totales_categoria["categoria"].tolist()
-    principales = codigos_ordenados[:4] if len(codigos_ordenados) > 4 else codigos_ordenados
-    agrupar_otros = len(codigos_ordenados) > 4
+    principales = codigos_ordenados[:5] if len(codigos_ordenados) > 5 else codigos_ordenados
+    agrupar_otros = len(codigos_ordenados) > 5
     categorias_grafico = [
         {"codigo": codigo, "etiqueta": str(etiquetas.get(codigo, codigo))}
         for codigo in principales
@@ -1000,6 +1000,28 @@ def _ejecutar_distribucion(intencion, progreso, inicio):
         conteos = {str(fila.categoria): int(fila.valor)
                    for fila in grupo.itertuples(index=False)}
         total = sum(conteos.values())
+        # V33: la visualización conserva las cuatro principales + Otros,
+        # pero la respuesta guarda además todas las categorías válidas para Excel.
+        distribucion_completa = []
+        for categoria in [str(v) for v in validas]:
+            valor = conteos.get(categoria, 0)
+            distribucion_completa.append({
+                "codigo": categoria,
+                "etiqueta": str(etiquetas.get(categoria, categoria)),
+                "valor": valor,
+                "porcentaje": 100.0 * valor / total if total else None,
+            })
+
+        distribucion_completa = []
+        for categoria in codigos_ordenados:
+            valor = conteos.get(categoria, 0)
+            distribucion_completa.append({
+                "codigo": categoria,
+                "etiqueta": str(etiquetas.get(categoria, categoria)),
+                "valor": valor,
+                "porcentaje": 100.0 * valor / total if total else None,
+            })
+
         distribucion = []
         for categoria in principales:
             valor = conteos.get(categoria, 0)
@@ -1021,7 +1043,9 @@ def _ejecutar_distribucion(intencion, progreso, inicio):
                        if str(k).isdigit() and str(codigo_json).isdigit()
                        and int(k) == int(codigo_json)), str(codigo_json))
         datos.append({"codigo": codigo_json, "nombre": nombre,
-                      "distribucion": distribucion, "total": total})
+                      "distribucion": distribucion,
+                      "distribucion_completa": distribucion_completa,
+                      "total": total})
     resultado = {
         "tipo_visualizacion": "tortas_mapa",
         "datos": datos,
@@ -1337,6 +1361,10 @@ def _expresion_dimension(dimension, indice):
     if tabla not in TABLAS_PARQUET or variable not in VARIABLES[tabla]["variables"]:
         raise ValueError("El plan de cruce contiene una dimensión desconocida.")
     expr = _col(_ALIAS_ENTIDAD[tabla], variable)
+    # V33: edad simple se agrupa por año cumplido y excluye códigos especiales.
+    if dimension.get("tipo") == "edad_simple":
+        edad = f"TRY_CAST({expr} AS INTEGER)"
+        return f"{edad} AS d{indice}", edad, f"{edad} BETWEEN 0 AND 120"
     if dimension.get("tipo") == "recode_rangos":
         grupos = dimension.get("grupos") or []
         if len(grupos) < 2:
@@ -1530,11 +1558,86 @@ def _consultar_denominador_cruce(intencion):
 
 
 def _etiqueta_categoria_cruce(dimension, codigo):
+    if dimension.get("tipo") == "edad_simple":
+        try:
+            return f"{int(float(codigo))} años"
+        except (TypeError, ValueError):
+            return str(codigo)
     if dimension.get("tipo") == "recode_rangos":
         return str(codigo)
     tabla, variable = dimension["tabla"], dimension["variable"]
     info = VARIABLES[tabla]["variables"][variable]
     return str(info["categorias"].get(str(codigo), codigo))
+
+
+def _config_piramide_cruce(plan, intencion):
+    """Describe cómo convertir una distribución edad×sexo en pirámides.
+
+    No filtra ni duplica datos: la interfaz selecciona qué territorio mostrar,
+    mientras la respuesta y el Excel conservan todos los territorios.
+    """
+    dimensiones = plan.get("dimensiones") or []
+    if plan.get("entidad_objetivo") != "personas" or len(dimensiones) != 2:
+        return None
+    if (plan.get("medida") or {}).get("operacion", "conteo_distinto") != "conteo_distinto":
+        return None
+    if plan.get("porcentaje"):
+        return None
+
+    indice_sexo = next((i for i, d in enumerate(dimensiones)
+                        if d.get("tabla") == "personas" and d.get("variable") == "sexo"), None)
+    indice_edad = next((i for i, d in enumerate(dimensiones)
+                        if d.get("tabla") == "personas" and d.get("variable") in {"edad", "edad_quinquenal"}), None)
+    if indice_sexo is None or indice_edad is None:
+        return None
+    edad_dim = dimensiones[indice_edad]
+    if edad_dim.get("variable") == "edad" and edad_dim.get("tipo") not in {"edad_simple", "recode_rangos"}:
+        return None
+
+    etiquetas_edad = {}
+    orden_edad = []
+    if edad_dim.get("tipo") == "recode_rangos":
+        for grupo in edad_dim.get("grupos") or []:
+            etiqueta = str(grupo.get("etiqueta") or "")
+            if etiqueta:
+                etiquetas_edad[etiqueta] = etiqueta
+                orden_edad.append(etiqueta)
+    elif edad_dim.get("variable") == "edad_quinquenal":
+        cats = VARIABLES["personas"]["variables"]["edad_quinquenal"].get("categorias", {})
+        for codigo in categorias_validas("personas", "edad_quinquenal"):
+            codigo = str(codigo)
+            etiquetas_edad[codigo] = str(cats.get(codigo, codigo))
+            orden_edad.append(codigo)
+
+    nivel = intencion.get("nivel_geografico", "region")
+    filtro_region_unico = intencion.get("filtro_geografico_nivel") == "region"
+    selecciones_region = [s for s in (plan.get("selecciones_geograficas") or [])
+                          if s.get("nivel") == "region" and s.get("codigos")]
+    if len(selecciones_region) == 1 and len(selecciones_region[0].get("codigos") or []) == 1:
+        filtro_region_unico = True
+    selector_region = nivel == "comuna" and not filtro_region_unico
+
+    regiones = []
+    for codigo, nombre in VARIABLES.get("geografia", {}).get("region", {}).items():
+        if str(codigo).isdigit():
+            regiones.append({"codigo": int(codigo), "nombre": str(nombre)})
+    regiones.sort(key=lambda x: x["codigo"])
+
+    return {
+        "disponible": True,
+        "indice_edad": indice_edad,
+        "indice_sexo": indice_sexo,
+        "tipo_edad": edad_dim.get("tipo") or "categoria",
+        "variable_edad": edad_dim.get("variable"),
+        "etiquetas_edad": etiquetas_edad,
+        "orden_edad": orden_edad,
+        "sexo_hombre_codigo": "1",
+        "sexo_mujer_codigo": "2",
+        "nivel_geografico": nivel,
+        "selector_region": selector_region,
+        "region_default": 13,
+        "regiones": regiones,
+    }
 
 
 def _denominadores_porcentaje(combinaciones, base, n_dims):
@@ -1588,6 +1691,7 @@ def _ejecutar_cruce(intencion, progreso, inicio):
 
     medida_op = (plan.get("medida") or {}).get("operacion", "conteo_distinto")
     porcentaje_plan = plan.get("porcentaje") or None
+    piramide = _config_piramide_cruce(plan, intencion)
 
     # Sin dimensiones: coroplético de conteo/medida o porcentaje con un
     # denominador independiente confirmado por la persona usuaria.
@@ -1707,8 +1811,13 @@ def _ejecutar_cruce(intencion, progreso, inicio):
         valor = int(item["valor"] or 0)
         totales[item["clave"]] = totales.get(item["clave"], 0) + valor
         etiquetas[item["clave"]] = item["etiqueta"]
-    claves = sorted(totales, key=lambda k: (-totales[k], etiquetas[k]))
-    categorias_grafico = [{"codigo": k, "etiqueta": etiquetas[k]} for k in claves]
+    claves_completas = sorted(totales, key=lambda k: (-totales[k], etiquetas[k]))
+    principales = claves_completas[:5] if len(claves_completas) > 5 else claves_completas
+    agrupar_otros = len(claves_completas) > 5
+    categorias_grafico = [{"codigo": k, "etiqueta": etiquetas[k]} for k in principales]
+    if agrupar_otros:
+        categorias_grafico.append({"codigo": "otros", "etiqueta": "Otros"})
+    # v35-top5-cruce
     por_geo = {}
     for item in combinaciones:
         por_geo.setdefault(item["codigo_geo"], {})[item["clave"]] = int(item["valor"] or 0)
@@ -1718,15 +1827,43 @@ def _ejecutar_cruce(intencion, progreso, inicio):
         nombre = next((v for k, v in nombres.items()
                        if str(k).isdigit() and str(codigo).isdigit()
                        and int(k) == int(codigo)), str(codigo))
+        # Detalle íntegro para Excel y pirámides.
+        distribucion_completa = []
+        for clave in claves_completas:
+            valor = int(conteos.get(clave, 0))
+            distribucion_completa.append({
+                "codigo": clave, "etiqueta": etiquetas[clave], "valor": valor,
+                "porcentaje": 100.0 * valor / total if total else None,
+            })
+
+        # Vista de mapa: cinco categorías principales y el resto agrupado.
         distribucion = []
-        for clave in claves:
+        for clave in principales:
             valor = int(conteos.get(clave, 0))
             distribucion.append({
                 "codigo": clave, "etiqueta": etiquetas[clave], "valor": valor,
                 "porcentaje": 100.0 * valor / total if total else None,
             })
-        datos.append({"codigo": codigo, "nombre": nombre,
-                      "distribucion": distribucion, "total": total})
+        if agrupar_otros:
+            valor_otros = sum(
+                int(valor)
+                for clave, valor in conteos.items()
+                if clave not in principales
+            )
+            distribucion.append({
+                "codigo": "otros",
+                "etiqueta": "Otros",
+                "valor": valor_otros,
+                "porcentaje": 100.0 * valor_otros / total if total else None,
+            })
+
+        datos.append({
+            "codigo": codigo,
+            "nombre": nombre,
+            "distribucion": distribucion,
+            "distribucion_completa": distribucion_completa,
+            "total": total,
+        })
     avisar(4, True)
     LOG.info("[tiempo] cruce_total=%.3fs filas_salida=%s dimensiones=%s",
              perf_counter() - inicio, len(datos), len(dimensiones))
@@ -1735,6 +1872,7 @@ def _ejecutar_cruce(intencion, progreso, inicio):
         "geometria": geometria, "nivel_geografico": nivel,
         "categorias_grafico": categorias_grafico, "_sql_ejecutada": sql,
         "entidad_objetivo": objetivo,
+        "piramide": piramide,
     }
 
 

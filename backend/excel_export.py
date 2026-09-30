@@ -11,6 +11,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from dictionary import VARIABLES, es_categoria_invalida
+from methodology import universo_formula_explicitos
 
 
 def _nombre_territorio(nivel, codigo):
@@ -199,7 +200,10 @@ def _registros_resultado(respuesta):
         for territorio in datos or []:
             base = geo_base(territorio)
             total = territorio.get("total")
-            for item in territorio.get("distribucion") or []:
+            # V33: el mapa puede agrupar en “Otros”, pero Excel conserva todas
+            # las categorías válidas entregadas por el motor.
+            distribucion_excel = territorio.get("distribucion_completa") or territorio.get("distribucion") or []
+            for item in distribucion_excel:
                 fila = dict(base)
                 fila["Categoría"] = _categoria_compuesta(respuesta, item, "tortas_mapa")
                 fila["Cantidad"] = item.get("valor")
@@ -394,6 +398,17 @@ def _universo_formula_exportacion(respuesta):
     tabla = str(interp.get("entidad_objetivo") or interp.get("tabla") or "registros")
     variable = interp.get("variable")
     descripcion = _descripcion_variable(interp.get("tabla"), variable) if variable else ""
+
+    # Para consultas estadísticas ordinarias, sustituye los textos genéricos
+    # por una descripción trazable del universo efectivo y de la operación.
+    # Los indicadores que ya traen universo/fórmula explícitos conservan esos
+    # metadatos; los productos OD mantienen su tratamiento específico abajo.
+    if respuesta.get("tipo_visualizacion") != "matriz_od" and (not universo or not formula):
+        universo_exp, formula_exp = universo_formula_explicitos(respuesta)
+        if not universo and universo_exp:
+            universo = universo_exp
+        if not formula and formula_exp:
+            formula = formula_exp
 
     if not universo:
         if respuesta.get("tipo_visualizacion") == "matriz_od":
@@ -612,6 +627,101 @@ def _crear_excel_od(plantilla, respuesta, pregunta):
     salida=BytesIO(); wb.save(salida); salida.seek(0)
     return salida, nombre_archivo(titulo)
 
+
+def _orden_edad_piramide(config, codigo):
+    orden = [str(x) for x in config.get("orden_edad") or []]
+    codigo = str(codigo)
+    if codigo in orden:
+        return (0, orden.index(codigo))
+    try:
+        return (1, float(codigo))
+    except (TypeError, ValueError):
+        m = re.match(r"\s*(\d+)", codigo)
+        return (2, int(m.group(1)) if m else 10**9, codigo)
+
+
+def _filas_piramides(respuesta):
+    config = respuesta.get("piramide") or {}
+    if not config.get("disponible"):
+        return []
+    try:
+        i_edad = int(config["indice_edad"])
+        i_sexo = int(config["indice_sexo"])
+    except (KeyError, TypeError, ValueError):
+        return []
+    hombre = str(config.get("sexo_hombre_codigo", "1"))
+    mujer = str(config.get("sexo_mujer_codigo", "2"))
+    etiquetas = {str(k): str(v) for k, v in (config.get("etiquetas_edad") or {}).items()}
+    nivel = respuesta.get("nivel_geografico") or config.get("nivel_geografico") or "region"
+    filas = []
+    for territorio in respuesta.get("datos") or []:
+        por_edad = {}
+        for item in (territorio.get("distribucion_completa") or territorio.get("distribucion") or []):
+            partes = str(item.get("codigo") or "").split("|")
+            if len(partes) <= max(i_edad, i_sexo):
+                continue
+            edad, sexo = partes[i_edad], partes[i_sexo]
+            if sexo not in {hombre, mujer}:
+                continue
+            rec = por_edad.setdefault(edad, {"hombres": 0, "mujeres": 0})
+            valor = int(item.get("valor") or 0)
+            if sexo == hombre:
+                rec["hombres"] += valor
+            else:
+                rec["mujeres"] += valor
+        codigo_territorio = territorio.get("codigo")
+        codigo_region = _codigo_region(nivel, codigo_territorio)
+        nombre_region = _nombre_territorio("region", codigo_region) if codigo_region is not None else ""
+        for edad in sorted(por_edad, key=lambda x: _orden_edad_piramide(config, x)):
+            rec = por_edad[edad]
+            etiqueta = etiquetas.get(str(edad))
+            if not etiqueta:
+                try:
+                    etiqueta = f"{int(float(edad))} años"
+                except (TypeError, ValueError):
+                    etiqueta = str(edad)
+            filas.append({
+                "Nivel geográfico": nivel.capitalize(),
+                "Región": nombre_region,
+                "Código territorio": codigo_territorio,
+                "Territorio": territorio.get("nombre") or str(codigo_territorio or ""),
+                "Edad / grupo de edad": etiqueta,
+                "Hombres": rec["hombres"],
+                "Mujeres": rec["mujeres"],
+                "Total": rec["hombres"] + rec["mujeres"],
+            })
+    return filas
+
+
+def _agregar_hoja_piramides(wb, respuesta):
+    filas = _filas_piramides(respuesta)
+    if not filas:
+        return
+    nombre = "Piramides_edad"
+    if nombre in wb.sheetnames:
+        wb.remove(wb[nombre])
+    ws = wb.create_sheet(nombre)
+    headers = ["Nivel geográfico", "Región", "Código territorio", "Territorio",
+               "Edad / grupo de edad", "Hombres", "Mujeres", "Total"]
+    azul = "174A7E"
+    fill = PatternFill("solid", fgColor=azul)
+    font = Font(bold=True, color="FFFFFF")
+    for c, h in enumerate(headers, 1):
+        celda = ws.cell(1, c, h)
+        celda.fill = fill; celda.font = font
+        celda.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    for r, fila in enumerate(filas, 2):
+        for c, h in enumerate(headers, 1):
+            valor = fila.get(h)
+            celda = ws.cell(r, c, valor)
+            celda.alignment = Alignment(horizontal="right" if h in {"Código territorio", "Hombres", "Mujeres", "Total"} else "left")
+            if h in {"Hombres", "Mujeres", "Total"}:
+                celda.number_format = "#,##0"
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = f"A1:H{1 + len(filas)}"
+    for col, width in {"A":18, "B":28, "C":18, "D":32, "E":22, "F":16, "G":16, "H":16}.items():
+        ws.column_dimensions[col].width = width
+
 def crear_excel(plantilla, respuesta, pregunta, sql):
     if respuesta.get("tipo_visualizacion") == "matriz_od":
         return _crear_excel_od(plantilla, respuesta, pregunta)
@@ -756,6 +866,7 @@ def crear_excel(plantilla, respuesta, pregunta, sql):
         _aplicar_estilo_celda(celda, pie["estilo_fuente"], alineacion="left")
         resultado.row_dimensions[fila].height = 32
 
+    _agregar_hoja_piramides(wb, respuesta)
     salida = BytesIO()
     wb.save(salida)
     salida.seek(0)

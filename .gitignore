@@ -49,3 +49,7 @@ Thumbs.db
 *.log
 *.tmp
 backups/
+*.bak
+APLICAR_PARCHE_V*.cmd
+README_V*.md
+aplicar_parche_v*.py

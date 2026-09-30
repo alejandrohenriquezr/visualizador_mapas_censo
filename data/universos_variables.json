@@ -1,0 +1,1467 @@
+{
+  "viviendas": {
+    "p2_tipo_vivienda": {
+      "tipo": "pregunta",
+      "ref_manual": "C4",
+      "paginas": "71-84",
+      "universo": "Todas las viviendas particulares, ocupadas o desocupadas.",
+      "aplicacion": "C4 se registra para caracterizar todas las viviendas particulares, incluidas las desocupadas.",
+      "descripcion": "2. Tipo de vivienda particular",
+      "exclusiones": [
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "NA = No aplica"
+    },
+    "p3a_estado_ocupacion": {
+      "tipo": "pregunta",
+      "ref_manual": "C5",
+      "paginas": "72-73",
+      "universo": "Todas las viviendas particulares.",
+      "aplicacion": "Clasifica cada vivienda particular como ocupada o desocupada según residencia habitual.",
+      "descripcion": "3a. Estado de ocupación de la vivienda",
+      "exclusiones": [
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "NA = No aplica"
+    },
+    "p3b_estado_ocupacion": {
+      "tipo": "derivada_operativa",
+      "ref_manual": "C5.1/C6",
+      "paginas": "74-76",
+      "universo": "Viviendas particulares con estado detallado identificable.",
+      "aplicacion": "Para ocupadas distingue moradores presentes/ausentes u otras razones de no entrevista; para desocupadas distingue razón de desocupación.",
+      "descripcion": "3b. Estado de ocupación de la vivienda (detalle)",
+      "exclusiones": [
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "NA = No aplica"
+    },
+    "p4a_mat_paredes": {
+      "tipo": "pregunta",
+      "ref_manual": "P4a",
+      "paginas": "85-88",
+      "universo": "Viviendas particulares ocupadas en las que se aplicó el módulo Datos de la vivienda.",
+      "aplicacion": "La entrevista de Datos de la vivienda se inicia cuando una vivienda ocupada acepta contestar.",
+      "descripcion": "4a. ¿Cuál es el material de construcción en las paredes exteriores?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p4b_mat_techo": {
+      "tipo": "pregunta",
+      "ref_manual": "P4b",
+      "paginas": "85, 89-90",
+      "universo": "Viviendas particulares ocupadas en las que se aplicó el módulo Datos de la vivienda.",
+      "aplicacion": "La entrevista de Datos de la vivienda se inicia cuando una vivienda ocupada acepta contestar.",
+      "descripcion": "4b. ¿Cuál es el material de construcción en la cubierta del techo?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p4c_mat_piso": {
+      "tipo": "pregunta",
+      "ref_manual": "P4c",
+      "paginas": "85, 91-92",
+      "universo": "Viviendas particulares ocupadas en las que se aplicó el módulo Datos de la vivienda.",
+      "aplicacion": "La entrevista de Datos de la vivienda se inicia cuando una vivienda ocupada acepta contestar.",
+      "descripcion": "4c. ¿Cuál es el material de construcción en el piso?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p5_num_dormitorios": {
+      "tipo": "pregunta",
+      "ref_manual": "P5",
+      "paginas": "93",
+      "universo": "Viviendas particulares ocupadas en las que se aplicó el módulo Datos de la vivienda.",
+      "aplicacion": "Se cuentan piezas usadas exclusivamente como dormitorio.",
+      "descripcion": "5. ¿Cuántas piezas de esta vivienda se usan exclusivamente como dormitorio?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p6_fuente_agua": {
+      "tipo": "pregunta",
+      "ref_manual": "P6",
+      "paginas": "94",
+      "universo": "Viviendas particulares ocupadas en las que se aplicó el módulo Datos de la vivienda.",
+      "aplicacion": "Se registra la fuente principal de agua para uso doméstico.",
+      "descripcion": "6. El agua que usa esta vivienda proviene principalmente de:",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p7_distrib_agua": {
+      "tipo": "pregunta",
+      "ref_manual": "P7",
+      "paginas": "95",
+      "universo": "Viviendas particulares ocupadas en las que se aplicó el módulo Datos de la vivienda.",
+      "aplicacion": "Se registra el sistema de distribución de agua de la vivienda.",
+      "descripcion": "7. ¿Cuál es el sistema de distribución del agua en esta vivienda?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p8_serv_hig": {
+      "tipo": "pregunta",
+      "ref_manual": "P8",
+      "paginas": "96-97",
+      "universo": "Viviendas particulares ocupadas en las que se aplicó el módulo Datos de la vivienda.",
+      "aplicacion": "Se registra el servicio higiénico principal de la vivienda.",
+      "descripcion": "8. El servicio higiénico (WC) principal de esta vivienda es o está:",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p9_fuente_elect": {
+      "tipo": "pregunta",
+      "ref_manual": "P9",
+      "paginas": "97-98",
+      "universo": "Viviendas particulares ocupadas en las que se aplicó el módulo Datos de la vivienda.",
+      "aplicacion": "Se registra la fuente principal de electricidad de la vivienda.",
+      "descripcion": "9. La electricidad de esta vivienda proviene principalmente de:",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p10_basura": {
+      "tipo": "pregunta",
+      "ref_manual": "P10",
+      "paginas": "99",
+      "universo": "Viviendas particulares ocupadas en las que se aplicó el módulo Datos de la vivienda.",
+      "aplicacion": "Se registra el principal medio de eliminación de basura.",
+      "descripcion": "10. ¿Cuál es el principal medio de eliminación de basura de esta vivienda?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p11a_num_personas": {
+      "tipo": "pregunta",
+      "ref_manual": "P11",
+      "paginas": "102-103",
+      "universo": "Viviendas particulares ocupadas en las que se aplicó la identificación de hogares.",
+      "aplicacion": "Incluye a todas las personas residentes habituales de la vivienda, estén presentes o no.",
+      "descripcion": "11. ¿Cuántas personas residen habitualmente en esta vivienda?",
+      "exclusiones": [],
+      "exclusiones_texto": "Sin códigos de exclusión explícitos en el diccionario."
+    },
+    "p11b_comparte_gasto": {
+      "tipo": "pregunta",
+      "ref_manual": "P11.1",
+      "paginas": "104-105",
+      "universo": "Viviendas particulares ocupadas con dos o más residentes habituales.",
+      "aplicacion": "No se aplica cuando vive una sola persona, porque se asume un hogar unipersonal.",
+      "descripcion": "11.1. De las personas que residen habitualmente en esta vivienda, ¿todas comparten los gastos para alimentación?",
+      "exclusiones": [],
+      "exclusiones_texto": "Sin códigos de exclusión explícitos en el diccionario."
+    },
+    "p11c_num_hogar": {
+      "tipo": "pregunta",
+      "ref_manual": "P11.2",
+      "paginas": "105-106",
+      "universo": "Viviendas particulares ocupadas donde no todas las personas residentes comparten un mismo presupuesto de alimentación.",
+      "aplicacion": "Se habilita cuando P11.1 indica que existen gastos separados de alimentación.",
+      "descripcion": "11.2. ¿Cuántos grupos tienen gastos separados de alimentación?",
+      "exclusiones": [],
+      "exclusiones_texto": "Sin códigos de exclusión explícitos en el diccionario."
+    },
+    "cant_per": {
+      "tipo": "derivada",
+      "ref_manual": "P11/P16",
+      "paginas": "102-103, 115-118",
+      "universo": "Viviendas particulares con personas censadas asociadas.",
+      "aplicacion": "Conteo derivado de personas censadas vinculadas a cada vivienda.",
+      "descripcion": "Número de personas censadas en la vivienda",
+      "exclusiones": [],
+      "exclusiones_texto": "Sin códigos de exclusión explícitos en el diccionario."
+    },
+    "cant_hog": {
+      "tipo": "derivada",
+      "ref_manual": "P11.1/P11.2",
+      "paginas": "104-106",
+      "universo": "Viviendas particulares ocupadas con hogares identificados.",
+      "aplicacion": "Conteo derivado de hogares censados vinculados a cada vivienda.",
+      "descripcion": "Número de hogares censados en la vivienda particular",
+      "exclusiones": [
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "NA = No aplica"
+    },
+    "indice_hacinamiento": {
+      "tipo": "derivada",
+      "ref_manual": "P5/P11",
+      "paginas": "93, 102-103",
+      "universo": "Viviendas particulares ocupadas con número de residentes habituales y dormitorios válidos.",
+      "aplicacion": "Indicador derivado a partir de personas residentes y piezas usadas exclusivamente como dormitorio.",
+      "descripcion": "Índice de hacinamiento",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    }
+  },
+  "hogares": {
+    "p12_tenencia_viv": {
+      "tipo": "pregunta",
+      "ref_manual": "P12",
+      "paginas": "108-110",
+      "universo": "Todos los hogares identificados en viviendas particulares ocupadas.",
+      "aplicacion": "La pregunta se realiza por separado a cada hogar que reside en la vivienda.",
+      "descripcion": "12. La vivienda que ocupa este hogar es:",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p13_comb_cocina": {
+      "tipo": "pregunta",
+      "ref_manual": "P13",
+      "paginas": "110-112",
+      "universo": "Todos los hogares identificados en viviendas particulares ocupadas.",
+      "aplicacion": "Se registra la principal fuente de energía o combustible usada para cocinar.",
+      "descripcion": "13. ¿Cuál es la principal fuente de energía o combustible que utilizan para cocinar?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p14_comb_calefaccion": {
+      "tipo": "pregunta",
+      "ref_manual": "P14",
+      "paginas": "110-112",
+      "universo": "Todos los hogares identificados en viviendas particulares ocupadas.",
+      "aplicacion": "Se registra la principal fuente de energía o combustible usada para calefaccionar.",
+      "descripcion": "14. ¿Cuál es la principal fuente de energía o combustible que utilizan para calefaccionar?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p15a_serv_tel_movil": {
+      "tipo": "pregunta",
+      "ref_manual": "P15",
+      "paginas": "113-114",
+      "universo": "Todos los hogares identificados en viviendas particulares ocupadas.",
+      "aplicacion": "Disponibilidad del equipo/servicio para uso de integrantes del hogar.",
+      "descripcion": "15. Este hogar, ¿dispone de teléfono móvil, celular o smartphone?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p15b_serv_compu": {
+      "tipo": "pregunta",
+      "ref_manual": "P15",
+      "paginas": "113-114",
+      "universo": "Todos los hogares identificados en viviendas particulares ocupadas.",
+      "aplicacion": "Disponibilidad del equipo/servicio para uso de integrantes del hogar.",
+      "descripcion": "15. Este hogar, ¿dispone de computador (escritorio o portátil)?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p15c_serv_tablet": {
+      "tipo": "pregunta",
+      "ref_manual": "P15",
+      "paginas": "113-114",
+      "universo": "Todos los hogares identificados en viviendas particulares ocupadas.",
+      "aplicacion": "Disponibilidad del equipo/servicio para uso de integrantes del hogar.",
+      "descripcion": "15. Este hogar, ¿dispone de tablet?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p15d_serv_internet_fija": {
+      "tipo": "pregunta",
+      "ref_manual": "P15",
+      "paginas": "113-114",
+      "universo": "Todos los hogares identificados en viviendas particulares ocupadas.",
+      "aplicacion": "Disponibilidad de internet fija en el hogar.",
+      "descripcion": "15. Este hogar, ¿dispone de internet fija?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p15e_serv_internet_movil": {
+      "tipo": "pregunta",
+      "ref_manual": "P15",
+      "paginas": "113-114",
+      "universo": "Todos los hogares identificados en viviendas particulares ocupadas.",
+      "aplicacion": "Disponibilidad de internet móvil desde celular, tablet o BAM en el hogar.",
+      "descripcion": "15. Este hogar, ¿dispone de internet móvil desde un celular, tablet o BAM?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p15f_serv_internet_satelital": {
+      "tipo": "pregunta",
+      "ref_manual": "P15",
+      "paginas": "113-114",
+      "universo": "Todos los hogares identificados en viviendas particulares ocupadas.",
+      "aplicacion": "Disponibilidad de internet por conexión satelital en el hogar.",
+      "descripcion": "15. Este hogar, ¿dispone de internet por conexión satelital?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "tipologia_hogar": {
+      "tipo": "derivada",
+      "ref_manual": "P11.1/P11.2/P16/P19b",
+      "paginas": "104-106, 115-122",
+      "universo": "Hogares con composición de personas y relaciones de parentesco suficientes para clasificar su tipología.",
+      "aplicacion": "Variable derivada a partir de composición del hogar y relaciones entre sus integrantes.",
+      "descripcion": "Tipología de hogar",
+      "exclusiones": [
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "NA = No aplica"
+    }
+  },
+  "personas": {
+    "parentesco": {
+      "tipo": "pregunta",
+      "ref_manual": "P19b",
+      "paginas": "120-122",
+      "universo": "Personas residentes habituales integrantes de hogares en viviendas particulares con jefa o jefe de hogar identificado.",
+      "aplicacion": "Registra la relación de cada integrante con la jefa o jefe del hogar.",
+      "descripcion": "19. ¿Qué relación de parentesco tiene con la jefa o jefe de hogar?",
+      "exclusiones": [],
+      "exclusiones_texto": "Sin códigos de exclusión explícitos en el diccionario."
+    },
+    "sexo": {
+      "tipo": "pregunta",
+      "ref_manual": "P17",
+      "paginas": "119",
+      "universo": "Todas las personas censadas.",
+      "aplicacion": "El Manual señala explícitamente que la pregunta se aplica a todas las personas.",
+      "descripcion": "20. ¿Cuál es su sexo?",
+      "exclusiones": [],
+      "exclusiones_texto": "Sin códigos de exclusión explícitos en el diccionario."
+    },
+    "edad": {
+      "tipo": "pregunta",
+      "ref_manual": "P18",
+      "paginas": "119",
+      "universo": "Todas las personas censadas.",
+      "aplicacion": "El Manual señala explícitamente que la pregunta se aplica a todas las personas.",
+      "descripcion": "21. ¿Cuántos años cumplidos tiene?",
+      "exclusiones": [
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        }
+      ],
+      "exclusiones_texto": "-66 = Valor suprimido por anonimización"
+    },
+    "edad_quinquenal": {
+      "tipo": "derivada",
+      "ref_manual": "P18",
+      "paginas": "119",
+      "universo": "Personas con edad válida.",
+      "aplicacion": "Agrupación derivada de la edad en intervalos quinquenales.",
+      "descripcion": "Edad en quinquenios",
+      "exclusiones": [],
+      "exclusiones_texto": "Sin códigos de exclusión explícitos en el diccionario."
+    },
+    "p23_est_civil": {
+      "tipo": "pregunta",
+      "ref_manual": "P23",
+      "paginas": "125-126",
+      "universo": "Personas para quienes el cuestionario habilitó la pregunta de estado conyugal o civil y con respuesta válida.",
+      "aplicacion": "El Manual describe P23, pero en esas páginas no explicita un umbral etario; el Interviewer habilita secciones según sexo y edad.",
+      "descripcion": "23. ¿Cuál es su estado conyugal o civil actual?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p24_lug_resid5": {
+      "tipo": "pregunta",
+      "ref_manual": "P24",
+      "paginas": "127-131",
+      "universo": "Personas censadas para quienes corresponde establecer su residencia en abril de 2019; incluye la categoría “Aún no nacía”.",
+      "aplicacion": "La sección de migración se aplica a todas las personas con excepciones definidas por la ruta del cuestionario.",
+      "descripcion": "24. ¿En qué comuna o país vivía en abril de 2019?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "p24_lug_resid5_esp": {
+      "tipo": "detalle_condicional",
+      "ref_manual": "P24.1-P24.4",
+      "paginas": "129-131",
+      "universo": "Personas para quienes P24 requiere identificar comuna, región o país específico de residencia en abril de 2019.",
+      "aplicacion": "Variable detallada condicionada por la respuesta a P24 y por disponibilidad del dato específico.",
+      "descripcion": "Lugar específico de residencia hace 5 años",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta en país de residencia hace 5 años"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta en país de residencia hace 5 años; NA = No aplica; -66 = Valor suprimido por anonimización"
+    },
+    "p25_lug_nacimiento": {
+      "tipo": "pregunta",
+      "ref_manual": "P25",
+      "paginas": "132-135",
+      "universo": "Todas las personas censadas.",
+      "aplicacion": "Registra la comuna o país donde vivía la madre cuando nació la persona.",
+      "descripcion": "25. Cuándo nació, ¿en qué comuna o país vivía su madre?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "p25_lug_nacimiento_rec": {
+      "tipo": "derivada",
+      "ref_manual": "P25",
+      "paginas": "132-135",
+      "universo": "Personas con respuesta válida sobre lugar de nacimiento.",
+      "aplicacion": "Recodificación que identifica nacimiento en Chile.",
+      "descripcion": "Nació en Chile",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "p25_lug_nacimiento_esp": {
+      "tipo": "detalle_condicional",
+      "ref_manual": "P25.1-P25.4",
+      "paginas": "133-135",
+      "universo": "Personas para quienes P25 requiere identificar comuna, región o país específico de nacimiento.",
+      "aplicacion": "Variable detallada condicionada por la respuesta a P25.",
+      "descripcion": "Lugar específico de nacimiento",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización"
+    },
+    "p26_llegada_periodo": {
+      "tipo": "pregunta",
+      "ref_manual": "P26/P26.1",
+      "paginas": "136-137",
+      "universo": "Personas nacidas en el extranjero.",
+      "aplicacion": "El Manual señala explícitamente que P26 se aplica únicamente a personas nacidas en el extranjero; el período se usa si no se recuerda el año exacto.",
+      "descripcion": "26. ¿En qué año llegó a vivir a Chile?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p27_nacionalidad": {
+      "tipo": "pregunta",
+      "ref_manual": "P27",
+      "paginas": "138-139",
+      "universo": "Todas las personas censadas.",
+      "aplicacion": "Registra nacionalidad chilena exclusiva, doble nacionalidad u otra nacionalidad.",
+      "descripcion": "27. ¿Cuál es su nacionalidad?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización"
+    },
+    "p27_nacionalidad_esp": {
+      "tipo": "detalle_condicional",
+      "ref_manual": "P27.1-P27.2",
+      "paginas": "139",
+      "universo": "Personas con doble nacionalidad o nacionalidad distinta de la chilena para quienes corresponde identificar el país.",
+      "aplicacion": "P27.1 se habilita para doble/otra nacionalidad; P27.2 si el país es “Otro”.",
+      "descripcion": "País de nacionalidad",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización"
+    },
+    "p27_nacionalidad_rec": {
+      "tipo": "derivada",
+      "ref_manual": "P27",
+      "paginas": "138-139",
+      "universo": "Personas con respuesta válida a nacionalidad.",
+      "aplicacion": "Recodificación que identifica nacionalidad chilena.",
+      "descripcion": "Nacionalidad chilena",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "p28_autoid_pueblo": {
+      "tipo": "pregunta",
+      "ref_manual": "P28",
+      "paginas": "141",
+      "universo": "Todas las personas censadas.",
+      "aplicacion": "El Manual señala explícitamente que se aplica a todas las personas.",
+      "descripcion": "28. ¿Es o se considera perteneciente a algún pueblo indígena u originario?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "p28_pueblo_pert": {
+      "tipo": "pregunta_condicional",
+      "ref_manual": "P28.1",
+      "paginas": "141-143",
+      "universo": "Personas que se consideran pertenecientes a algún pueblo indígena u originario (P28 = Sí).",
+      "aplicacion": "P28.1 identifica el pueblo declarado cuando P28 es afirmativa.",
+      "descripcion": "28. ¿A cuál?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización; NA = No aplica"
+    },
+    "p29_afrodescendencia": {
+      "tipo": "pregunta",
+      "ref_manual": "P29",
+      "paginas": "144-145",
+      "universo": "Todas las personas censadas.",
+      "aplicacion": "El Manual señala explícitamente que se aplica a todas las personas.",
+      "descripcion": "29. De acuerdo con sus antepasados, tradiciones y cultura, es o se considera:",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización"
+    },
+    "p29_afrodescendencia_rec": {
+      "tipo": "derivada",
+      "ref_manual": "P29",
+      "paginas": "144-145",
+      "universo": "Personas con respuesta válida a autoidentificación afrodescendiente.",
+      "aplicacion": "Recodificación de autoidentificación afrodescendiente.",
+      "descripcion": "Afrodescendencia",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "p30_lengua_indigena": {
+      "tipo": "pregunta",
+      "ref_manual": "P30",
+      "paginas": "145-146",
+      "universo": "Personas de 5 años o más.",
+      "aplicacion": "El Manual señala explícitamente que P30 se aplica a personas de 5 años o más.",
+      "descripcion": "30. ¿Habla o entiende una de las siguientes lenguas indígenas u originarias?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización; NA = No aplica"
+    },
+    "p30_lengua_indigena_rec": {
+      "tipo": "derivada",
+      "ref_manual": "P30",
+      "paginas": "145-146",
+      "universo": "Personas de 5 años o más con respuesta válida a P30.",
+      "aplicacion": "Recodificación de habla o comprensión de alguna lengua originaria.",
+      "descripcion": "Habla o entiende alguna lengua originaria",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p31_religion": {
+      "tipo": "pregunta",
+      "ref_manual": "P31",
+      "paginas": "147-149",
+      "universo": "Personas de 15 años o más.",
+      "aplicacion": "El Manual señala explícitamente que la pregunta de religión o credo se aplica a personas de 15 años o más.",
+      "descripcion": "31. ¿Cuál es su religión o credo?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización; NA = No aplica"
+    },
+    "p31_religion_rec": {
+      "tipo": "derivada",
+      "ref_manual": "P31",
+      "paginas": "147-149",
+      "universo": "Personas de 15 años o más con respuesta válida a P31.",
+      "aplicacion": "Recodificación de tenencia de religión o credo.",
+      "descripcion": "Tiene religión o credo",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p32a_dificultad_ver": {
+      "tipo": "pregunta",
+      "ref_manual": "P32a-P32f",
+      "paginas": "150-154",
+      "universo": "Personas de 5 años o más.",
+      "aplicacion": "El Manual señala explícitamente que las preguntas de salud/dificultades se aplican a personas de 5 años o más.",
+      "descripcion": "32. ¿Tiene dificultad para ver, aun usando anteojos o lentes?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p32b_dificultad_oir": {
+      "tipo": "pregunta",
+      "ref_manual": "P32a-P32f",
+      "paginas": "150-154",
+      "universo": "Personas de 5 años o más.",
+      "aplicacion": "El Manual señala explícitamente que las preguntas de salud/dificultades se aplican a personas de 5 años o más.",
+      "descripcion": "32. ¿Tiene dificultad para oír, aun usando un dispositivo auditivo",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p32c_dificultad_mover": {
+      "tipo": "pregunta",
+      "ref_manual": "P32a-P32f",
+      "paginas": "150-154",
+      "universo": "Personas de 5 años o más.",
+      "aplicacion": "El Manual señala explícitamente que las preguntas de salud/dificultades se aplican a personas de 5 años o más.",
+      "descripcion": "32. ¿Tiene dificultad para caminar o subir escaleras?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p32d_dificultad_cogni": {
+      "tipo": "pregunta",
+      "ref_manual": "P32a-P32f",
+      "paginas": "150-154",
+      "universo": "Personas de 5 años o más.",
+      "aplicacion": "El Manual señala explícitamente que las preguntas de salud/dificultades se aplican a personas de 5 años o más.",
+      "descripcion": "32. ¿Tiene dificultad para recordar o concentrarse?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p32e_dificultad_cuidado": {
+      "tipo": "pregunta",
+      "ref_manual": "P32a-P32f",
+      "paginas": "150-154",
+      "universo": "Personas de 5 años o más.",
+      "aplicacion": "El Manual señala explícitamente que las preguntas de salud/dificultades se aplican a personas de 5 años o más.",
+      "descripcion": "32. ¿Tiene dificultad para realizar tareas de cuidado personal, como bañarse o vestirse?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p32f_dificultad_comunic": {
+      "tipo": "pregunta",
+      "ref_manual": "P32a-P32f",
+      "paginas": "150-154",
+      "universo": "Personas de 5 años o más.",
+      "aplicacion": "El Manual señala explícitamente que las preguntas de salud/dificultades se aplican a personas de 5 años o más.",
+      "descripcion": "32. ¿Tiene dificultad para hablar o comunicarse usando su idioma habitual, por ejemplo, entender o ser entendido por otras personas?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "discapacidad": {
+      "tipo": "derivada",
+      "ref_manual": "P32a-P32f",
+      "paginas": "150-154",
+      "universo": "Personas de 5 años o más con información válida en las preguntas de dificultad funcional requeridas para clasificar discapacidad.",
+      "aplicacion": "Indicador derivado de las seis preguntas P32.",
+      "descripcion": "Discapacidad",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p33_edu_asiste": {
+      "tipo": "pregunta",
+      "ref_manual": "P33",
+      "paginas": "156-158",
+      "universo": "Personas censadas con respuesta válida a asistencia a educación formal.",
+      "aplicacion": "El Manual incluye educación parvularia, básica, media y superior; no explicita un umbral etario junto a P33.",
+      "descripcion": "33. ¿Asiste actualmente a la educación formal? Incluye educación parvularia, especial, básica, media y superior",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "asistencia_parv": {
+      "tipo": "derivada",
+      "ref_manual": "P33/P34",
+      "paginas": "156-161",
+      "universo": "Personas con información educativa válida para identificar asistencia a educación parvularia o preescolar.",
+      "aplicacion": "Variable derivada a partir de asistencia y nivel educacional.",
+      "descripcion": "Asistencia a nivel de educación parvularia o preescolar",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización; NA = No aplica"
+    },
+    "asistencia_basica": {
+      "tipo": "derivada",
+      "ref_manual": "P33/P34",
+      "paginas": "156-161",
+      "universo": "Personas con información educativa válida para identificar asistencia a educación básica.",
+      "aplicacion": "Variable derivada a partir de asistencia y nivel educacional.",
+      "descripcion": "Asistencia a nivel de educación básica",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización; NA = No aplica"
+    },
+    "asistencia_media": {
+      "tipo": "derivada",
+      "ref_manual": "P33/P34",
+      "paginas": "156-161",
+      "universo": "Personas con información educativa válida para identificar asistencia a educación media.",
+      "aplicacion": "Variable derivada a partir de asistencia y nivel educacional.",
+      "descripcion": "Asistencia a nivel de educación media",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización; NA = No aplica"
+    },
+    "asistencia_superior": {
+      "tipo": "derivada",
+      "ref_manual": "P33/P34",
+      "paginas": "156-161",
+      "universo": "Personas con información educativa válida para identificar asistencia a educación superior.",
+      "aplicacion": "Variable derivada a partir de asistencia y nivel educacional.",
+      "descripcion": "Asistencia a nivel de educación superior",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; -66 = Valor suprimido por anonimización; NA = No aplica"
+    },
+    "p37_alfabet": {
+      "tipo": "pregunta",
+      "ref_manual": "P37",
+      "paginas": "166",
+      "universo": "Personas con respuesta válida a saber leer y escribir; para las tasas de alfabetismo del visor se restringe a 5 años o más.",
+      "aplicacion": "El Manual define la pregunta y muestra aplicación en población infantil; el criterio analítico del visor usa 5 años o más para tasas.",
+      "descripcion": "37. ¿Sabe leer y escribir?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "escolaridad": {
+      "tipo": "derivada",
+      "ref_manual": "P34-P36",
+      "paginas": "159-165",
+      "universo": "Personas con años de escolaridad calculables a partir del nivel educativo más alto, último curso/año aprobado y término del nivel.",
+      "aplicacion": "Años de escolaridad es una variable derivada; se consideran solo valores válidos dentro de su dominio publicado.",
+      "descripcion": "Años de escolaridad",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "cine11": {
+      "tipo": "derivada",
+      "ref_manual": "P34-P36",
+      "paginas": "159-165",
+      "universo": "Personas con información educativa válida suficiente para clasificar el logro educativo según CINE-11.",
+      "aplicacion": "Variable derivada del nivel/curso/término educacional.",
+      "descripcion": "Logro educativo de acuerdo con la Clasificación Internacional Normalizada de la Educación",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "sit_fuerza_trabajo": {
+      "tipo": "derivada",
+      "ref_manual": "P38-P39",
+      "paginas": "171-175",
+      "universo": "Personas de 15 años o más con información laboral válida para clasificar su situación en la fuerza de trabajo.",
+      "aplicacion": "La sección Empleo se aplica a personas de 15 años o más.",
+      "descripcion": "Situación en la fuerza de trabajo",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p40_cise_rec": {
+      "tipo": "pregunta",
+      "ref_manual": "P40",
+      "paginas": "175-176",
+      "universo": "Personas de 15 años o más que se encontraban ocupadas durante la semana anterior a la entrevista.",
+      "aplicacion": "El Manual explicita este universo para P40.",
+      "descripcion": "40. ¿Trabajó cómo…?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "depend_econ_deficit_hab": {
+      "tipo": "derivada",
+      "ref_manual": "P38-P40 y composición del hogar",
+      "paginas": "171-176",
+      "universo": "Personas con información suficiente para calcular el indicador de dependencia económica usado por el visor.",
+      "aplicacion": "Variable derivada; no corresponde a una pregunta directa del cuestionario.",
+      "descripcion": "Dependencia económica",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta"
+    },
+    "cod_ciuo": {
+      "tipo": "derivada",
+      "ref_manual": "P41-P42",
+      "paginas": "177-182",
+      "universo": "Personas de 15 años o más ocupadas durante la semana anterior, con ocupación/tareas codificables.",
+      "aplicacion": "Clasificación CIUO derivada de P41-P42.",
+      "descripcion": "CIUO-08.CL a 1 dígito",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "cod_caenes": {
+      "tipo": "derivada",
+      "ref_manual": "P43",
+      "paginas": "183-186",
+      "universo": "Personas de 15 años o más ocupadas durante la semana anterior, con actividad económica codificable.",
+      "aplicacion": "Clasificación CAENES derivada de P43.",
+      "descripcion": "CAENES a 1 dígito",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p44_lug_trab": {
+      "tipo": "pregunta",
+      "ref_manual": "P44",
+      "paginas": "186-190",
+      "universo": "Personas de 15 años o más que se encontraban ocupadas durante la semana anterior a la entrevista.",
+      "aplicacion": "El Manual explicita este universo para P44.",
+      "descripcion": "44. ¿En qué comuna o país se ubica su trabajo?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p44_lug_trab_esp": {
+      "tipo": "detalle_condicional",
+      "ref_manual": "P44.1-P44.4",
+      "paginas": "188-190",
+      "universo": "Personas ocupadas de 15 años o más para quienes P44 requiere identificar comuna, región o país específico del trabajo.",
+      "aplicacion": "Detalle territorial condicionado por las categorías de P44.",
+      "descripcion": "Lugar de trabajo",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p45_medio_transporte": {
+      "tipo": "pregunta",
+      "ref_manual": "P45",
+      "paginas": "191",
+      "universo": "Personas ocupadas que indicaron trabajar fuera de su vivienda.",
+      "aplicacion": "El Manual señala explícitamente que P45 se aplica a quienes trabajan fuera de su vivienda.",
+      "descripcion": "45. ¿Cuál es el medio de transporte principal que utiliza para dirigirse a su lugar de trabajo?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p46a_tot_hijs_nac": {
+      "tipo": "pregunta",
+      "ref_manual": "P46/P46.1/P46.2",
+      "paginas": "192-194",
+      "universo": "Mujeres de 15 años o más.",
+      "aplicacion": "La sección de fecundidad se aplica a mujeres de 15 años o más.",
+      "descripcion": "46. ¿Cuántas hijas e hijos nacidos vivos ha tenido en total?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p46b_hijas_nac": {
+      "tipo": "pregunta",
+      "ref_manual": "P46/P46.1/P46.2",
+      "paginas": "192-194",
+      "universo": "Mujeres de 15 años o más.",
+      "aplicacion": "La sección de fecundidad se aplica a mujeres de 15 años o más.",
+      "descripcion": "46. Del total de hijas e hijos nacidos vivos, ¿cuántas son mujeres?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p46c_hijos_nac": {
+      "tipo": "pregunta",
+      "ref_manual": "P46/P46.1/P46.2",
+      "paginas": "192-194",
+      "universo": "Mujeres de 15 años o más.",
+      "aplicacion": "La sección de fecundidad se aplica a mujeres de 15 años o más.",
+      "descripcion": "46. Del total de hijas e hijos nacidos vivos, ¿cuántos son hombres?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p47a_tot_hijs_sobrev": {
+      "tipo": "pregunta_condicional",
+      "ref_manual": "P47/P47.1/P47.2",
+      "paginas": "194-195",
+      "universo": "Mujeres de 15 años o más que declararon haber tenido al menos una hija o hijo nacido vivo.",
+      "aplicacion": "El Manual indica que esta información se recopila solo para mujeres que declaran al menos un nacido vivo.",
+      "descripcion": "47. ¿Cuántas hijas e hijos están vivos actualmente?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p47b_hijas_sobrev": {
+      "tipo": "pregunta_condicional",
+      "ref_manual": "P47/P47.1/P47.2",
+      "paginas": "194-195",
+      "universo": "Mujeres de 15 años o más que declararon haber tenido al menos una hija o hijo nacido vivo.",
+      "aplicacion": "El Manual indica que esta información se recopila solo para mujeres que declaran al menos un nacido vivo.",
+      "descripcion": "47. Del total de hijas e hijos que se encuentran vivos, ¿cuántas son mujeres?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p47c_hijos_sobrev": {
+      "tipo": "pregunta_condicional",
+      "ref_manual": "P47/P47.1/P47.2",
+      "paginas": "194-195",
+      "universo": "Mujeres de 15 años o más que declararon haber tenido al menos una hija o hijo nacido vivo.",
+      "aplicacion": "El Manual indica que esta información se recopila solo para mujeres que declaran al menos un nacido vivo.",
+      "descripcion": "47. Del total de hijas e hijos que se encuentran vivos, ¿cuántos son hombres?",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "p48_anio_nac_uh": {
+      "tipo": "pregunta_condicional",
+      "ref_manual": "P48",
+      "paginas": "195-196",
+      "universo": "Mujeres de 15 años o más que declararon haber tenido al menos una hija o hijo nacido vivo.",
+      "aplicacion": "P48 registra la fecha de nacimiento de la última hija o hijo nacido vivo.",
+      "descripcion": "48. ¿En qué mes y año nació su última hija o hijo nacido vivo? Año",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No responde"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No responde; NA = No aplica"
+    },
+    "p48_mes_nac_uh": {
+      "tipo": "pregunta_condicional",
+      "ref_manual": "P48",
+      "paginas": "195-196",
+      "universo": "Mujeres de 15 años o más que declararon haber tenido al menos una hija o hijo nacido vivo.",
+      "aplicacion": "P48 registra la fecha de nacimiento de la última hija o hijo nacido vivo.",
+      "descripcion": "48. ¿En qué mes y año nació su última hija o hijo nacido vivo? Mes",
+      "exclusiones": [
+        {
+          "codigo": "-99",
+          "etiqueta": "No respuesta"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-99 = No respuesta; NA = No aplica"
+    },
+    "div_genero": {
+      "tipo": "derivada",
+      "ref_manual": "P49-P50",
+      "paginas": "197-199",
+      "universo": "Personas de 18 años o más con información válida de género; la clasificación trans requiere además las condiciones de P50 cuando corresponde.",
+      "aplicacion": "Las preguntas de género se aplican a personas de 18 años o más; P50 es condicional según combinación sexo-género.",
+      "descripcion": "Diversidades de género",
+      "exclusiones": [
+        {
+          "codigo": "-66",
+          "etiqueta": "Valor suprimido por anonimización"
+        },
+        {
+          "codigo": "NA",
+          "etiqueta": "No aplica"
+        }
+      ],
+      "exclusiones_texto": "-66 = Valor suprimido por anonimización; NA = No aplica"
+    }
+  }
+}

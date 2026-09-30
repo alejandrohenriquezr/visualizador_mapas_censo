@@ -275,6 +275,34 @@
   .p32-mini-svg-wrap svg{display:block;width:82px;height:52px;overflow:visible;}
 
 </style>
+
+<style id="v33-piramide-estilos">
+#btn-piramide{width:auto;padding:0 12px;font-weight:600;color:var(--acento);}
+#piramide-edad{display:none;position:absolute;inset:0;z-index:900;background:#fffdf8;padding:22px;overflow:auto;}
+#piramide-edad.visible{display:block;}
+.piramide-contenido{max-width:1050px;margin:0 auto;}
+.piramide-cabecera{display:flex;gap:12px;align-items:end;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px;}
+.piramide-cabecera h2{margin:0;font-family:'Fraunces',serif;}
+.piramide-selectores{display:flex;gap:10px;flex-wrap:wrap;}
+.piramide-selectores label{display:grid;gap:4px;font-size:.76rem;color:#5a5245;}
+.piramide-selectores select{min-width:210px;padding:7px 9px;border:1px solid var(--linea);background:#fff;font:inherit;color:var(--tinta);}
+#piramide-dibujo{display:grid;gap:4px;min-width:620px;}
+.piramide-fila{display:grid;grid-template-columns:minmax(130px,1fr) 88px minmax(130px,1fr);gap:8px;align-items:center;min-height:22px;}
+.piramide-lado{display:flex;align-items:center;gap:7px;min-width:0;}
+.piramide-lado.hombres{justify-content:flex-end;}
+.piramide-lado.mujeres{justify-content:flex-start;}
+.piramide-barra{height:16px;min-width:1px;background:var(--acento);border-radius:2px;}
+.piramide-lado.hombres .piramide-barra{order:2;}
+.piramide-lado.hombres .piramide-valor{order:1;}
+.piramide-lado.mujeres .piramide-barra{order:1;}
+.piramide-lado.mujeres .piramide-valor{order:2;}
+.piramide-edad-etiqueta{text-align:center;font-size:.75rem;line-height:1.1;}
+.piramide-valor{font-size:.72rem;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.piramide-encabezado{display:grid;grid-template-columns:1fr 88px 1fr;gap:8px;margin-bottom:8px;font-size:.78rem;font-weight:700;text-align:center;}
+#piramide-nota{margin-top:15px;font-size:.78rem;color:#6a6355;}
+@media(max-width:720px){#piramide-edad{padding:14px}.piramide-scroll{overflow-x:auto}.piramide-cabecera{align-items:stretch}.piramide-selectores{display:grid}.piramide-selectores select{width:100%;}}
+</style>
+
 </head>
 <body>
 
@@ -319,6 +347,28 @@
     </div>
   </section>
 
+
+  <section id="piramide-edad" aria-label="Pirámide de edad">
+    <div class="piramide-contenido">
+      <div class="piramide-cabecera">
+        <h2 id="piramide-titulo">Pirámide de edad</h2>
+        <div class="piramide-selectores">
+          <label id="piramide-region-wrap" hidden>Región
+            <select id="piramide-region"></select>
+          </label>
+          <label>Territorio
+            <select id="piramide-territorio"></select>
+          </label>
+        </div>
+      </div>
+      <div class="piramide-scroll">
+        <div class="piramide-encabezado"><span>Hombres</span><span>Edad</span><span>Mujeres</span></div>
+        <div id="piramide-dibujo" role="img" aria-label="Pirámide de edad"></div>
+      </div>
+      <p id="piramide-nota">La selección territorial modifica solo la visualización. El Excel conserva todos los territorios y grupos de edad de la consulta.</p>
+    </div>
+  </section>
+
   <section id="estado" aria-label="Avance de la consulta">
     <div class="estado-cabecera">
       <h2 id="estado-titulo">Preparando la visualización</h2>
@@ -345,6 +395,7 @@
     <button id="feedback-negativo" class="accion-resultado" type="button"
       title="Sentimos no haber satisfecho tus expectativas, te invitamos a probar las preguntas prediseñadas de prueba, esto te ayudará a comprender de mejor forma cómo funciona nuestro sistema"
       aria-label="La respuesta no fue correcta">👎</button>
+    <button id="btn-piramide" class="accion-resultado" type="button" hidden>Pirámide de edad</button>
     <button id="btn-descargar" class="accion-resultado" type="button">Descargar Excel</button>
     <span id="feedback-mensaje" role="status"></span>
   </div>
@@ -394,6 +445,19 @@
 <script>
 // Admite el servidor local y la apertura del HTML mediante file://.
 const BASE_API = location.protocol === 'file:' ? 'http://localhost:8000' : '';
+// V34: identificador aleatorio por pestaña para detectar reformulaciones probables.
+// No contiene nombre, IP, correo ni otro identificador personal.
+const LEARNING_SESSION_ID = (() => {
+  try {
+    const key = 'visor_censo_learning_session_v1';
+    let value = sessionStorage.getItem(key);
+    if(!value){
+      value = (globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      sessionStorage.setItem(key, value);
+    }
+    return value;
+  } catch { return null; }
+})();
 const URL_API = BASE_API + '/api/consulta/progreso';
 const ETAPAS = [
   'Entender la pregunta',
@@ -649,7 +713,7 @@ async function consultar(seleccion=null){
     const resp = await fetch(URL_API, {
       method:'POST',
       headers:{'Content-Type':'application/json', 'Accept':'text/event-stream'},
-      body:JSON.stringify({pregunta, ...seleccionAcumulada})
+      body:JSON.stringify({pregunta, session_id:LEARNING_SESSION_ID, ...seleccionAcumulada})
     });
     if(!resp.ok){
       if(resp.status === 404 || resp.status === 405){
@@ -692,6 +756,7 @@ async function consultar(seleccion=null){
     document.getElementById('estado-titulo').textContent = 'Visualización lista';
     mostrarAvance(descripcionCotidiana(data), null);
     resultadoActual = data;
+    if(typeof actualizarPiramideEdadV33 === 'function') actualizarPiramideEdadV33(data);
     seleccionAcumulada = {};
     document.getElementById('acciones-resultado').classList.add('visible');
     desvanecerEstadoExito();
@@ -2267,6 +2332,846 @@ function finalizarCambioVisualizacionV7(data){
   document.addEventListener('change',(event)=>{
     if(event.target?.closest?.('#matriz-od-v22')) ocultarLeyendaGeneralV30();
   });
+})();
+</script>
+
+
+<script id="v33-piramide-script">
+(function instalarPiramidesV33(){
+  'use strict';
+  if(window.__piramidesV33Instaladas) return;
+  window.__piramidesV33Instaladas=true;
+
+  const boton=document.getElementById('btn-piramide');
+  const panel=document.getElementById('piramide-edad');
+  const selRegion=document.getElementById('piramide-region');
+  const wrapRegion=document.getElementById('piramide-region-wrap');
+  const selTerritorio=document.getElementById('piramide-territorio');
+  const dibujo=document.getElementById('piramide-dibujo');
+  if(!boton || !panel || !selRegion || !selTerritorio || !dibujo) return;
+
+  function regionDeComuna(codigo){
+    const n=Number(codigo);
+    if(!Number.isFinite(n)) return '';
+    return String(Math.trunc(n)).padStart(5,'0').slice(0,2).replace(/^0+/,'') || '0';
+  }
+  function ordenEdad(config,codigo){
+    const orden=(config?.orden_edad||[]).map(String);
+    const s=String(codigo??'');
+    const i=orden.indexOf(s); if(i>=0) return i;
+    const n=Number(s); if(Number.isFinite(n)) return 1000+n;
+    const m=/^(\d+)/.exec(s); return m ? 2000+Number(m[1]) : 999999;
+  }
+  function etiquetaEdad(config,codigo){
+    const s=String(codigo??'');
+    const e=config?.etiquetas_edad?.[s];
+    if(e) return String(e);
+    const n=Number(s); return Number.isFinite(n) ? `${Math.trunc(n)} años` : s;
+  }
+  function datosTerritorio(data, territorio){
+    const config=data?.piramide||{};
+    const ie=Number(config.indice_edad), is=Number(config.indice_sexo);
+    const hombre=String(config.sexo_hombre_codigo??'1');
+    const mujer=String(config.sexo_mujer_codigo??'2');
+    const edades=new Map();
+    for(const item of territorio?.distribucion||[]){
+      const partes=String(item.codigo??'').split('|');
+      if(partes.length<=Math.max(ie,is)) continue;
+      const edad=partes[ie], sexo=partes[is];
+      if(sexo!==hombre && sexo!==mujer) continue;
+      const rec=edades.get(edad)||{edad,hombres:0,mujeres:0};
+      const valor=Number(item.valor)||0;
+      if(sexo===hombre) rec.hombres+=valor; else rec.mujeres+=valor;
+      edades.set(edad,rec);
+    }
+    return [...edades.values()].sort((a,b)=>ordenEdad(config,a.edad)-ordenEdad(config,b.edad));
+  }
+  function render(data){
+    const territorio=(data?.datos||[]).find(x=>String(x.codigo)===String(selTerritorio.value));
+    if(!territorio) return;
+    const config=data.piramide||{};
+    const filas=datosTerritorio(data,territorio);
+    const max=Math.max(1,...filas.flatMap(x=>[x.hombres,x.mujeres]));
+    dibujo.replaceChildren();
+    for(const item of filas){
+      const fila=document.createElement('div'); fila.className='piramide-fila';
+      const izq=document.createElement('div'); izq.className='piramide-lado hombres';
+      const barH=document.createElement('div'); barH.className='piramide-barra'; barH.style.width=`${100*item.hombres/max}%`;
+      const valH=document.createElement('span'); valH.className='piramide-valor'; valH.textContent=item.hombres.toLocaleString('es-CL');
+      izq.append(valH,barH);
+      const edad=document.createElement('div'); edad.className='piramide-edad-etiqueta'; edad.textContent=etiquetaEdad(config,item.edad);
+      const der=document.createElement('div'); der.className='piramide-lado mujeres';
+      const barM=document.createElement('div'); barM.className='piramide-barra'; barM.style.width=`${100*item.mujeres/max}%`;
+      const valM=document.createElement('span'); valM.className='piramide-valor'; valM.textContent=item.mujeres.toLocaleString('es-CL');
+      der.append(barM,valM);
+      fila.append(izq,edad,der); dibujo.appendChild(fila);
+    }
+    document.getElementById('piramide-titulo').textContent=`Pirámide de edad · ${territorio.nombre||territorio.codigo}`;
+    dibujo.setAttribute('aria-label',`Pirámide de edad de ${territorio.nombre||territorio.codigo}`);
+  }
+  function poblarTerritorios(data){
+    const config=data?.piramide||{};
+    const region=String(selRegion.value||'');
+    let territorios=[...(data?.datos||[])];
+    if(config.selector_region && config.nivel_geografico==='comuna' && region){
+      territorios=territorios.filter(x=>regionDeComuna(x.codigo)===region);
+    }
+    territorios.sort((a,b)=>String(a.nombre||'').localeCompare(String(b.nombre||''),'es'));
+    const anterior=selTerritorio.value;
+    selTerritorio.replaceChildren();
+    for(const t of territorios){
+      const op=document.createElement('option'); op.value=String(t.codigo); op.textContent=t.nombre||String(t.codigo); selTerritorio.appendChild(op);
+    }
+    if([...selTerritorio.options].some(o=>o.value===anterior)) selTerritorio.value=anterior;
+    render(data);
+  }
+  function poblarRegiones(data){
+    const config=data?.piramide||{};
+    wrapRegion.hidden=!config.selector_region;
+    if(!config.selector_region) return poblarTerritorios(data);
+    const presentes=new Set((data?.datos||[]).map(x=>regionDeComuna(x.codigo)));
+    selRegion.replaceChildren();
+    for(const r of config.regiones||[]){
+      const code=String(r.codigo);
+      if(!presentes.has(code)) continue;
+      const op=document.createElement('option'); op.value=code; op.textContent=r.nombre; selRegion.appendChild(op);
+    }
+    const defecto=String(config.region_default??13);
+    if([...selRegion.options].some(o=>o.value===defecto)) selRegion.value=defecto;
+    else if(selRegion.options.length) selRegion.selectedIndex=0;
+    poblarTerritorios(data);
+  }
+  function cerrar(){
+    panel.classList.remove('visible');
+    boton.textContent='Pirámide de edad';
+    document.getElementById('mapa')?.classList.remove('oculto');
+    if(resultadoActual?.tipo_visualizacion==='tortas_mapa') document.getElementById('leyenda')?.classList.add('visible');
+    try{ mapa.invalidateSize(false); }catch(_){}
+  }
+  function abrir(){
+    const data=resultadoActual;
+    if(!data?.piramide?.disponible) return;
+    document.getElementById('grafico-torta')?.classList.remove('visible');
+    document.getElementById('grafico-barras')?.classList.remove('visible');
+    document.getElementById('mapa')?.classList.add('oculto');
+    document.getElementById('leyenda')?.classList.remove('visible');
+    panel.classList.add('visible'); boton.textContent='Ver mapa';
+    poblarRegiones(data);
+  }
+  boton.addEventListener('click',()=>panel.classList.contains('visible')?cerrar():abrir());
+  selRegion.addEventListener('change',()=>poblarTerritorios(resultadoActual));
+  selTerritorio.addEventListener('change',()=>render(resultadoActual));
+
+  window.actualizarPiramideEdadV33=function(data){
+    panel.classList.remove('visible'); boton.textContent='Pirámide de edad';
+    boton.hidden=!(data?.piramide?.disponible);
+  };
+})();
+</script>
+
+<!-- v36-piramide-estadisticas -->
+<script>
+(() => {
+  'use strict';
+
+  const REGIONES_V36 = {
+    1:'Tarapacá', 2:'Antofagasta', 3:'Atacama', 4:'Coquimbo',
+    5:'Valparaíso', 6:"Libertador General Bernardo O'Higgins",
+    7:'Maule', 8:'Biobío', 9:'La Araucanía', 10:'Los Lagos',
+    11:'Aysén del General Carlos Ibáñez del Campo',
+    12:'Magallanes y de la Antártica Chilena',
+    13:'Metropolitana de Santiago', 14:'Los Ríos',
+    15:'Arica y Parinacota', 16:'Ñuble'
+  };
+
+  let ultimoResultadoV36 = null;
+
+  function textoPlanoV36(valor){
+    return String(valor ?? '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase();
+  }
+
+  function mostrarErrorV36(mensaje){
+    if(typeof mostrarFallo === 'function'){
+      mostrarFallo(mensaje);
+    }else{
+      window.alert(mensaje);
+    }
+  }
+
+  function resultadoActivoV36(){
+    try{
+      if(ultimoResultadoV36?.feedback_id) return ultimoResultadoV36;
+      if(typeof resultadoActual !== 'undefined' && resultadoActual?.feedback_id){
+        return resultadoActual;
+      }
+    }catch(_error){}
+    return ultimoResultadoV36;
+  }
+
+  function distribucionCompletaV36(territorio){
+    const completa = territorio?.distribucion_completa;
+    if(Array.isArray(completa) && completa.length) return completa;
+    return Array.isArray(territorio?.distribucion) ? territorio.distribucion : [];
+  }
+
+  // Mantiene el criterio solicitado: 5 categorías principales + Otros.
+  // Esta función también protege visualizaciones provenientes de cachés antiguas.
+  function normalizarTortasTop5V36(data){
+    if(!data || data.tipo_visualizacion !== 'tortas_mapa' || !Array.isArray(data.datos)){
+      return data;
+    }
+
+    for(const territorio of data.datos){
+      if(!Array.isArray(territorio.distribucion_completa) ||
+         !territorio.distribucion_completa.length){
+        territorio.distribucion_completa =
+          (Array.isArray(territorio.distribucion) ? territorio.distribucion : [])
+          .filter(x => textoPlanoV36(x?.codigo) !== 'otros')
+          .map(x => ({...x}));
+      }
+    }
+
+    const totales = new Map();
+    const etiquetas = new Map();
+    for(const territorio of data.datos){
+      for(const item of distribucionCompletaV36(territorio)){
+        const codigo = String(item?.codigo ?? item?.etiqueta ?? '');
+        if(!codigo || textoPlanoV36(codigo) === 'otros') continue;
+        const valor = Number(item?.valor) || 0;
+        totales.set(codigo, (totales.get(codigo) || 0) + valor);
+        if(!etiquetas.has(codigo)){
+          etiquetas.set(codigo, String(item?.etiqueta ?? codigo));
+        }
+      }
+    }
+
+    const orden = [...totales.keys()].sort((a,b) => {
+      const diferencia = (totales.get(b) || 0) - (totales.get(a) || 0);
+      return diferencia ||
+        String(etiquetas.get(a)).localeCompare(String(etiquetas.get(b)), 'es');
+    });
+    const principales = orden.slice(0, 5);
+    const agruparOtros = orden.length > 5;
+
+    data.categorias_grafico = principales.map(codigo => ({
+      codigo,
+      etiqueta: etiquetas.get(codigo) || codigo
+    }));
+    if(agruparOtros){
+      data.categorias_grafico.push({codigo:'otros', etiqueta:'Otros'});
+    }
+
+    for(const territorio of data.datos){
+      const completa = distribucionCompletaV36(territorio);
+      const porCodigo = new Map(
+        completa.map(x => [String(x?.codigo ?? x?.etiqueta ?? ''), x])
+      );
+      const total = Number(territorio.total) ||
+        completa.reduce((s,x) => s + (Number(x?.valor) || 0), 0);
+
+      const vista = principales.map(codigo => {
+        const base = porCodigo.get(codigo) || {};
+        const valor = Number(base.valor) || 0;
+        return {
+          codigo,
+          etiqueta: etiquetas.get(codigo) || base.etiqueta || codigo,
+          valor,
+          porcentaje: total ? 100 * valor / total : null
+        };
+      });
+
+      if(agruparOtros){
+        let valorOtros = 0;
+        for(const item of completa){
+          const codigo = String(item?.codigo ?? item?.etiqueta ?? '');
+          if(!principales.includes(codigo)){
+            valorOtros += Number(item?.valor) || 0;
+          }
+        }
+        vista.push({
+          codigo:'otros', etiqueta:'Otros', valor:valorOtros,
+          porcentaje: total ? 100 * valorOtros / total : null
+        });
+      }
+      territorio.distribucion = vista;
+      territorio.total = total;
+    }
+    return data;
+  }
+
+  function esEdadSexoV36(data){
+    if(!data || data.tipo_visualizacion !== 'tortas_mapa') return false;
+
+    const interp = data.interpretacion || {};
+    const plan = interp.plan_cruce || {};
+    const dimensiones = Array.isArray(plan.dimensiones) ? plan.dimensiones : [];
+    const vars = dimensiones.map(
+      d => textoPlanoV36(`${d?.variable || ''} ${d?.etiqueta || ''}`)
+    );
+    if(vars.some(v => v.includes('edad')) && vars.some(v => v.includes('sexo'))){
+      return true;
+    }
+
+    for(const territorio of (data.datos || []).slice(0, 8)){
+      for(const item of distribucionCompletaV36(territorio).slice(0, 60)){
+        const etiqueta = textoPlanoV36(item?.etiqueta);
+        if(etiqueta.includes('edad') && etiqueta.includes('sexo')) return true;
+      }
+    }
+    return false;
+  }
+
+  function codigoRegionV36(codigo, nivel){
+    const n = String(codigo ?? '').replace(/\D/g,'');
+    if(!n) return null;
+    if(nivel === 'region') return Number(n);
+    if(nivel === 'provincia') return Number(n.padStart(3,'0').slice(0,2));
+    return Number(n.padStart(5,'0').slice(0,2));
+  }
+
+  // Reconoce tanto edad simple como grupos de edad y, especialmente,
+  // corrige el error V35: "Mujer" no coincidía con /mujeres?/.
+  function parsearEdadSexoV36(item){
+    const etiqueta = textoPlanoV36(item?.etiqueta ?? item?.codigo ?? '');
+
+    let sexo = null;
+    if(/sexo\s*:\s*hombres?\b/.test(etiqueta)) sexo = 'Hombre';
+    if(/sexo\s*:\s*mujer(?:es)?\b/.test(etiqueta)) sexo = 'Mujer';
+    if(!sexo) return null;
+
+    const valor = Number(item?.valor) || 0;
+
+    // Edad simple exacta: se conserva para media y mediana.
+    let m = etiqueta.match(/edad(?:\s+simple)?\s*:\s*(\d{1,3})\s*anos?\b/);
+    if(!m){
+      // Respaldo para etiquetas sin el prefijo "Edad simple:".
+      m = etiqueta.match(/\b(\d{1,3})\s*anos?\b/);
+    }
+    if(m && !/(?:a|hasta|-|–)\s*\d{1,3}\s*anos?/.test(etiqueta)){
+      const edad = Number(m[1]);
+      const inicio = Math.floor(edad / 5) * 5;
+      return {
+        sexo, valor,
+        edadExacta: edad,
+        inicio,
+        fin: inicio + 4,
+        rotulo: `${inicio}-${inicio + 4}`
+      };
+    }
+
+    // Respaldo para una variable ya agrupada (edad quinquenal u otro rango).
+    m = etiqueta.match(/(\d{1,3})\s*(?:a|hasta|-|–)\s*(\d{1,3})\s*anos?/);
+    if(m){
+      const inicio = Number(m[1]);
+      const fin = Number(m[2]);
+      return {
+        sexo, valor,
+        edadExacta: null,
+        inicio, fin,
+        rotulo: `${inicio}-${fin}`
+      };
+    }
+
+    m = etiqueta.match(/(\d{1,3})\s*anos?\s*(?:o\s*mas|\+)/);
+    if(m){
+      const inicio = Number(m[1]);
+      return {
+        sexo, valor,
+        edadExacta: inicio,
+        inicio,
+        fin: inicio + 4,
+        rotulo: `${inicio}+`
+      };
+    }
+    return null;
+  }
+
+  function datosPiramideV36(territorio){
+    const grupos = new Map();
+    for(const item of distribucionCompletaV36(territorio)){
+      const p = parsearEdadSexoV36(item);
+      if(!p) continue;
+      const clave = `${p.inicio}-${p.fin}`;
+      if(!grupos.has(clave)){
+        grupos.set(clave, {
+          inicio:p.inicio, fin:p.fin, rotulo:p.rotulo,
+          Hombre:0, Mujer:0
+        });
+      }
+      grupos.get(clave)[p.sexo] += p.valor;
+    }
+    return [...grupos.values()].sort((a,b) => b.inicio - a.inicio);
+  }
+
+  // Calcula media y mediana ponderadas por la cantidad de personas.
+  // Con edad simple, ambos estadísticos son exactos respecto de la tabla agregada.
+  function estadisticasEdadV36(territorio){
+    const porEdad = new Map();
+    let exacta = true;
+
+    for(const item of distribucionCompletaV36(territorio)){
+      const p = parsearEdadSexoV36(item);
+      if(!p || !(p.valor > 0)) continue;
+
+      let edad = p.edadExacta;
+      if(!Number.isFinite(edad)){
+        exacta = false;
+        edad = (p.inicio + p.fin) / 2;
+      }
+      porEdad.set(edad, (porEdad.get(edad) || 0) + p.valor);
+    }
+
+    const edades = [...porEdad.entries()]
+      .map(([edad, cantidad]) => ({edad:Number(edad), cantidad:Number(cantidad)}))
+      .filter(x => Number.isFinite(x.edad) && x.cantidad > 0)
+      .sort((a,b) => a.edad - b.edad);
+
+    const total = edades.reduce((s,x) => s + x.cantidad, 0);
+    if(!(total > 0)) return null;
+
+    const media = edades.reduce((s,x) => s + x.edad * x.cantidad, 0) / total;
+
+    function edadEnPosicion(posicion){
+      let acumulado = 0;
+      for(const x of edades){
+        acumulado += x.cantidad;
+        if(acumulado >= posicion) return x.edad;
+      }
+      return edades.at(-1).edad;
+    }
+
+    let mediana;
+    if(Math.round(total) % 2 === 0){
+      const p1 = total / 2;
+      const p2 = p1 + 1;
+      mediana = (edadEnPosicion(p1) + edadEnPosicion(p2)) / 2;
+    }else{
+      mediana = edadEnPosicion((total + 1) / 2);
+    }
+
+    return {media, mediana, total, exacta};
+  }
+
+  function formatoDecimalV36(valor){
+    return Number(valor).toLocaleString('es-CL', {
+      minimumFractionDigits:1,
+      maximumFractionDigits:1
+    });
+  }
+
+  function yParaEdadV36(edad, filas, margen, altoFila){
+    if(!filas.length) return margen;
+    const puntos = filas.map((f,i) => ({
+      edad:(f.inicio + f.fin) / 2,
+      y:margen + i * altoFila + 8
+    }));
+    if(puntos.length === 1) return puntos[0].y;
+    if(edad >= puntos[0].edad) return puntos[0].y;
+    if(edad <= puntos.at(-1).edad) return puntos.at(-1).y;
+
+    for(let i=0; i<puntos.length-1; i++){
+      const a = puntos[i];
+      const b = puntos[i+1];
+      if(edad <= a.edad && edad >= b.edad){
+        const t = (a.edad - edad) / (a.edad - b.edad || 1);
+        return a.y + t * (b.y - a.y);
+      }
+    }
+    return puntos.at(-1).y;
+  }
+
+  function dibujarPiramideV36(territorio){
+    const contenedor = document.getElementById('piramide-svg-v36');
+    const subtitulo = document.getElementById('piramide-subtitulo-v36');
+    if(!contenedor) return;
+
+    const filas = datosPiramideV36(territorio);
+    const estadisticas = estadisticasEdadV36(territorio);
+    subtitulo.textContent = territorio?.nombre || '';
+
+    if(!filas.length){
+      contenedor.innerHTML =
+        '<p>No fue posible reconocer las categorías de edad y sexo de esta consulta.</p>';
+      return;
+    }
+
+    const maximo = Math.max(1, ...filas.flatMap(x => [x.Hombre, x.Mujer]));
+    const ancho = 960;
+    const margen = 62;
+    const centro = ancho / 2;
+    const anchoLado = 350;
+    const altoFila = 24;
+    const alto = Math.max(450, margen * 2 + filas.length * altoFila + 42);
+    const escala = anchoLado / maximo;
+    const formato = new Intl.NumberFormat('es-CL');
+
+    let svg =
+      `<svg viewBox="0 0 ${ancho} ${alto}" width="100%" role="img" ` +
+      `aria-label="Pirámide de edad y sexo para ${String(territorio?.nombre || '')}">`;
+
+    svg +=
+      `<text x="${centro-190}" y="25" text-anchor="middle" font-size="13" font-weight="600">Hombres</text>`;
+    svg +=
+      `<text x="${centro+190}" y="25" text-anchor="middle" font-size="13" font-weight="600">Mujeres</text>`;
+    svg +=
+      `<text x="${centro}" y="25" text-anchor="middle" font-size="12" font-weight="600">Edad</text>`;
+    svg +=
+      `<line x1="${centro}" y1="38" x2="${centro}" y2="${alto-48}" stroke="#8d877b" stroke-width="1"/>`;
+
+    filas.forEach((f, i) => {
+      const y = margen + i * altoFila;
+      const h = f.Hombre * escala;
+      const m = f.Mujer * escala;
+
+      if(h > 0){
+        svg +=
+          `<rect x="${centro-h-32}" y="${y}" width="${h}" height="16" fill="#4f6d8a">` +
+          `<title>Hombres ${f.rotulo}: ${formato.format(f.Hombre)}</title></rect>`;
+        svg +=
+          `<text x="${centro-h-38}" y="${y+12}" text-anchor="end" font-size="9">${formato.format(f.Hombre)}</text>`;
+      }
+      if(m > 0){
+        svg +=
+          `<rect x="${centro+32}" y="${y}" width="${m}" height="16" fill="#9a5e68">` +
+          `<title>Mujeres ${f.rotulo}: ${formato.format(f.Mujer)}</title></rect>`;
+        svg +=
+          `<text x="${centro+m+38}" y="${y+12}" text-anchor="start" font-size="9">${formato.format(f.Mujer)}</text>`;
+      }
+      svg +=
+        `<text x="${centro}" y="${y+12}" text-anchor="middle" font-size="10">${f.rotulo}</text>`;
+    });
+
+    if(estadisticas){
+      const x1 = 72;
+      const x2 = ancho - 72;
+      const yMedia = yParaEdadV36(estadisticas.media, filas, margen, altoFila);
+      const yMediana = yParaEdadV36(estadisticas.mediana, filas, margen, altoFila);
+      const etiquetaMedia = `Media: ${formatoDecimalV36(estadisticas.media)} años`;
+      const etiquetaMediana = `Mediana: ${formatoDecimalV36(estadisticas.mediana)} años`;
+
+      // Media: línea continua. Mediana: línea segmentada.
+      svg +=
+        `<line x1="${x1}" y1="${yMedia}" x2="${x2}" y2="${yMedia}" ` +
+        `stroke="#b5652c" stroke-width="1.8"/>`;
+      svg +=
+        `<rect x="${x1}" y="${yMedia-18}" width="142" height="17" rx="2" fill="#fffdf8" opacity="0.94"/>`;
+      svg +=
+        `<text x="${x1+5}" y="${yMedia-6}" text-anchor="start" font-size="10.5" ` +
+        `font-weight="600" fill="#8a4a1e">${etiquetaMedia}</text>`;
+
+      svg +=
+        `<line x1="${x1}" y1="${yMediana}" x2="${x2}" y2="${yMediana}" ` +
+        `stroke="#2f5d50" stroke-width="1.8" stroke-dasharray="7 4"/>`;
+      svg +=
+        `<rect x="${x2-163}" y="${yMediana+2}" width="163" height="17" rx="2" fill="#fffdf8" opacity="0.94"/>`;
+      svg +=
+        `<text x="${x2-5}" y="${yMediana+14}" text-anchor="end" font-size="10.5" ` +
+        `font-weight="600" fill="#244a40">${etiquetaMediana}</text>`;
+    }
+
+    svg +=
+      `<text x="${centro-190}" y="${alto-18}" text-anchor="middle" font-size="11">Cantidad de personas</text>`;
+    svg +=
+      `<text x="${centro+190}" y="${alto-18}" text-anchor="middle" font-size="11">Cantidad de personas</text>`;
+    svg += '</svg>';
+    contenedor.innerHTML = svg;
+  }
+
+  async function descargarExcelV36(data, boton){
+    const activo = data?.feedback_id ? data : resultadoActivoV36();
+    if(!activo?.feedback_id){
+      mostrarErrorV36('El resultado actual no tiene un identificador disponible para generar el Excel.');
+      return;
+    }
+
+    if(boton) boton.disabled = true;
+    try{
+      const base = (typeof BASE_API !== 'undefined' ? BASE_API : '');
+      const url = base + `/api/consulta/${encodeURIComponent(activo.feedback_id)}/excel`;
+      const respuesta = await fetch(url);
+      if(!respuesta.ok){
+        let error = null;
+        try{ error = await respuesta.json(); }catch(_ignorar){}
+        throw new Error(error?.detail || `No se pudo generar el Excel (HTTP ${respuesta.status}).`);
+      }
+
+      const blob = await respuesta.blob();
+      const disposicion = respuesta.headers.get('content-disposition') || '';
+      let nombre = 'resultados_censo.xlsx';
+      const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(disposicion);
+      const simple = /filename="?([^";]+)"?/i.exec(disposicion);
+      if(utf8?.[1]) nombre = decodeURIComponent(utf8[1]);
+      else if(simple?.[1]) nombre = simple[1];
+
+      const href = URL.createObjectURL(blob);
+      const enlace = document.createElement('a');
+      enlace.href = href;
+      enlace.download = nombre;
+      enlace.style.display = 'none';
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+      setTimeout(() => URL.revokeObjectURL(href), 1500);
+    }catch(error){
+      mostrarErrorV36(error?.message || 'No se pudo descargar el Excel.');
+    }finally{
+      if(boton) boton.disabled = false;
+    }
+  }
+
+  function restaurarMapaV36(){
+    const modal = document.getElementById('modal-piramide-v36');
+    if(modal) modal.style.display = 'none';
+
+    // Neutraliza visualizaciones heredadas de V33 que pudieran haber quedado visibles.
+    document.body.classList.remove('piramide-activa','modo-piramide','piramide-modo');
+    for(const selector of [
+      '#grafico-piramide', '#grafico-piramide-edad', '#piramide-edad',
+      '.grafico-piramide', '.piramide-panel'
+    ]){
+      document.querySelectorAll(selector).forEach(el => {
+        if(el.id === 'modal-piramide-v36') return;
+        el.classList.remove('visible');
+        el.style.display = 'none';
+      });
+    }
+
+    const mapaElemento = document.getElementById('mapa');
+    if(mapaElemento){
+      mapaElemento.classList.remove('oculto');
+      mapaElemento.style.removeProperty('display');
+      mapaElemento.style.visibility = 'visible';
+    }
+
+    try{
+      if(typeof mapa !== 'undefined' && mapa?.invalidateSize){
+        setTimeout(() => mapa.invalidateSize(), 0);
+      }
+    }catch(_error){}
+  }
+
+  function crearModalV36(){
+    let modal = document.getElementById('modal-piramide-v36');
+    if(modal) return modal;
+
+    modal = document.createElement('div');
+    modal.id = 'modal-piramide-v36';
+    Object.assign(modal.style, {
+      position:'fixed', inset:'0', zIndex:'5000',
+      background:'rgba(22,32,43,.88)', display:'none',
+      placeItems:'center', padding:'18px'
+    });
+
+    const caja = document.createElement('div');
+    Object.assign(caja.style, {
+      width:'min(1120px,96vw)', maxHeight:'92vh', overflow:'auto',
+      background:'#fffdf8', borderRadius:'7px', padding:'18px',
+      boxShadow:'0 14px 46px rgba(0,0,0,.35)'
+    });
+
+    caja.innerHTML = `
+      <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+        <div>
+          <h2 style="margin:0;font-family:Fraunces,serif;font-size:1.25rem">Pirámide de edad</h2>
+          <div id="piramide-subtitulo-v36" style="font-size:.82rem;color:#5a5245;margin-top:4px"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" id="descargar-piramide-v36"
+            class="accion-resultado" style="width:auto;padding:0 12px">Descargar Excel</button>
+          <button type="button" id="cerrar-piramide-v36"
+            class="accion-resultado" style="width:auto;padding:0 12px">Volver al mapa</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0">
+        <label id="grupo-region-v36" style="display:none;font-size:.8rem">
+          Región
+          <select id="select-region-v36"
+            style="display:block;margin-top:4px;padding:7px;min-width:260px"></select>
+        </label>
+        <label style="font-size:.8rem">
+          Territorio
+          <select id="select-territorio-v36"
+            style="display:block;margin-top:4px;padding:7px;min-width:320px"></select>
+        </label>
+      </div>
+      <div id="piramide-svg-v36" style="min-height:450px;overflow:auto"></div>
+    `;
+
+    modal.appendChild(caja);
+    document.body.appendChild(modal);
+
+    document.getElementById('cerrar-piramide-v36').addEventListener('click', restaurarMapaV36);
+    document.getElementById('descargar-piramide-v36').addEventListener('click', event => {
+      descargarExcelV36(resultadoActivoV36(), event.currentTarget);
+    });
+    modal.addEventListener('click', event => {
+      if(event.target === modal) restaurarMapaV36();
+    });
+    return modal;
+  }
+
+  function cargarTerritoriosV36(data){
+    const regiones = document.getElementById('select-region-v36');
+    const territorios = document.getElementById('select-territorio-v36');
+    const grupoRegion = document.getElementById('grupo-region-v36');
+    const datos = Array.isArray(data?.datos) ? [...data.datos] : [];
+    const nivel = data?.nivel_geografico || data?.interpretacion?.nivel_geografico || 'comuna';
+
+    const regionesPresentes = [
+      ...new Set(datos.map(x => codigoRegionV36(x.codigo, nivel)).filter(Boolean))
+    ].sort((a,b) => a-b);
+
+    const usaRegiones = nivel === 'comuna' && regionesPresentes.length > 1;
+    grupoRegion.style.display = usaRegiones ? '' : 'none';
+    regiones.replaceChildren();
+
+    if(usaRegiones){
+      for(const codigo of regionesPresentes){
+        const opcion = document.createElement('option');
+        opcion.value = String(codigo);
+        opcion.textContent = REGIONES_V36[codigo] || `Región ${codigo}`;
+        regiones.appendChild(opcion);
+      }
+      regiones.value = regionesPresentes.includes(13)
+        ? '13'
+        : String(regionesPresentes[0]);
+    }
+
+    function refrescarTerritorios(){
+      territorios.replaceChildren();
+      const regionElegida = usaRegiones ? Number(regiones.value) : null;
+      const visibles = datos
+        .filter(x => !usaRegiones || codigoRegionV36(x.codigo, nivel) === regionElegida)
+        .sort((a,b) => String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es'));
+
+      for(const territorio of visibles){
+        const opcion = document.createElement('option');
+        opcion.value = String(territorio.codigo);
+        opcion.textContent = territorio.nombre || String(territorio.codigo);
+        territorios.appendChild(opcion);
+      }
+
+      if(visibles.length){
+        territorios.value = String(visibles[0].codigo);
+        dibujarPiramideV36(visibles[0]);
+      }
+    }
+
+    regiones.onchange = refrescarTerritorios;
+    territorios.onchange = () => {
+      const territorio = datos.find(x => String(x.codigo) === territorios.value);
+      if(territorio) dibujarPiramideV36(territorio);
+    };
+    refrescarTerritorios();
+  }
+
+  function abrirPiramideV36(data){
+    if(!esEdadSexoV36(data)) return;
+    ultimoResultadoV36 = data;
+    const modal = crearModalV36();
+    modal.style.display = 'grid';
+    cargarTerritoriosV36(data);
+  }
+
+  // Elimina listeners de V33/V35 clonando el botón existente. Se cambia además
+  // el id para evitar manejadores delegados que dependan del identificador viejo.
+  function instalarBotonPiramideV36(data){
+    const acciones = document.getElementById('acciones-resultado');
+    if(!acciones) return null;
+
+    const candidatos = [...acciones.querySelectorAll('button')]
+      .filter(b => textoPlanoV36(b.textContent).includes('piramide'));
+
+    let boton = candidatos[0] || null;
+    if(boton && boton.dataset.v36 !== '1'){
+      const clon = boton.cloneNode(true);
+      clon.removeAttribute('onclick');
+      clon.id = 'btn-piramide-edad-v36';
+      clon.dataset.v36 = '1';
+      boton.replaceWith(clon);
+      boton = clon;
+    }
+    for(const sobrante of candidatos.slice(1)) sobrante.remove();
+
+    if(!boton){
+      boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'accion-resultado';
+      boton.id = 'btn-piramide-edad-v36';
+      boton.dataset.v36 = '1';
+      boton.textContent = 'Pirámide de edad';
+      boton.title = 'Mostrar pirámide de edad y sexo';
+      acciones.appendChild(boton);
+    }
+
+    const visible = esEdadSexoV36(data);
+    boton.hidden = !visible;
+    boton.style.display = visible ? '' : 'none';
+
+    if(!boton.dataset.v36Listener){
+      boton.dataset.v36Listener = '1';
+      boton.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        abrirPiramideV36(resultadoActivoV36() || data);
+      }, true);
+    }
+    return boton;
+  }
+
+  // Repara el botón global Descargar Excel quitando listeners anteriores y
+  // vinculándolo al resultado que efectivamente se está visualizando.
+  function instalarDescargaExcelV36(){
+    const original = document.getElementById('btn-descargar');
+    if(!original || original.dataset.v36 === '1') return original;
+
+    const boton = original.cloneNode(true);
+    boton.removeAttribute('onclick');
+    boton.dataset.v36 = '1';
+    original.replaceWith(boton);
+    boton.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      descargarExcelV36(resultadoActivoV36(), boton);
+    });
+    return boton;
+  }
+
+  const pintarOriginalV36 = window.pintarTortasMapa;
+  if(typeof pintarOriginalV36 === 'function'){
+    window.pintarTortasMapa = async function(data){
+      ultimoResultadoV36 = data;
+      normalizarTortasTop5V36(data);
+      instalarBotonPiramideV36(data);
+      instalarDescargaExcelV36();
+      return pintarOriginalV36(data);
+    };
+  }
+
+  instalarDescargaExcelV36();
+
+  const accionesV36 = document.getElementById('acciones-resultado');
+  if(accionesV36){
+    const observadorV36 = new MutationObserver(() => {
+      if(!accionesV36.classList.contains('visible')) return;
+      try{
+        const actual =
+          (typeof resultadoActual !== 'undefined' && resultadoActual)
+            ? resultadoActual
+            : ultimoResultadoV36;
+        if(actual){
+          ultimoResultadoV36 = actual;
+          normalizarTortasTop5V36(actual);
+          instalarBotonPiramideV36(actual);
+          instalarDescargaExcelV36();
+        }
+      }catch(_error){}
+    });
+    observadorV36.observe(accionesV36, {attributes:true, attributeFilter:['class']});
+  }
 })();
 </script>
 

@@ -658,6 +658,39 @@ def _dimension_items(q, detectadas, filtros):
     if recode:
         dims.append(recode)
         filtradas.add(("personas", "edad"))
+
+    # V33: edad simple y grupos quinquenales pueden ser dimensiones explícitas.
+    edad_simple = bool(re.search(
+        r"\b(?:edad(?:es)?\s+simple(?:s)?|por\s+edad\s+simple|edad\s+simple\s+(?:y|por)\s+sexos?|edad\s+(?:y|por)\s+sexos?)\b", q
+    ))
+    edad_grupo = bool(re.search(
+        r"\b(?:edad\s+quinquenal|edades\s+quinquenales|grupos?\s+de\s+edad)\b", q
+    ))
+    # "grupo de edad y sexo" debe conservar el grupo solicitado; por eso
+    # la dimensión agrupada tiene prioridad sobre la lectura de "edad y sexo".
+    if not recode and edad_grupo:
+        validas_edad = [str(v) for v in categorias_validas("personas", "edad_quinquenal")]
+        dims.append({
+            "tabla": "personas", "variable": "edad_quinquenal", "tipo": "categoria",
+            "categorias_validas": validas_edad, "etiqueta": "Grupo de edad",
+        })
+        filtradas.add(("personas", "edad_quinquenal"))
+    elif not recode and edad_simple:
+        dims.append({
+            "tabla": "personas", "variable": "edad", "tipo": "edad_simple",
+            "etiqueta": "Edad simple",
+        })
+        filtradas.add(("personas", "edad"))
+
+    # Garantiza la segunda dimensión incluso con la forma plural "sexos".
+    if (recode or edad_grupo or edad_simple) and re.search(r"\bsexos?\b", q) and ("personas", "sexo") not in filtradas:
+        dims.append({
+            "tabla": "personas", "variable": "sexo", "tipo": "categoria",
+            "categorias_validas": [str(v) for v in categorias_validas("personas", "sexo")],
+            "etiqueta": "Sexo",
+        })
+        filtradas.add(("personas", "sexo"))
+
     for clave, item in sorted(detectadas.items(), key=lambda kv: -kv[1]["puntaje"]):
         tabla, variable = clave
         if variable in {"region", "provincia", "comuna"} or clave in filtradas:
@@ -716,6 +749,12 @@ def _entidad_objetivo_avanzada(detectadas, filtros, explicita=None):
 
 def _advanced_trigger(q, dimensiones, medida, filtros, geo_sel, categoria_or=None):
     if medida:
+        return True
+    # V33: edad por sexo debe llegar al QueryPlan aun cuando tenga solo dos dimensiones.
+    variables_dim = {d.get("variable") for d in dimensiones}
+    if any(d.get("tipo") == "edad_simple" for d in dimensiones):
+        return True
+    if "sexo" in variables_dim and ({"edad", "edad_quinquenal"} & variables_dim):
         return True
     if _porcentaje_solicitado(q) and (len(dimensiones) >= 1 or len([f for f in filtros if isinstance(f, dict)]) >= 2):
         # Los porcentajes con varias condiciones deben pasar por QueryPlan v2

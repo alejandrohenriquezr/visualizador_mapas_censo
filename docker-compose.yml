@@ -40,6 +40,7 @@ services:
       CENSO_PLANTILLA_EXCEL: /app/resources/plantilla_de_salida.xlsx
       CENSO_PRECALENTAR_GEOMETRIAS: "0"
       PENDING_TTL_MINUTES: ${PENDING_TTL_MINUTES:-30}
+      CENSO_APRENDIZAJE_SILENCIOSO: ${CENSO_APRENDIZAJE_SILENCIOSO:-1}
     volumes:
       - ${CENSO_DATOS_HOST:-./datos}:/app/datos:ro
     depends_on:

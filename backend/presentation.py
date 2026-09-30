@@ -448,10 +448,10 @@ def _descripcion_migracion_interna(intencion):
 
 def _descripcion_indicador_derivado_v24(intencion):
     titulos = {
-        "envejecimiento": "Índice de envejecimiento (personas de 65 años o más por cada 100 personas de 0 a 14 años)",
-        "dependencia_total": "Índice de dependencia total (IDD) (personas de 0 a 14 años y de 65 años o más por cada 100 personas de 15 a 64 años)",
-        "dependencia_juvenil": "Índice de dependencia juvenil (personas de 0 a 14 años por cada 100 personas de 15 a 64 años)",
-        "dependencia_mayores": "Índice de dependencia de mayores (personas de 65 años o más por cada 100 personas de 15 a 64 años)",
+        "envejecimiento": "Índice de envejecimiento (personas de 60 años o más por cada 100 personas de 0 a 14 años)",
+        "dependencia_total": "Índice de dependencia total (IDD) (personas de 0 a 14 años y de 60 años o más por cada 100 personas de 15 a 59 años)",
+        "dependencia_juvenil": "Índice de dependencia juvenil (personas de 0 a 14 años por cada 100 personas de 15 a 59 años)",
+        "dependencia_mayores": "Índice de dependencia de mayores (personas de 60 años o más por cada 100 personas de 15 a 59 años)",
         "tasa_ocupacion": "Tasa de ocupación (personas ocupadas por cada 100 personas de 15 años o más)",
         "tasa_desocupacion": "Tasa de desocupación (personas desocupadas por cada 100 personas en la fuerza de trabajo)",
     }

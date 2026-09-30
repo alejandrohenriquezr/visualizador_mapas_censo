@@ -48,6 +48,7 @@ from categorical_resolver import (
 )
 from denominator_resolver import AmbiguedadDenominador
 from approved_cache import buscar as buscar_aprobada, guardar as guardar_aprobada
+from learning_observer import construir_senales as _construir_senales_aprendizaje, riesgo_sombra as _riesgo_sombra
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -113,6 +114,7 @@ app.add_middleware(
 
 class ConsultaRequest(BaseModel):
     pregunta: str
+    session_id: Optional[str] = None
     tabla_seleccionada: Optional[str] = None
     variable_seleccionada: Optional[str] = None
     # Se permite texto porque los selectores internos también usan ids como
@@ -163,20 +165,67 @@ def _obtener_resultado(identificador):
 
 
 
+# BEGIN V34 APRENDIZAJE SILENCIOSO - WRAPPERS
+def _apr_inicio(*args, **kwargs): return None
+def _apr_exito(*args, **kwargs): return None
+def _apr_ambiguedad(*args, **kwargs): return None
+def _apr_error(*args, **kwargs): return None
+def _apr_feedback(*args, **kwargs): return None
+def _apr_excel(*args, **kwargs): return None
+def _apr_resumen(*args, **kwargs): return {"estado":"deshabilitado"}
+def _apr_recientes(*args, **kwargs): return []
+_APRENDIZAJE_ACTIVO = os.getenv("CENSO_APRENDIZAJE_SILENCIOSO", "1").strip().lower() not in {"0","false","no"}
+# END V34 APRENDIZAJE SILENCIOSO - WRAPPERS
+
 # BEGIN VISOR V31 POSTGRES STATE
 # Permite multiples workers/instancias: feedback y Excel ya no dependen de RAM.
 if os.getenv("DATABASE_URL", "").strip():
     from state_store import pending_save as _pg_pending_save, pending_get as _pg_pending_get
     from state_store import feedback_save as _pg_feedback_save
+    from state_store import (
+        learning_start as _pg_learning_start, learning_success as _pg_learning_success,
+        learning_ambiguity as _pg_learning_ambiguity, learning_error as _pg_learning_error,
+        learning_feedback as _pg_learning_feedback, learning_excel as _pg_learning_excel,
+        learning_summary as _pg_learning_summary, learning_recent as _pg_learning_recent,
+    )
 
     def _registrar_resultado(pregunta, sql, respuesta):
         return _pg_pending_save(pregunta, sql, respuesta)
 
     def _obtener_resultado(identificador):
         return _pg_pending_get(identificador)
+
+    if _APRENDIZAJE_ACTIVO:
+        _apr_inicio = _pg_learning_start
+        _apr_exito = _pg_learning_success
+        _apr_ambiguedad = _pg_learning_ambiguity
+        _apr_error = _pg_learning_error
+        _apr_feedback = _pg_learning_feedback
+        _apr_excel = _pg_learning_excel
+        _apr_resumen = _pg_learning_summary
+        _apr_recientes = _pg_learning_recent
 # END VISOR V31 POSTGRES STATE
 
 from presentation import descripcion_cotidiana as _descripcion_cotidiana
+
+
+def _cache_requiere_recalculo_v33(pregunta, respuesta):
+    """Evita reutilizar respuestas aprobadas anteriores al cambio V33."""
+    q = str(pregunta or "").lower()
+    interp = (respuesta or {}).get("interpretacion") or {}
+    texto_meta = " ".join(str(interp.get(k) or "") for k in ("descripcion", "formula", "universo", "nota"))
+    if ("envejecimiento" in q or "dependencia" in q) and "65" in texto_meta:
+        return True
+    if "sexo" in q and "edad" in q and not (respuesta or {}).get("piramide"):
+        return True
+    if (respuesta or {}).get("tipo_visualizacion") == "tortas_mapa":
+        for territorio in (respuesta or {}).get("datos") or []:
+            compacta = territorio.get("distribucion") or []
+            tiene_otros = any(str(x.get("codigo")) == "otros" for x in compacta if isinstance(x, dict))
+            if tiene_otros and not territorio.get("distribucion_completa"):
+                return True
+    return False
+
 
 def _procesar_consulta(req: ConsultaRequest, progreso=None):
     pregunta = (req.pregunta or "").strip()
@@ -184,6 +233,13 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
         raise HTTPException(status_code=400, detail="La pregunta no puede estar vacía.")
     inicio = perf_counter()
     consulta_id = uuid4().hex[:8]
+    aprendizaje_id = uuid4().hex
+    _apr_inicio(aprendizaje_id, req.session_id, pregunta, {
+        "tabla_seleccionada": req.tabla_seleccionada,
+        "variable_seleccionada": req.variable_seleccionada,
+        "operacion_seleccionada": req.operacion_seleccionada,
+        "denominador_seleccionado": req.denominador_seleccionado,
+    })
     logging.getLogger("uvicorn.error").info("[consulta %s] inicio", consulta_id)
     avisar = progreso or (lambda etapa, terminado: None)
     # Solo una pregunta sin decisiones pendientes puede resolverse desde la
@@ -192,6 +248,8 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
     if not (req.tabla_seleccionada or req.variable_seleccionada
             or req.operacion_seleccionada or req.denominador_seleccionado):
         cache = buscar_aprobada(pregunta)
+    if cache and _cache_requiere_recalculo_v33(pregunta, cache.get("respuesta") or {}):
+        cache = None
     if cache:
         for etapa in range(1, 6):
             avisar(etapa, False)
@@ -206,6 +264,16 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
         respuesta["feedback_id"] = _registrar_resultado(
             pregunta, cache["sql"], respuesta
         )
+        _sen = _construir_senales_aprendizaje(
+            pregunta, respuesta.get("interpretacion") or {}, respuesta, {
+                "tabla_seleccionada": req.tabla_seleccionada,
+                "variable_seleccionada": req.variable_seleccionada,
+                "operacion_seleccionada": req.operacion_seleccionada,
+                "denominador_seleccionado": req.denominador_seleccionado,
+            })
+        _apr_exito(aprendizaje_id, respuesta["feedback_id"],
+                   respuesta.get("interpretacion") or {}, _sen,
+                   _riesgo_sombra(_sen), True)
         paso_serializacion = perf_counter()
         response = JSONResponse(content=respuesta)
         serializacion_s = perf_counter() - paso_serializacion
@@ -233,14 +301,25 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
         resultado = ejecutar_consulta(intencion, progreso=avisar)
         datos_s = perf_counter() - paso_datos
     except _ConsultaCancelada:
+        _apr_error(aprendizaje_id, 499, "Consulta cancelada por el cliente")
         raise
-    except (AmbiguedadVariable, AmbiguedadOperacion, AmbiguedadDenominador):
+    except AmbiguedadVariable as e:
+        _apr_ambiguedad(aprendizaje_id, "variable", len(getattr(e, "opciones", []) or []), str(e))
+        raise
+    except AmbiguedadOperacion as e:
+        _apr_ambiguedad(aprendizaje_id, "operacion", len(getattr(e, "opciones", []) or []), str(e))
+        raise
+    except AmbiguedadDenominador as e:
+        _apr_ambiguedad(aprendizaje_id, "denominador", len(getattr(e, "opciones", []) or []), str(e))
         raise
     except FileNotFoundError as e:
+        _apr_error(aprendizaje_id, 500, str(e))
         raise HTTPException(status_code=500, detail=str(e))
     except ValueError as e:
+        _apr_error(aprendizaje_id, 422, str(e))
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
+        _apr_error(aprendizaje_id, 500, str(e))
         raise HTTPException(status_code=500, detail=f"Error inesperado: {e}")
 
     avisar(5, False)
@@ -345,6 +424,7 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
             "geometria": resultado["geometria"],
             "nivel_geografico": resultado["nivel_geografico"],
             "categorias_grafico": resultado["categorias_grafico"],
+            "piramide": resultado.get("piramide"),
         })
 
     else:
@@ -370,6 +450,16 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
     respuesta["feedback_id"] = _registrar_resultado(
         pregunta, resultado.get("_sql_ejecutada", ""), respuesta
     )
+    _sen = _construir_senales_aprendizaje(
+        pregunta, respuesta.get("interpretacion") or {}, respuesta, {
+            "tabla_seleccionada": req.tabla_seleccionada,
+            "variable_seleccionada": req.variable_seleccionada,
+            "operacion_seleccionada": req.operacion_seleccionada,
+            "denominador_seleccionado": req.denominador_seleccionado,
+        })
+    _apr_exito(aprendizaje_id, respuesta["feedback_id"],
+               respuesta.get("interpretacion") or {}, _sen,
+               _riesgo_sombra(_sen), False)
 
     # La respuesta contiene datos agregados y una referencia; la cartografía
     # estable se descarga por separado y se reutiliza en el navegador.
@@ -641,6 +731,7 @@ def retroalimentacion(req: RetroalimentacionRequest):
     # VISOR_V31_FEEDBACK_AUDIT
     if os.getenv("DATABASE_URL", "").strip():
         _pg_feedback_save(req.feedback_id, req.valor)
+    _apr_feedback(req.feedback_id, req.valor)
     if req.valor == "positivo":
         interp = entrada["respuesta"].get("interpretacion") or {}
         # Una pregunta cuyo denominador fue escogido en un diálogo no puede
@@ -671,11 +762,28 @@ def descargar_excel(feedback_id: str):
         ) from exc
     except (FileNotFoundError, ValueError) as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+    _apr_excel(feedback_id)
     return StreamingResponse(
         archivo,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{nombre}"'},
     )
+
+
+# BEGIN V34 ENDPOINTS APRENDIZAJE SILENCIOSO
+@app.get("/api/aprendizaje/resumen")
+def aprendizaje_resumen(dias: int = 30):
+    if not _APRENDIZAJE_ACTIVO or not os.getenv("DATABASE_URL", "").strip():
+        raise HTTPException(status_code=503, detail="Aprendizaje silencioso no disponible.")
+    return _apr_resumen(dias)
+
+
+@app.get("/api/aprendizaje/recientes")
+def aprendizaje_recientes(dias: int = 30, limite: int = 50):
+    if not _APRENDIZAJE_ACTIVO or not os.getenv("DATABASE_URL", "").strip():
+        raise HTTPException(status_code=503, detail="Aprendizaje silencioso no disponible.")
+    return {"consultas": _apr_recientes(dias, limite)}
+# END V34 ENDPOINTS APRENDIZAJE SILENCIOSO
 
 
 # Sirve el frontend estático en http://localhost:8000/
