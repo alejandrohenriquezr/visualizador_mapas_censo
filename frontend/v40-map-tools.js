@@ -207,46 +207,11 @@
     }catch(e){if(typeof mostrarFallo==='function') mostrarFallo('El navegador no permitió cambiar a pantalla completa: '+e.message);}
   }
 
-  async function cargarHtml2CanvasV40(){
-    if(window.html2canvas) return window.html2canvas;
-    return new Promise((resolve,reject)=>{
-      const existente=document.querySelector('script[data-html2canvas-v40]');
-      if(existente){existente.addEventListener('load',()=>resolve(window.html2canvas),{once:true});existente.addEventListener('error',reject,{once:true});return;}
-      const s=document.createElement('script');s.dataset.html2canvasV40='1';
-      s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-      s.crossOrigin='anonymous';
-      s.onload=()=>window.html2canvas?resolve(window.html2canvas):reject(new Error('html2canvas no quedó disponible.'));
-      s.onerror=()=>reject(new Error('No se pudo cargar el componente de exportación PNG.'));
-      document.head.appendChild(s);
-    });
-  }
-
-  async function guardarPngV40(){
-    const main=document.querySelector('main');if(!main) return;
-    const boton=document.getElementById('btn-save-png-v40');if(boton) boton.disabled=true;
-    document.body.classList.add('exportando-v40');
-    try{
-      const h2c=await cargarHtml2CanvasV40();
-      await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-      const canvas=await h2c(main,{useCORS:true,allowTaint:false,backgroundColor:'#f6f3ec',scale:2,logging:false});
-      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
-      if(!blob) throw new Error('No fue posible construir el archivo PNG.');
-      const now=new Date();const pad=n=>String(n).padStart(2,'0');
-      const nombre=`mapa_censo_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.png`;
-      const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-    }catch(e){
-      const msg='No se pudo exportar el mapa a PNG. '+(e?.message||'');
-      if(typeof mostrarFallo==='function') mostrarFallo(msg);else window.alert(msg);
-    }finally{document.body.classList.remove('exportando-v40');if(boton) boton.disabled=false;}
-  }
-
   function crearUiV40(){
     const main=document.querySelector('main');if(!main||document.getElementById('map-tools-v40')) return;
     const tools=document.createElement('div');tools.id='map-tools-v40';tools.setAttribute('aria-label','Herramientas del mapa');
     const fs=document.createElement('button');fs.id='btn-fullscreen-v40';fs.className='map-tool-v40';fs.type='button';fs.addEventListener('click',alternarPantallaV40);
-    const png=document.createElement('button');png.id='btn-save-png-v40';png.className='map-tool-v40';png.type='button';png.title='Guardar mapa como PNG';png.setAttribute('aria-label',png.title);
-    png.innerHTML='<svg viewBox="0 0 24 24"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>';png.addEventListener('click',guardarPngV40);
-    tools.append(fs,png);main.appendChild(tools);
+    tools.append(fs);main.appendChild(tools);
     const resumen=document.createElement('aside');resumen.id='resumen-ambito-v40';resumen.setAttribute('aria-label','Resumen del ámbito geográfico');main.appendChild(resumen);
     actualizarIconoPantallaV40();
   }

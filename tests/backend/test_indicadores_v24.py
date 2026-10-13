@@ -62,14 +62,14 @@ class IndicadoresV24ParserTests(unittest.TestCase):
 
     def test_leyenda_envejecimiento_explica_denominador(self):
         titulo = descripcion_cotidiana(interpretar_consulta("índice de envejecimiento por región"))
-        self.assertIn("65 años o más", titulo)
+        self.assertIn("60 años o más", titulo)
         self.assertIn("100 personas de 0 a 14 años", titulo)
 
     def test_leyenda_idd_explica_formula(self):
         titulo = descripcion_cotidiana(interpretar_consulta("Dependencia Total (IDD) por región"))
         self.assertIn("0 a 14 años", titulo)
-        self.assertIn("65 años o más", titulo)
-        self.assertIn("100 personas de 15 a 64 años", titulo)
+        self.assertIn("60 años o más", titulo)
+        self.assertIn("100 personas de 15 a 59 años", titulo)
 
     def test_leyenda_tasa_ocupacion(self):
         titulo = descripcion_cotidiana(interpretar_consulta("tasa de ocupación por región"))
@@ -105,25 +105,25 @@ class IndicadoresV24SQLTests(unittest.TestCase):
 
     def test_sql_envejecimiento(self):
         sql = self.sql("índice de envejecimiento por región")
-        self.assertIn('TRY_CAST("edad" AS DOUBLE) >= 65', sql)
+        self.assertIn('TRY_CAST("edad" AS DOUBLE) >= 60', sql)
         self.assertIn('TRY_CAST("edad" AS DOUBLE) BETWEEN 0 AND 14', sql)
         self.assertIn('100.0 *', sql)
 
     def test_sql_dependencia_total(self):
         sql = self.sql("Dependencia Total (IDD) por región")
         self.assertIn('BETWEEN 0 AND 14', sql)
-        self.assertIn('>= 65', sql)
-        self.assertIn('BETWEEN 15 AND 64', sql)
+        self.assertIn('>= 60', sql)
+        self.assertIn('BETWEEN 15 AND 59', sql)
 
     def test_sql_dependencia_juvenil(self):
         sql = self.sql("índice de dependencia juvenil por región")
         self.assertIn('BETWEEN 0 AND 14', sql)
-        self.assertIn('BETWEEN 15 AND 64', sql)
+        self.assertIn('BETWEEN 15 AND 59', sql)
 
     def test_sql_dependencia_mayores(self):
         sql = self.sql("dependencia de mayores por región")
-        self.assertIn('>= 65', sql)
-        self.assertIn('BETWEEN 15 AND 64', sql)
+        self.assertIn('>= 60', sql)
+        self.assertIn('BETWEEN 15 AND 59', sql)
 
     def test_sql_tasa_ocupacion_denominador_15_mas(self):
         sql = self.sql("tasa de ocupación por región")
