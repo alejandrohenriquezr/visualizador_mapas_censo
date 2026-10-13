@@ -53,9 +53,9 @@ if not exist "cartografia\Cartografia_censo2024_Pais.gdb\" set "FALTAN_DATOS=1"
 if defined FALTAN_DATOS (
   echo Faltan microdatos o cartografia en las rutas esperadas.
   echo Microdatos Censo 2024: https://censo2024.ine.gob.cl/resultados/
-  echo Cartografia INE: https://www.ine.gob.cl/herramientas/portal-de-mapas/geodatos-abiertos/2024/03/12/informaci%C3%B3n-censo-2024
+  echo Cartografia INE: https://censo2024.ine.gob.cl/ine-publica-bases-de-datos-a-nivel-de-manzana-y-cartografia-del-censo-de-poblacion-y-vivienda-2024/
   start "" "https://censo2024.ine.gob.cl/resultados/"
-  start "" "https://www.ine.gob.cl/herramientas/portal-de-mapas/geodatos-abiertos/2024/03/12/informaci%C3%B3n-censo-2024"
+  start "" "https://censo2024.ine.gob.cl/ine-publica-bases-de-datos-a-nivel-de-manzana-y-cartografia-del-censo-de-poblacion-y-vivienda-2024/"
   echo.
   echo Extrae los tres Parquet en datos\ y la carpeta Cartografia_censo2024_Pais.gdb en cartografia\.
   echo Consulta docs\00_INSTALACION.md para los nombres y pasos completos.
