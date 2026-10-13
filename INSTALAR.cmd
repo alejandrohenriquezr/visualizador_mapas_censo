@@ -90,14 +90,20 @@ if errorlevel 1 exit /b %errorlevel%
 set "PORT=8010"
 for /f "tokens=1,* delims==" %%A in ('findstr /b "VISOR_PORT=" .env') do set "PORT=%%B"
 echo.
-echo Servicios iniciados. Comprobando http://localhost:%PORT%/healthz ...
-curl.exe --fail --silent --show-error "http://localhost:%PORT%/healthz"
-if errorlevel 1 (
-  echo.
-  echo El sitio se esta iniciando o algun servicio no esta saludable.
-  echo Revisa el estado con scripts\HEALTH.cmd y los logs con scripts\LOGS.cmd.
-  exit /b 1
+echo Esperando que el sitio responda en http://localhost:%PORT%/healthz ...
+set "LISTO="
+for /l %%I in (1,1,60) do (
+  curl.exe --fail --silent "http://localhost:%PORT%/healthz" >nul 2>&1
+  if not errorlevel 1 set "LISTO=1"
+  if defined LISTO goto :sitio_listo
+  ping 127.0.0.1 -n 3 >nul
 )
+echo.
+echo ERROR: el sitio no respondio dentro de 2 minutos.
+echo Revisa el estado con scripts\\HEALTH.cmd y los logs con scripts\\LOGS.cmd.
+exit /b 1
+
+:sitio_listo
 echo.
 echo Instalacion lista: http://localhost:%PORT%/
 start "" "http://localhost:%PORT%/"
