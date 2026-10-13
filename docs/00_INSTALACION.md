@@ -36,7 +36,7 @@ Extrae la carpeta completa de FileGDB (incluyendo todos sus archivos internos) d
 cartografia/Cartografia_censo2024_Pais.gdb/
 ```
 
-Si el portal entrega un nombre distinto, renombra la carpeta a ese nombre esperado. Si prefieres conservarlo, ajusta `CENSO_CARTOGRAFIA_GDB` en `.env` usando la ruta **dentro del contenedor**, por ejemplo `/app/cartografia/OTRO_NOMBRE.gdb`. La carpeta del host se configura con `CENSO_CARTOGRAFIA_HOST`.
+Si el portal entrega un nombre distinto, puedes conservarlo y ajustar `CENSO_CARTOGRAFIA_GDB` en `.env` usando la ruta **dentro del contenedor**, por ejemplo `/app/cartografia/OTRO_NOMBRE.gdb`. El instalador de Windows comprueba esa ruta dentro de `cartografia/\`; la carpeta del host se configura con `CENSO_CARTOGRAFIA_HOST`.
 
 No subas la FileGDB a GitHub.
 
