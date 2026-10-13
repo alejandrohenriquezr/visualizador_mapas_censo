@@ -18,44 +18,45 @@ Solo `frontend` publica un puerto al host. Los demás servicios se comunican por
 
 ## Requisitos
 
-- Windows 10/11 o Linux con Docker Engine/Compose v2.
-- Docker Desktop en Windows.
-- Microdatos Parquet y FileGDB censal disponibles localmente.
-- Recursos suficientes para Ollama y cartografía.
+- Windows 10/11 con Docker Desktop y Docker Compose v2, o Linux con Docker Engine y Compose v2.
+- Los microdatos Parquet y la FileGDB oficial del Censo 2024. No se distribuyen en Git.
+- Conexión a Internet durante la primera instalación para descargar imágenes Docker, la cartografía y el modelo de lenguaje.
+- Espacio en disco y memoria suficientes para los datos, Docker y el modelo Ollama. El tamaño depende de los archivos oficiales y del modelo elegido.
 
-## Instalación rápida
+En Windows instala Docker Desktop desde [la guía oficial](https://docs.docker.com/desktop/setup/install/windows-install/). La instalación requiere aceptar sus términos y puede requerir WSL 2 y virtualización habilitada. **No necesitas instalar Ollama en Windows**: el servicio `llm` lo ejecuta dentro de Docker.
 
-```cmd
-copy .env.example .env
-```
+## Instalación en Windows
 
-Edite `.env`, especialmente `POSTGRES_PASSWORD`, rutas host y nombre de la GDB. Después:
+1. Descarga los microdatos y la cartografía siguiendo [Instalación y requisitos](docs/00_INSTALACION.md). Extrae los tres Parquet en `datos\` y la carpeta `Cartografia_censo2024_Pais.gdb` en `cartografia\`.
+2. Abre Docker Desktop y espera a que indique que está ejecutándose.
+3. Ejecuta `INSTALAR.cmd`. El instalador crea `.env` si hace falta, comprueba los archivos requeridos, prepara los volúmenes, descarga el modelo Ollama, construye los servicios y valida el sitio.
 
-```cmd
-docker compose up -d db llm cartography
-scripts\PULL_LLM.cmd
-docker compose up -d --build backend frontend
-python scripts\smoke_test.py http://localhost:8010
-```
+El puerto predeterminado es 8010: abre [http://localhost:8010](http://localhost:8010). Si faltan datos, el instalador abre las páginas oficiales del INE y te muestra los nombres esperados. Las descargas grandes se hacen manualmente desde esas páginas oficiales; Docker, las imágenes y el modelo se descargan desde el instalador.
 
-Abra `http://localhost:8010/`.
+Para iniciar después una instalación ya configurada, ejecuta `scripts\ARRANCAR.cmd`.
+
+## Instalación en Linux
+
+Consulta [Instalación y requisitos](docs/00_INSTALACION.md) y usa los comandos Docker Compose allí descritos.
 
 ## Datos no incluidos
 
-Los microdatos y la cartografía están excluidos deliberadamente de Git. Consulte `datos/README.md` y `cartografia/README.md`.
+Los microdatos y la cartografía se excluyen deliberadamente de Git. Consulta [datos/README.md](datos/README.md) y [cartografia/README.md](cartografia/README.md).
 
 ## Documentación
 
-- `docs/01_ARQUITECTURA.md`
-- `docs/02_MODELO_DATOS.md`
-- `docs/03_MOTOR_CONSULTAS.md`
-- `docs/04_REGLAS_INDICADORES.md`
-- `docs/05_LLM.md`
-- `docs/06_CARTOGRAFIA.md`
-- `docs/07_POSTGRESQL.md`
-- `docs/08_OPERACION_DOCKER.md`
-- `docs/09_GITHUB.md`
-- `docs/10_SEGURIDAD_GOBERNANZA.md`
+- [Instalación y requisitos](docs/00_INSTALACION.md)
+- [Índice documental](docs/00_INDICE.md)
+- [Arquitectura](docs/01_ARQUITECTURA.md)
+- [Modelo de datos](docs/02_MODELO_DATOS.md)
+- [Motor de consultas](docs/03_MOTOR_CONSULTAS.md)
+- [Reglas e indicadores](docs/04_REGLAS_INDICADORES.md)
+- [LLM](docs/05_LLM.md)
+- [Cartografía](docs/06_CARTOGRAFIA.md)
+- [PostgreSQL](docs/07_POSTGRESQL.md)
+- [Operación Docker](docs/08_OPERACION_DOCKER.md)
+- [GitHub y CI](docs/09_GITHUB.md)
+- [Seguridad y gobernanza](docs/10_SEGURIDAD_GOBERNANZA.md)
 
 ## Validación antes de GitHub
 
@@ -65,13 +66,12 @@ python scripts\validate_repo.py .
 
 El repositorio no incluye una licencia por defecto. Defina la licencia institucional antes de hacerlo público.
 
-
 ## Operación segura
 
 La operación incluye respaldo PostgreSQL, actualización transaccional,
 rollback automático, migraciones SQL versionadas y controles de salud.
 
-Antes del primer arranque:
+Antes del primer arranque manual:
 
 ```cmd
 scripts\PREPARAR_VOLUMENES.cmd
@@ -94,7 +94,6 @@ scripts\RESTAURAR_BACKUP.cmd backups\visor_censo_YYYYMMDD_HHMMSS.dump
 Las migraciones se encuentran en `database/migrations/` y el backend las
 aplica antes de iniciar Uvicorn.
 
-
 ## Diagnóstico de rendimiento
 
 El backend registra tiempos por consulta y usa compresión cacheada de GeoJSON.
@@ -107,11 +106,7 @@ python scripts\benchmark_cartografia.py --base http://localhost:8010
 Las respuestas estadísticas incluyen `diagnostico.consulta_id` y tiempos por
 etapa; los endpoints HTTP agregan cabeceras de trazabilidad y `Server-Timing`.
 
-
 ### Benchmark de simplificación cartográfica
-
-El benchmark de simplificación permite evaluar tolerancias distintas para región, provincia y comuna
-sin modificar el código. Ejecute:
 
 ```cmd
 python scripts\benchmark_simplificacion.py
