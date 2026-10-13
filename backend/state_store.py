@@ -191,7 +191,7 @@ def learning_success(query_id, feedback_id, interpretacion, senales, riesgo, cac
             UPDATE aprendizaje_consultas SET
               resultado='exito',feedback_id=%s,interpretacion=%s,senales=%s,
               riesgo_sombra=%s,cache_aprobada=%s,finalizado_en=NOW(),actualizado_en=NOW()
-            WHERE id=%s
+            WHERE id=%s AND resultado <> 'cancelada'
             """,
             (feedback_id, Jsonb(interpretacion or {}), Jsonb(senales or {}),
              float(riesgo), bool(cache_aprobada), query_id),
@@ -205,7 +205,7 @@ def learning_ambiguity(query_id, tipo, opciones, detalle=None):
             UPDATE aprendizaje_consultas SET
               resultado='ambiguedad',tipo_ambiguedad=%s,opciones_ambiguedad=%s,
               error_detalle=%s,finalizado_en=NOW(),actualizado_en=NOW()
-            WHERE id=%s
+            WHERE id=%s AND resultado <> 'cancelada'
             """,
             (tipo, int(opciones or 0), str(detalle or '')[:1000], query_id),
         )
@@ -218,7 +218,7 @@ def learning_error(query_id, codigo, detalle):
             UPDATE aprendizaje_consultas SET
               resultado='error',error_codigo=%s,error_detalle=%s,
               finalizado_en=NOW(),actualizado_en=NOW()
-            WHERE id=%s
+            WHERE id=%s AND resultado <> 'cancelada'
             """,
             (int(codigo), str(detalle or '')[:1500], query_id),
         )
@@ -319,3 +319,64 @@ def learning_recent(days=30, limit=50):
         for r in rows
     ]
 # END V34 APRENDIZAJE SILENCIOSO
+
+# BEGIN V38 APRENDIZAJE CANCELACION
+def learning_success(query_id, feedback_id, interpretacion, senales, riesgo, cache_aprobada=False):
+    """No permite que un resultado tardío sobrescriba una cancelación."""
+    with _connect() as con:
+        con.execute(
+            """
+            UPDATE aprendizaje_consultas SET
+              resultado='exito',feedback_id=%s,interpretacion=%s,senales=%s,
+              riesgo_sombra=%s,cache_aprobada=%s,finalizado_en=NOW(),actualizado_en=NOW()
+            WHERE id=%s AND resultado <> 'cancelada'
+            """,
+            (feedback_id, Jsonb(interpretacion or {}), Jsonb(senales or {}),
+             float(riesgo), bool(cache_aprobada), query_id),
+        )
+
+
+def learning_ambiguity(query_id, tipo, opciones, detalle=None):
+    """Conserva cancelada si la ambigüedad llega después de ESC."""
+    with _connect() as con:
+        con.execute(
+            """
+            UPDATE aprendizaje_consultas SET
+              resultado='ambiguedad',tipo_ambiguedad=%s,opciones_ambiguedad=%s,
+              error_detalle=%s,finalizado_en=NOW(),actualizado_en=NOW()
+            WHERE id=%s AND resultado <> 'cancelada'
+            """,
+            (tipo, int(opciones or 0), str(detalle or '')[:1000], query_id),
+        )
+
+
+def learning_error(query_id, codigo, detalle):
+    """Conserva cancelada si un error llega después de ESC."""
+    with _connect() as con:
+        con.execute(
+            """
+            UPDATE aprendizaje_consultas SET
+              resultado='error',error_codigo=%s,error_detalle=%s,
+              finalizado_en=NOW(),actualizado_en=NOW()
+            WHERE id=%s AND resultado <> 'cancelada'
+            """,
+            (int(codigo), str(detalle or '')[:1500], query_id),
+        )
+
+
+def learning_cancel(query_id, detalle="Consulta cancelada por la persona usuaria"):
+    """Registra una cancelación como resultado propio, no como error."""
+    with _connect() as con:
+        con.execute(
+            """
+            UPDATE aprendizaje_consultas SET
+              resultado='cancelada',
+              error_codigo=499,
+              error_detalle=%s,
+              finalizado_en=NOW(),
+              actualizado_en=NOW()
+            WHERE id=%s
+            """,
+            (str(detalle or '')[:1500], query_id),
+        )
+# END V38 APRENDIZAJE CANCELACION

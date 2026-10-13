@@ -153,6 +153,7 @@ def _registros_resultado(respuesta):
     tipo = respuesta.get("tipo_visualizacion")
     tortas = tipo == "tortas_mapa"
     barras = tipo == "barras_mapa"
+    series_mapa = tipo == "series_mapa"
     registros = []
     columnas_resultado = []
 
@@ -167,6 +168,19 @@ def _registros_resultado(respuesta):
             base["Nivel geográfico secundario (opcional)"] = nivel_s
             base["Nombre del territorio secundario"] = nombre_s
         return base
+
+    if series_mapa:
+        columnas_resultado = ["Valor del indicador/tasa/porcentaje"]
+        for territorio in respuesta.get("datos") or []:
+            base = geo_base(territorio)
+            for item in territorio.get("series") or []:
+                fila = dict(base)
+                # La etiqueta ya fue construida con las dimensiones en el orden
+                # textual de la consulta.
+                fila["Categoría"] = item.get("etiqueta")
+                fila["Valor del indicador/tasa/porcentaje"] = item.get("valor")
+                registros.append(fila)
+        return registros, columnas_resultado
 
     if barras:
         metrica = respuesta.get("metrica")

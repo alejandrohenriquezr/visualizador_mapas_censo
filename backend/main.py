@@ -19,6 +19,7 @@ import logging
 import asyncio
 import json
 import os
+import re
 from collections import OrderedDict
 from copy import deepcopy
 from threading import Thread, Event, BoundedSemaphore, RLock
@@ -115,6 +116,8 @@ app.add_middleware(
 class ConsultaRequest(BaseModel):
     pregunta: str
     session_id: Optional[str] = None
+    # V38: id único por intento para cancelación y aprendizaje silencioso.
+    query_id: Optional[str] = None
     tabla_seleccionada: Optional[str] = None
     variable_seleccionada: Optional[str] = None
     # Se permite texto porque los selectores internos también usan ids como
@@ -170,6 +173,7 @@ def _apr_inicio(*args, **kwargs): return None
 def _apr_exito(*args, **kwargs): return None
 def _apr_ambiguedad(*args, **kwargs): return None
 def _apr_error(*args, **kwargs): return None
+def _apr_cancelar(*args, **kwargs): return None
 def _apr_feedback(*args, **kwargs): return None
 def _apr_excel(*args, **kwargs): return None
 def _apr_resumen(*args, **kwargs): return {"estado":"deshabilitado"}
@@ -185,6 +189,7 @@ if os.getenv("DATABASE_URL", "").strip():
     from state_store import (
         learning_start as _pg_learning_start, learning_success as _pg_learning_success,
         learning_ambiguity as _pg_learning_ambiguity, learning_error as _pg_learning_error,
+        learning_cancel as _pg_learning_cancel,
         learning_feedback as _pg_learning_feedback, learning_excel as _pg_learning_excel,
         learning_summary as _pg_learning_summary, learning_recent as _pg_learning_recent,
     )
@@ -200,6 +205,7 @@ if os.getenv("DATABASE_URL", "").strip():
         _apr_exito = _pg_learning_success
         _apr_ambiguedad = _pg_learning_ambiguity
         _apr_error = _pg_learning_error
+        _apr_cancelar = _pg_learning_cancel
         _apr_feedback = _pg_learning_feedback
         _apr_excel = _pg_learning_excel
         _apr_resumen = _pg_learning_summary
@@ -212,17 +218,71 @@ from presentation import descripcion_cotidiana as _descripcion_cotidiana
 def _cache_requiere_recalculo_v33(pregunta, respuesta):
     """Evita reutilizar respuestas aprobadas anteriores al cambio V33."""
     q = str(pregunta or "").lower()
+    # v38.4-cache-movilidad-regional
+    if re.search(
+        r"\\bmovilidad\\s+laboral\\s+por\\s+region(?:es)?\\b",
+        q,
+    ):
+        interp_cache = (respuesta or {}).get("interpretacion") or {}
+        if (
+            interp_cache.get("variable") != "p44_lug_trab"
+            or interp_cache.get("movilidad_nivel") != "region"
+            or interp_cache.get("tipo_consulta") != "movilidad_laboral_fase3"
+        ):
+            return True
+    if re.search(r"\\bmovilidad\\s+laboral\\s+por\\s+region(?:es)?\\b", q):
+        interp_cache = (respuesta or {}).get("interpretacion") or {}
+        if (
+            interp_cache.get("variable") != "p44_lug_trab"
+            or interp_cache.get("movilidad_nivel") != "region"
+            or interp_cache.get("tipo_consulta") != "movilidad_laboral_fase3"
+        ):
+            return True
     interp = (respuesta or {}).get("interpretacion") or {}
     texto_meta = " ".join(str(interp.get(k) or "") for k in ("descripcion", "formula", "universo", "nota"))
     if ("envejecimiento" in q or "dependencia" in q) and "65" in texto_meta:
         return True
     if "sexo" in q and "edad" in q and not (respuesta or {}).get("piramide"):
         return True
+    # BEGIN V38.1 INVALIDACION CACHE
+    # Distribuciones de edad guardadas antes de V38 no tienen la tabla auxiliar
+    # edad × sexo necesaria para la pirámide.
+    if (
+        (respuesta or {}).get("tipo_visualizacion") == "tortas_mapa"
+        and str(interp.get("variable") or "") in {"edad", "edad_quinquenal"}
+        and not (respuesta or {}).get("piramide")
+    ):
+        return True
+
+    # Una caché antigua de movilidad regional puede contener una interpretación
+    # genérica equivocada (por ejemplo una variable P32 de discapacidad).
+    if re.search(r"\bmovilidad\s+laboral\s+por\s+region(?:es)?\b", q):
+        tipo = str(interp.get("tipo_consulta") or "")
+        if (
+            not tipo.startswith("movilidad_laboral")
+            or (respuesta or {}).get("tipo_visualizacion") != "matriz_od"
+            or (respuesta or {}).get("nivel_geografico") != "region"
+        ):
+            return True
+    # END V38.1 INVALIDACION CACHE
     if (respuesta or {}).get("tipo_visualizacion") == "tortas_mapa":
         for territorio in (respuesta or {}).get("datos") or []:
             compacta = territorio.get("distribucion") or []
             tiene_otros = any(str(x.get("codigo")) == "otros" for x in compacta if isinstance(x, dict))
             if tiene_otros and not territorio.get("distribucion_completa"):
+                return True
+
+        # V42: invalida respuestas aprobadas anteriores a la torta por variable principal.
+        # Un cruce de 2+ dimensiones no debe reutilizar una distribución cuyos códigos
+        # siguen siendo combinaciones del tipo ``sexo|edad``.
+        plan = interp.get("plan_cruce") or {}
+        dimensiones = plan.get("dimensiones") or []
+        if len(dimensiones) >= 2:
+            for territorio in (respuesta or {}).get("datos") or []:
+                for item in territorio.get("distribucion") or []:
+                    if isinstance(item, dict) and "|" in str(item.get("codigo") or ""):
+                        return True
+            if not (respuesta or {}).get("torta_primera_dimension"):
                 return True
     return False
 
@@ -233,7 +293,7 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
         raise HTTPException(status_code=400, detail="La pregunta no puede estar vacía.")
     inicio = perf_counter()
     consulta_id = uuid4().hex[:8]
-    aprendizaje_id = uuid4().hex
+    aprendizaje_id = req.query_id or uuid4().hex
     _apr_inicio(aprendizaje_id, req.session_id, pregunta, {
         "tabla_seleccionada": req.tabla_seleccionada,
         "variable_seleccionada": req.variable_seleccionada,
@@ -301,7 +361,10 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
         resultado = ejecutar_consulta(intencion, progreso=avisar)
         datos_s = perf_counter() - paso_datos
     except _ConsultaCancelada:
-        _apr_error(aprendizaje_id, 499, "Consulta cancelada por el cliente")
+        _apr_cancelar(
+            aprendizaje_id,
+            "Consulta cancelada por la persona usuaria (ESC o desconexión).",
+        )
         raise
     except AmbiguedadVariable as e:
         _apr_ambiguedad(aprendizaje_id, "variable", len(getattr(e, "opciones", []) or []), str(e))
@@ -371,6 +434,7 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
             "movilidad_top_n": intencion.get("movilidad_top_n"),
             "movilidad_solo_externos": intencion.get("movilidad_solo_externos"),
             "movilidad_metrica": intencion.get("movilidad_metrica"),
+            "movilidad_nivel": intencion.get("movilidad_nivel"),
             "movilidad_incluir_diagonal": intencion.get("movilidad_incluir_diagonal"),
             "movilidad_mostrar_todas": intencion.get("movilidad_mostrar_todas"),
             "movilidad_region_origen_codigo": intencion.get("movilidad_region_origen_codigo"),
@@ -425,6 +489,15 @@ def _procesar_consulta(req: ConsultaRequest, progreso=None):
             "nivel_geografico": resultado["nivel_geografico"],
             "categorias_grafico": resultado["categorias_grafico"],
             "piramide": resultado.get("piramide"),
+            # V42: no perder la semántica preparada por data_engine. El frontend
+            # necesita saber cuál es la variable principal y el Excel conserva
+            # distribucion_completa con el cruce íntegro.
+            "dimensiones": resultado.get("dimensiones") or (intencion.get("plan_cruce") or {}).get("dimensiones", []),
+            "torta_primera_dimension": resultado.get("torta_primera_dimension", False),
+            "dimension_torta": resultado.get("dimension_torta"),
+            "entidad_objetivo": resultado.get("entidad_objetivo") or (intencion.get("plan_cruce") or {}).get("entidad_objetivo"),
+            "nombre_ambito": resultado.get("nombre_ambito"),
+            "resumen_ambito": resultado.get("resumen_ambito"),
         })
 
     else:
@@ -525,6 +598,29 @@ _ETAPAS = (
 )
 _STREAMS = BoundedSemaphore(4)
 
+# BEGIN V38 CANCELACION ESC
+_CANCELACIONES_V38 = {}
+_CANCELACIONES_V38_LOCK = RLock()
+
+
+@app.post("/api/consulta/cancelar/{query_id}")
+def cancelar_consulta_v38(query_id: str):
+    # Marca una consulta activa como cancelada y registra la señal.
+    with _CANCELACIONES_V38_LOCK:
+        evento = _CANCELACIONES_V38.get(query_id)
+    if evento is not None:
+        evento.set()
+
+    _apr_cancelar(
+        query_id,
+        "Consulta cancelada explícitamente con la tecla ESC.",
+    )
+    return {
+        "estado": "cancelada" if evento is not None else "registrada",
+        "query_id": query_id,
+    }
+# END V38 CANCELACION ESC
+
 
 class _ConsultaCancelada(Exception):
     """Detiene el trabajo entre etapas si el navegador abandona la consulta."""
@@ -540,6 +636,11 @@ async def consulta_con_progreso(req: ConsultaRequest):
     cola = asyncio.Queue()
     loop = asyncio.get_running_loop()
     cancelada = Event()
+
+    query_id = req.query_id or uuid4().hex
+    req.query_id = query_id
+    with _CANCELACIONES_V38_LOCK:
+        _CANCELACIONES_V38[query_id] = cancelada
 
     def enviar(tipo, contenido):
         # La cola vive en el bucle HTTP; el cálculo se ejecuta fuera de él.
@@ -560,7 +661,10 @@ async def consulta_con_progreso(req: ConsultaRequest):
             respuesta = _procesar_consulta(req, progreso=informar)
             enviar("resultado", respuesta.body.decode("utf-8"))
         except _ConsultaCancelada:
-            pass
+            _apr_cancelar(
+                query_id,
+                "Consulta cancelada por la persona usuaria.",
+            )
         except AmbiguedadDenominador as exc:
             enviar("alternativas", {
                 "tipo": "seleccion_denominador", "mensaje": str(exc),
@@ -589,6 +693,8 @@ async def consulta_con_progreso(req: ConsultaRequest):
         except Exception as exc:
             enviar("error", {"mensaje": str(exc), "codigo": 500})
         finally:
+            with _CANCELACIONES_V38_LOCK:
+                _CANCELACIONES_V38.pop(query_id, None)
             _STREAMS.release()
 
     async def eventos():

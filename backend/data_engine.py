@@ -29,6 +29,11 @@ except ImportError:  # pragma: no cover - solo arquitectura desacoplada
     gpd = None
 
 from dictionary import VARIABLES, TABLAS_PARQUET, categorias_validas
+from v40_general import (
+    sql_desagregaciones_indicador_v40, series_indicador_v40,
+    resumen_series_indicador_v40, nombre_ambito_v40, resumen_torta_v40,
+    reagrupar_tortas_primera_dimension_v40,
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATOS_DIR = Path(os.getenv("CENSO_DATOS_DIR", str(BASE_DIR / "datos")))
@@ -318,6 +323,8 @@ def _construir_sql_indicador_derivado_v24(intencion: dict, nivel_info: dict, rut
         raise ValueError("Filtro territorial incompleto o no válido.")
     if f_nivel and f_codigo is not None:
         filtros.append(f"{NIVELES[f_nivel]['col_parquet']} = {int(f_codigo)}")
+    select_dims_v40, group_dims_v40, filtros_dims_v40 = sql_desagregaciones_indicador_v40(intencion)
+    filtros.extend(filtros_dims_v40)
     where = ("WHERE " + " AND ".join(filtros)) if filtros else ""
     ruta_sql = ruta_parquet.as_posix().replace("'", "''")
     origen = f"read_parquet('{ruta_sql}')"
@@ -352,11 +359,11 @@ def _construir_sql_indicador_derivado_v24(intencion: dict, nivel_info: dict, rut
     }
     numerador, denominador = formulas[indicador]
     return f"""
-        SELECT {col_geo} AS codigo,
+        SELECT {col_geo} AS codigo{select_dims_v40},
                100.0 * ({numerador}) / NULLIF(({denominador}), 0) AS valor
         FROM {origen}
         {where}
-        GROUP BY {col_geo}
+        GROUP BY {col_geo}{group_dims_v40}
     """
 
 
@@ -396,6 +403,8 @@ def _construir_sql_indicador_censal_v27(intencion: dict, nivel_info: dict, ruta_
     ruta_sql = ruta_parquet.as_posix().replace("'", "''")
     origen = f"read_parquet('{ruta_sql}')"
     filtros = _filtros_geograficos_indicador_v27(intencion, nivel)
+    select_dims_v40, group_dims_v40, filtros_dims_v40 = sql_desagregaciones_indicador_v40(intencion)
+    filtros.extend(filtros_dims_v40)
     where = ("WHERE " + " AND ".join(filtros)) if filtros else ""
 
     edad = 'TRY_CAST("edad" AS DOUBLE)'
@@ -507,11 +516,11 @@ def _construir_sql_indicador_censal_v27(intencion: dict, nivel_info: dict, ruta_
     if indicador in formulas:
         numerador, denominador, factor = formulas[indicador]
         return f"""
-            SELECT {col_geo} AS codigo,
+            SELECT {col_geo} AS codigo{select_dims_v40},
                    {factor} * ({numerador}) / NULLIF(({denominador}), 0) AS valor
             FROM {origen}
             {where}
-            GROUP BY {col_geo}
+            GROUP BY {col_geo}{group_dims_v40}
         """
 
     if indicador == "tgf_aproximada_censal":
@@ -523,11 +532,11 @@ def _construir_sql_indicador_censal_v27(intencion: dict, nivel_info: dict, ruta_
             terminos.append(f"(({nac}) / NULLIF(({muj}), 0))")
         suma = " + ".join(terminos)
         return f"""
-            SELECT {col_geo} AS codigo,
+            SELECT {col_geo} AS codigo{select_dims_v40},
                    5.0 * ({suma}) AS valor
             FROM {origen}
             {where}
-            GROUP BY {col_geo}
+            GROUP BY {col_geo}{group_dims_v40}
         """
 
     # Tasa neta interna: reconstruye las poblaciones comparables de 2019 y
@@ -613,6 +622,27 @@ def _ejecutar_indicador_censal_v27(intencion, avisar, inicio):
     )
     avisar(3, True); avisar(4, False)
     nombres = VARIABLES.get("geografia", {}).get(nivel, {})
+
+    if intencion.get("desagregaciones"):
+        datos = series_indicador_v40(df, intencion, nivel)
+        resumen_ambito = None
+        if intencion.get("indicador_id") != "tasa_migracion_neta_interna":
+            try:
+                sql_total = _construir_sql_indicador_censal_v27(intencion, {"col_parquet": "1"}, ruta)
+                df_total = _consultar_sql(sql_total, str(ruta), stat.st_mtime_ns, stat.st_size).copy()
+                resumen_ambito = resumen_series_indicador_v40(df_total, intencion)
+            except Exception as exc:
+                LOG.warning("No se pudo calcular resumen V40 del indicador: %s", exc)
+        avisar(4, True)
+        return {
+            "tipo_visualizacion": "series_mapa", "datos": datos, "geometria": geometria,
+            "nivel_geografico": nivel, "_sql_ejecutada": sql,
+            "nota": intencion.get("nota_interpretacion"), "metrica": "indicador",
+            "dimensiones": intencion.get("desagregaciones") or [],
+            "nombre_ambito": nombre_ambito_v40(intencion),
+            "resumen_ambito": resumen_ambito,
+        }
+
     datos = []
     if "codigo" in df:
         df["codigo"] = pd.to_numeric(df["codigo"], errors="coerce").astype("Int64")
@@ -625,11 +655,23 @@ def _ejecutar_indicador_censal_v27(intencion, avisar, inicio):
         datos.append({"codigo": codigo, "nombre": nombre,
                       "valor": None if pd.isna(fila.valor) else float(fila.valor)})
     validos = df["valor"].dropna() if "valor" in df else pd.Series(dtype=float)
+    resumen_ambito = None
+    if intencion.get("indicador_id") != "tasa_migracion_neta_interna":
+        try:
+            sql_total = _construir_sql_indicador_censal_v27(intencion, {"col_parquet": "1"}, ruta)
+            df_total = _consultar_sql(sql_total, str(ruta), stat.st_mtime_ns, stat.st_size).copy()
+            if len(df_total):
+                valor_total = df_total.iloc[0].get("valor")
+                resumen_ambito = {"tipo": "valor", "nombre": nombre_ambito_v40(intencion),
+                                  "valor": None if pd.isna(valor_total) else float(valor_total)}
+        except Exception as exc:
+            LOG.warning("No se pudo calcular resumen V40 del indicador: %s", exc)
     avisar(4, True)
     return {
         "tipo_visualizacion": "mapa", "datos": datos, "geometria": geometria,
         "nivel_geografico": nivel, "_sql_ejecutada": sql,
         "nota": intencion.get("nota_interpretacion"),
+        "nombre_ambito": nombre_ambito_v40(intencion), "resumen_ambito": resumen_ambito,
         "valores": {"min": float(validos.min()) if len(validos) else None,
                     "max": float(validos.max()) if len(validos) else None},
     }
@@ -651,6 +693,26 @@ def _ejecutar_indicador_derivado_v24(intencion, avisar, inicio):
     )
     avisar(3, True); avisar(4, False)
     nombres = VARIABLES.get("geografia", {}).get(nivel, {})
+
+    if intencion.get("desagregaciones"):
+        datos = series_indicador_v40(df, intencion, nivel)
+        resumen_ambito = None
+        try:
+            sql_total = _construir_sql_indicador_derivado_v24(intencion, {"col_parquet": "1"}, ruta)
+            df_total = _consultar_sql(sql_total, str(ruta), stat.st_mtime_ns, stat.st_size).copy()
+            resumen_ambito = resumen_series_indicador_v40(df_total, intencion)
+        except Exception as exc:
+            LOG.warning("No se pudo calcular resumen V40 del indicador: %s", exc)
+        avisar(4, True)
+        return {
+            "tipo_visualizacion": "series_mapa", "datos": datos, "geometria": geometria,
+            "nivel_geografico": nivel, "_sql_ejecutada": sql,
+            "nota": intencion.get("nota_interpretacion"), "metrica": "indicador",
+            "dimensiones": intencion.get("desagregaciones") or [],
+            "nombre_ambito": nombre_ambito_v40(intencion),
+            "resumen_ambito": resumen_ambito,
+        }
+
     datos = []
     if "codigo" in df:
         df["codigo"] = pd.to_numeric(df["codigo"], errors="coerce").astype("Int64")
@@ -663,13 +725,24 @@ def _ejecutar_indicador_derivado_v24(intencion, avisar, inicio):
         datos.append({"codigo": codigo, "nombre": nombre,
                       "valor": None if pd.isna(fila.valor) else float(fila.valor)})
     validos = df["valor"].dropna() if "valor" in df else pd.Series(dtype=float)
+    resumen_ambito = None
+    try:
+        sql_total = _construir_sql_indicador_derivado_v24(intencion, {"col_parquet": "1"}, ruta)
+        df_total = _consultar_sql(sql_total, str(ruta), stat.st_mtime_ns, stat.st_size).copy()
+        if len(df_total):
+            valor_total = df_total.iloc[0].get("valor")
+            resumen_ambito = {"tipo": "valor", "nombre": nombre_ambito_v40(intencion),
+                              "valor": None if pd.isna(valor_total) else float(valor_total)}
+    except Exception as exc:
+        LOG.warning("No se pudo calcular resumen V40 del indicador: %s", exc)
     avisar(4, True)
     return {
-        "datos": datos,
+        "tipo_visualizacion": "mapa", "datos": datos,
         "geometria": geometria,
         "nivel_geografico": nivel,
         "_sql_ejecutada": sql,
         "nota": intencion.get("nota_interpretacion"),
+        "nombre_ambito": nombre_ambito_v40(intencion), "resumen_ambito": resumen_ambito,
         "valores": {
             "min": float(validos.min()) if len(validos) else None,
             "max": float(validos.max()) if len(validos) else None,
@@ -1046,6 +1119,7 @@ def _ejecutar_distribucion(intencion, progreso, inicio):
                       "distribucion": distribucion,
                       "distribucion_completa": distribucion_completa,
                       "total": total})
+    resumen_ambito_v40 = resumen_torta_v40(datos, nombre_ambito_v40(intencion))
     resultado = {
         "tipo_visualizacion": "tortas_mapa",
         "datos": datos,
@@ -1053,6 +1127,8 @@ def _ejecutar_distribucion(intencion, progreso, inicio):
         "nivel_geografico": nivel,
         "categorias_grafico": categorias_grafico,
         "_sql_ejecutada": sql,
+        "nombre_ambito": nombre_ambito_v40(intencion),
+        "resumen_ambito": resumen_ambito_v40,
     }
     avisar(4, True)
     LOG.info("[tiempo] distribucion_total=%.3fs filas_salida=%s",
@@ -1864,6 +1940,11 @@ def _ejecutar_cruce(intencion, progreso, inicio):
             "distribucion_completa": distribucion_completa,
             "total": total,
         })
+
+    # V40: la torta representa exclusivamente la primera dimensión escrita.
+    # distribucion_completa conserva todas las combinaciones para Excel/pirámide.
+    datos, categorias_grafico = reagrupar_tortas_primera_dimension_v40(datos, dimensiones)
+    resumen_ambito_v40 = resumen_torta_v40(datos, nombre_ambito_v40(intencion), usar_completa=False)
     avisar(4, True)
     LOG.info("[tiempo] cruce_total=%.3fs filas_salida=%s dimensiones=%s",
              perf_counter() - inicio, len(datos), len(dimensiones))
@@ -1871,7 +1952,10 @@ def _ejecutar_cruce(intencion, progreso, inicio):
         "tipo_visualizacion": "tortas_mapa", "datos": datos,
         "geometria": geometria, "nivel_geografico": nivel,
         "categorias_grafico": categorias_grafico, "_sql_ejecutada": sql,
-        "entidad_objetivo": objetivo,
+        "entidad_objetivo": objetivo, "dimensiones": dimensiones,
+        "torta_primera_dimension": True,
+        "dimension_torta": dimensiones[0] if dimensiones else None,
+        "nombre_ambito": nombre_ambito_v40(intencion), "resumen_ambito": resumen_ambito_v40,
         "piramide": piramide,
     }
 
@@ -2718,10 +2802,23 @@ def ejecutar_consulta(intencion: dict, progreso=None) -> dict:
     validos = df["valor"].dropna()
     LOG.info("[tiempo] organizar_resultados=%.3fs motor_total=%.3fs filas_salida=%s",
              perf_counter() - paso, perf_counter() - inicio, len(datos))
+    resumen_ambito_v40 = None
+    try:
+        sql_total_v40 = _construir_sql(intencion, {"col_parquet": "1"}, ruta)
+        df_total_v40 = _consultar_sql(sql_total_v40, str(ruta), stat.st_mtime_ns, stat.st_size).copy()
+        if len(df_total_v40):
+            valor_total_v40 = df_total_v40.iloc[0].get("valor")
+            resumen_ambito_v40 = {
+                "tipo": "valor", "nombre": nombre_ambito_v40(intencion),
+                "valor": None if pd.isna(valor_total_v40) else float(valor_total_v40),
+            }
+    except Exception as exc:
+        LOG.warning("No se pudo calcular resumen V40 del ámbito: %s", exc)
     avisar(4, True)
-    return {"datos": datos, "geometria": geometria,
+    return {"tipo_visualizacion": "mapa", "datos": datos, "geometria": geometria,
             "nivel_geografico": nivel,
-            "_sql_ejecutada": sql,
+            "_sql_ejecutada": sql, "nombre_ambito": nombre_ambito_v40(intencion),
+            "resumen_ambito": resumen_ambito_v40,
             "valores": {"min": float(validos.min()) if len(validos) else None,
                         "max": float(validos.max()) if len(validos) else None}}
 
@@ -2740,3 +2837,408 @@ if os.getenv("CARTOGRAPHY_URL", "").strip():
     precalentar_geometrias = precalentar_geometrias_remoto
     estado_precalentamiento = estado_precalentamiento_remoto
 # END VISOR V31 REMOTE CARTOGRAPHY
+
+# BEGIN V38 PIRAMIDE EDAD SIMPLE Y MOVILIDAD REGIONAL
+_ejecutar_distribucion_v37 = _ejecutar_distribucion
+_construir_sql_movilidad_laboral_fase3_v37 = (
+    _construir_sql_movilidad_laboral_fase3
+)
+_ejecutar_movilidad_laboral_fase3_v37 = _ejecutar_movilidad_laboral_fase3
+
+
+def _v38_anexar_piramide_edad(intencion, resultado):
+    """Añade edad exacta × sexo para la pirámide sin cambiar la torta principal."""
+    if intencion.get("tabla") != "personas":
+        return resultado
+    if intencion.get("variable") not in {"edad", "edad_quinquenal"}:
+        return resultado
+    if resultado.get("tipo_visualizacion") != "tortas_mapa":
+        return resultado
+
+    nivel = intencion.get("nivel_geografico", "region")
+    if nivel not in NIVELES:
+        return resultado
+
+    ruta = _ruta_parquet("personas")
+    ruta_sql = ruta.as_posix().replace("'", "''")
+    col_geo = NIVELES[nivel]["col_parquet"]
+
+    filtros = [
+        'TRY_CAST("edad" AS INTEGER) BETWEEN 0 AND 120',
+        'CAST("sexo" AS VARCHAR) IN (\'1\', \'2\')',
+    ]
+
+    f_nivel = intencion.get("filtro_geografico_nivel")
+    f_codigo = intencion.get("filtro_geografico_codigo")
+    if bool(f_nivel) != (f_codigo is not None):
+        raise ValueError("Filtro territorial incompleto o no válido.")
+    if f_nivel:
+        filtros.append(
+            f"{NIVELES[f_nivel]['col_parquet']} = {int(f_codigo)}"
+        )
+
+    for filtro_numerico in intencion.get("filtros_numericos") or []:
+        filtros.extend(
+            _condiciones_rango(
+                "personas",
+                filtro_numerico,
+                incluir_solicitado=True,
+            )
+        )
+
+    if intencion.get("edad_minima") is not None:
+        filtros.append(
+            f'TRY_CAST("edad" AS DOUBLE) >= '
+            f'{int(intencion["edad_minima"])}'
+        )
+
+    where = "WHERE " + " AND ".join(f"({x})" for x in filtros)
+    sql_piramide = f"""
+        SELECT {col_geo} AS codigo,
+               TRY_CAST("edad" AS INTEGER) AS edad,
+               CAST("sexo" AS VARCHAR) AS sexo,
+               COUNT(*) AS valor
+        FROM read_parquet('{ruta_sql}')
+        {where}
+        GROUP BY {col_geo}, edad, sexo
+        ORDER BY {col_geo}, edad, sexo
+    """
+
+    stat = ruta.stat()
+    with _SQL_CACHE_LOCK:
+        df = _consultar_sql(
+            sql_piramide,
+            str(ruta),
+            stat.st_mtime_ns,
+            stat.st_size,
+        ).copy()
+
+    por_geo = {}
+    for fila in df.itertuples(index=False):
+        if pd.isna(fila.codigo) or pd.isna(fila.edad):
+            continue
+        codigo = _codigo_json(fila.codigo)
+        edad = int(fila.edad)
+        sexo = str(fila.sexo)
+        if sexo not in {"1", "2"}:
+            continue
+        etiqueta_sexo = "Hombre" if sexo == "1" else "Mujer"
+        por_geo.setdefault(codigo, []).append({
+            "codigo": f"{edad}|{sexo}",
+            "etiqueta": (
+                f"Edad simple: {edad} años · Sexo: {etiqueta_sexo}"
+            ),
+            "valor": int(fila.valor),
+        })
+
+    for territorio in resultado.get("datos") or []:
+        codigo = _codigo_json(territorio.get("codigo"))
+        territorio["piramide_distribucion"] = por_geo.get(codigo, [])
+
+    regiones = [
+        {"codigo": int(codigo), "nombre": str(nombre)}
+        for codigo, nombre
+        in VARIABLES.get("geografia", {}).get("region", {}).items()
+        if str(codigo).isdigit()
+    ]
+    regiones.sort(key=lambda x: x["codigo"])
+
+    resultado["piramide"] = {
+        "disponible": True,
+        "fuente": "edad_sexo_auxiliar_v38",
+        "variable_edad": "edad",
+        "tipo_edad": "edad_simple",
+        "nivel_geografico": nivel,
+        "selector_region": (
+            nivel == "comuna"
+            and intencion.get("filtro_geografico_nivel") != "region"
+        ),
+        "region_default": 13,
+        "regiones": regiones,
+        "sexo_hombre_codigo": "1",
+        "sexo_mujer_codigo": "2",
+    }
+    resultado["_sql_ejecutada"] = (
+        str(resultado.get("_sql_ejecutada") or "")
+        + "\n-- DATOS AUXILIARES PIRAMIDE V38 --\n"
+        + sql_piramide
+    )
+    return resultado
+
+
+def _ejecutar_distribucion(intencion, progreso, inicio):
+    """Distribución existente más datos auxiliares de pirámide cuando corresponde."""
+    resultado = _ejecutar_distribucion_v37(
+        intencion,
+        progreso,
+        inicio,
+    )
+    return _v38_anexar_piramide_edad(intencion, resultado)
+
+
+def _construir_sql_movilidad_laboral_fase3(intencion):
+    """Construye matriz OD regional o delega en la implementación comunal."""
+    if intencion.get("movilidad_nivel") != "region":
+        return _construir_sql_movilidad_laboral_fase3_v37(intencion)
+
+    indicador = intencion.get("movilidad_indicador")
+    if indicador not in {"matriz_od_comunal", "ranking_flujos_comunales"}:
+        raise ValueError("Indicador de movilidad laboral regional no válido.")
+
+    ruta = _ruta_parquet("personas")
+    ruta_sql = ruta.as_posix().replace("'", "''")
+    clave = _clave_distinta("personas")
+    ocupada = 'CAST(p."sit_fuerza_trabajo" AS VARCHAR) = \'1\''
+    p44 = 'CAST(p."p44_lug_trab" AS VARCHAR)'
+    destino_esp = 'TRY_CAST(p."p44_lug_trab_esp" AS BIGINT)'
+    _, lista_comunas = _codigos_comuna_validos_sql()
+    destino_valido = f"{destino_esp} IN ({lista_comunas})"
+
+    origen_region = (
+        'CAST(FLOOR(TRY_CAST(p."comuna" AS BIGINT) / 1000) AS INTEGER)'
+    )
+    destino_region = (
+        f"CASE WHEN {p44} IN ('1', '2') THEN {origen_region} "
+        f"WHEN {p44} = '3' AND {destino_valido} "
+        f"THEN CAST(FLOOR({destino_esp} / 1000) AS INTEGER) END"
+    )
+
+    condiciones = [
+        ocupada,
+        (
+            f"({p44} IN ('1', '2') OR "
+            f"({p44} = '3' AND {destino_valido}))"
+        ),
+    ]
+    condiciones.extend(
+        _condiciones_filtros_movilidad_fase3(
+            intencion.get("movilidad_filtros_persona")
+        )
+    )
+    where_base = "WHERE " + " AND ".join(
+        f"({condicion})" for condicion in condiciones
+    )
+
+    filtros_scope = [
+        "origen IS NOT NULL",
+        "destino IS NOT NULL",
+    ]
+    if intencion.get("movilidad_region_origen_codigo") is not None:
+        filtros_scope.append(
+            f"origen = {int(intencion['movilidad_region_origen_codigo'])}"
+        )
+    if intencion.get("movilidad_region_destino_codigo") is not None:
+        filtros_scope.append(
+            f"destino = {int(intencion['movilidad_region_destino_codigo'])}"
+        )
+    if not intencion.get("movilidad_incluir_diagonal", False):
+        filtros_scope.append("origen <> destino")
+
+    where_scope = "WHERE " + " AND ".join(
+        f"({condicion})" for condicion in filtros_scope
+    )
+
+    top_clause = ""
+    if indicador == "ranking_flujos_comunales":
+        top_n = max(
+            1,
+            min(100, int(intencion.get("movilidad_top_n") or 20)),
+        )
+        top_clause = f"LIMIT {top_n}"
+
+    sql = f"""
+        WITH base AS (
+            SELECT DISTINCT {clave} AS persona_id,
+                   {origen_region} AS origen,
+                   {destino_region} AS destino
+            FROM read_parquet('{ruta_sql}') p
+            {where_base}
+        ), scoped AS (
+            SELECT persona_id, origen, destino
+            FROM base
+            {where_scope}
+        ), flujos AS (
+            SELECT origen, destino, COUNT(*) AS cantidad
+            FROM scoped
+            GROUP BY origen, destino
+        ), metricas AS (
+            SELECT origen,
+                   destino,
+                   cantidad,
+                   100.0 * cantidad /
+                     NULLIF(
+                       SUM(cantidad) OVER (PARTITION BY origen),
+                       0
+                     ) AS porcentaje_origen,
+                   100.0 * cantidad /
+                     NULLIF(
+                       SUM(cantidad) OVER (PARTITION BY destino),
+                       0
+                     ) AS porcentaje_destino
+            FROM flujos
+        )
+        SELECT origen,
+               destino,
+               cantidad,
+               porcentaje_origen,
+               porcentaje_destino
+        FROM metricas
+        ORDER BY cantidad DESC, origen, destino
+        {top_clause}
+    """
+    return sql, ruta
+
+
+def _ejecutar_movilidad_laboral_fase3(intencion, progreso, inicio):
+    """Ejecuta matriz OD regional o conserva la implementación comunal."""
+    if intencion.get("movilidad_nivel") != "region":
+        return _ejecutar_movilidad_laboral_fase3_v37(
+            intencion,
+            progreso,
+            inicio,
+        )
+
+    avisar = progreso or (lambda etapa, terminado: None)
+    sql, ruta = _construir_sql_movilidad_laboral_fase3(intencion)
+    stat = ruta.stat()
+
+    with _SQL_CACHE_LOCK:
+        df = _consultar_sql(
+            sql,
+            str(ruta),
+            stat.st_mtime_ns,
+            stat.st_size,
+        ).copy()
+
+    avisar(2, True)
+    avisar(3, False)
+    avisar(3, True)
+    avisar(4, False)
+
+    nombres = {
+        int(codigo): str(nombre)
+        for codigo, nombre
+        in VARIABLES.get("geografia", {}).get("region", {}).items()
+        if str(codigo).isdigit()
+    }
+
+    flujos = []
+    origen_totales = {}
+    destino_totales = {}
+
+    for fila in df.itertuples(index=False):
+        if pd.isna(fila.origen) or pd.isna(fila.destino):
+            continue
+
+        origen = int(fila.origen)
+        destino = int(fila.destino)
+        cantidad = int(fila.cantidad)
+
+        flujos.append({
+            "origen_codigo": origen,
+            "origen_nombre": nombres.get(origen, str(origen)),
+            "origen_region_codigo": origen,
+            "origen_region_nombre": nombres.get(origen, str(origen)),
+            "destino_codigo": destino,
+            "destino_nombre": nombres.get(destino, str(destino)),
+            "destino_region_codigo": destino,
+            "destino_region_nombre": nombres.get(destino, str(destino)),
+            "cantidad": cantidad,
+            "porcentaje_origen": (
+                None
+                if pd.isna(fila.porcentaje_origen)
+                else float(fila.porcentaje_origen)
+            ),
+            "porcentaje_destino": (
+                None
+                if pd.isna(fila.porcentaje_destino)
+                else float(fila.porcentaje_destino)
+            ),
+            # Se conserva por compatibilidad con la interfaz OD anterior.
+            "misma_comuna": origen == destino,
+            "misma_unidad": origen == destino,
+        })
+
+        origen_totales[origen] = (
+            origen_totales.get(origen, 0) + cantidad
+        )
+        destino_totales[destino] = (
+            destino_totales.get(destino, 0) + cantidad
+        )
+
+    origenes = [
+        {
+            "codigo": codigo,
+            "nombre": nombres.get(codigo, str(codigo)),
+            "region_codigo": codigo,
+            "region_nombre": nombres.get(codigo, str(codigo)),
+            "total": total,
+        }
+        for codigo, total in sorted(
+            origen_totales.items(),
+            key=lambda item: (-item[1], item[0]),
+        )
+    ]
+
+    destinos = [
+        {
+            "codigo": codigo,
+            "nombre": nombres.get(codigo, str(codigo)),
+            "region_codigo": codigo,
+            "region_nombre": nombres.get(codigo, str(codigo)),
+            "total": total,
+        }
+        for codigo, total in sorted(
+            destino_totales.items(),
+            key=lambda item: (-item[1], item[0]),
+        )
+    ]
+
+    avisar(4, True)
+
+    return {
+        "tipo_visualizacion": "matriz_od",
+        "datos": [],
+        "flujos_od": flujos,
+        "origenes_od": origenes,
+        "destinos_od": destinos,
+        "config_od": {
+            "dominio": "movilidad_laboral",
+            "metrica": intencion.get("movilidad_metrica") or "cantidad",
+            "incluir_diagonal": bool(
+                intencion.get("movilidad_incluir_diagonal", False)
+            ),
+            "top_n": int(intencion.get("movilidad_top_n") or 20),
+            "mostrar_todas": bool(
+                intencion.get("movilidad_mostrar_todas")
+            ),
+            "unidad": "región",
+            "unidad_plural": "regiones",
+            "origen_etiqueta": "Región de residencia",
+            "destino_etiqueta": "Región de trabajo",
+            "origen_corto": "Residencia",
+            "destino_corto": "Trabajo",
+            "region_origen_etiqueta": "Región de residencia",
+            "region_destino_etiqueta": "Región de trabajo",
+            "diagonal_etiqueta": (
+                "Incluir permanencia en la misma región"
+            ),
+            "ranking_titulo": (
+                "Principales flujos laborales entre regiones"
+            ),
+        },
+        "resumen_od": {
+            "flujos_no_cero": len(flujos),
+            "regiones_origen": len(origenes),
+            "regiones_destino": len(destinos),
+            "personas_en_flujos": int(
+                sum(item["cantidad"] for item in flujos)
+            ),
+        },
+        "geometria": None,
+        "nivel_geografico": "region",
+        "_sql_ejecutada": sql,
+        "nota": intencion.get("nota_interpretacion"),
+        "valores": {"min": None, "max": None},
+    }
+# END V38 PIRAMIDE EDAD SIMPLE Y MOVILIDAD REGIONAL

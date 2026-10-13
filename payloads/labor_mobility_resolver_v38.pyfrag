@@ -1,0 +1,49 @@
+# BEGIN V38 MOVILIDAD LABORAL REGIONAL
+_resolver_movilidad_laboral_fase3_v37 = resolver_movilidad_laboral_fase3
+
+def resolver_movilidad_laboral_fase3(consulta: str):
+    """Agrega matrices OD regionales sin cambiar las reglas comunales existentes."""
+    q = _norm(consulta)
+
+    es_regional = bool(
+        re.search(r"\bmovilidad\s+laboral\s+por\s+regiones?\b", q)
+        or re.search(r"\bmovilidad\s+laboral\s+entre\s+regiones?\b", q)
+        or re.search(r"\bmatriz\b.*\bmovilidad\s+laboral\b.*\bregiones?\b", q)
+    )
+    if not es_regional:
+        return _resolver_movilidad_laboral_fase3_v37(consulta)
+
+    salida = _base_f3(IND_MATRIZ, consulta)
+
+    incluir_diagonal = bool(
+        re.search(
+            r"\b(?:incluir|incluyendo|con)\s+(?:la\s+)?"
+            r"(?:misma\s+region|diagonal)\b",
+            q,
+        )
+    )
+    if re.search(
+        r"\b(?:sin|no\s+incluir|excluir|excluyendo)\s+(?:la\s+)?"
+        r"(?:misma\s+region|diagonal)\b|"
+        r"\bregiones?\s+distintas?\b|"
+        r"\binterregionales?\b",
+        q,
+    ):
+        incluir_diagonal = False
+
+    salida.update({
+        "movilidad_nivel": "region",
+        "nivel_geografico": "region",
+        "movilidad_incluir_diagonal": incluir_diagonal,
+        "_origen_interpretacion": "movilidad_laboral_fase3_regional_v38",
+        "nota_interpretacion": (
+            "Universo: personas ocupadas con un único lugar de trabajo "
+            "territorialmente identificable en Chile. La región de residencia "
+            "actual es el origen y la región de trabajo es el destino. "
+            "P44=1/2 se asigna a la misma región de residencia y P44=3 usa la "
+            "región derivada del código comunal específico de trabajo. "
+            "Se excluyen otro país, varias comunas o países, No respuesta y No aplica."
+        ),
+    })
+    return salida
+# END V38 MOVILIDAD LABORAL REGIONAL

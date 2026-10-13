@@ -303,6 +303,9 @@
 @media(max-width:720px){#piramide-edad{padding:14px}.piramide-scroll{overflow-x:auto}.piramide-cabecera{align-items:stretch}.piramide-selectores{display:grid}.piramide-selectores select{width:100%;}}
 </style>
 
+<link rel="stylesheet" href="/v40-map-tools.css">
+<link rel="stylesheet" href="/v41-fixes.css">
+<link rel="stylesheet" href="/v42-fixes.css">
 </head>
 <body>
 
@@ -468,6 +471,10 @@ const ETAPAS = [
   'Mostrar el resultado'
 ];
 let consultaEnCurso = false;
+// V38: una consulta activa puede cancelarse con ESC.
+let consultaAbortControllerV38 = null;
+let consultaQueryIdV38 = null;
+let consultaCanceladaPorUsuarioV38 = false;
 let completados = 0;
 let totalServidor = 5;
 let seleccionAcumulada = {};
@@ -478,7 +485,8 @@ let ocultarEstadoTimer = null;
 const mapa = L.map('mapa', {zoomControl:true}).setView([-33.45, -70.66], 5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap',
-  maxZoom: 18
+  maxZoom: 18,
+  crossOrigin: true
 }).addTo(mapa);
 
 // Chile completo por defecto
@@ -691,6 +699,35 @@ function siguienteCuadro(){
   return new Promise(resolve => requestAnimationFrame(resolve));
 }
 
+
+function cancelarConsultaActivaV38(){
+  if(!consultaEnCurso || !consultaAbortControllerV38) return false;
+
+  consultaCanceladaPorUsuarioV38 = true;
+  const queryId = consultaQueryIdV38;
+
+  // El endpoint deja la señal explícita de cancelación en el backend y,
+  // si está activo el aprendizaje silencioso, registra resultado='cancelada'.
+  if(queryId){
+    fetch(`${BASE_API}/api/consulta/cancelar/${encodeURIComponent(queryId)}`, {
+      method:'POST',
+      headers:{'Accept':'application/json'},
+      keepalive:true
+    }).catch(() => {});
+  }
+
+  try{ consultaAbortControllerV38.abort(); }catch(_error){}
+
+  cancelarCierreEstado();
+  document.getElementById('estado-titulo').textContent = 'Consulta cancelada';
+  mostrarAvance(
+    'Procesamiento cancelado con ESC. La consulta quedó registrada como cancelada.',
+    null,
+    false
+  );
+  return true;
+}
+
 async function consultar(seleccion=null){
   if(consultaEnCurso) return;
   if(seleccion === null) seleccionAcumulada = {};
@@ -698,6 +735,12 @@ async function consultar(seleccion=null){
   const pregunta = document.getElementById('pregunta').value.trim();
   if(!pregunta) return;
   consultaEnCurso = true;
+  consultaCanceladaPorUsuarioV38 = false;
+  consultaQueryIdV38 = (
+    globalThis.crypto?.randomUUID?.()
+    || `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
+  consultaAbortControllerV38 = new AbortController();
   completados = 0;
   totalServidor = 5;
   cancelarCierreEstado();
@@ -713,7 +756,13 @@ async function consultar(seleccion=null){
     const resp = await fetch(URL_API, {
       method:'POST',
       headers:{'Content-Type':'application/json', 'Accept':'text/event-stream'},
-      body:JSON.stringify({pregunta, session_id:LEARNING_SESSION_ID, ...seleccionAcumulada})
+      body:JSON.stringify({
+        pregunta,
+        session_id:LEARNING_SESSION_ID,
+        query_id:consultaQueryIdV38,
+        ...seleccionAcumulada
+      }),
+      signal:consultaAbortControllerV38.signal
     });
     if(!resp.ok){
       if(resp.status === 404 || resp.status === 405){
@@ -742,7 +791,8 @@ async function consultar(seleccion=null){
     }
     if(data?.tipo_visualizacion === 'matriz_od'){ // v22-dispatch-matriz-od
       await pintarMatrizODV22(data);
-    } else if(data.tipo_visualizacion === 'barras_mapa') await pintarBarrasMapa(data);
+    } else if(data.tipo_visualizacion === 'series_mapa') await pintarSeriesMapaV40(data);
+    else if(data.tipo_visualizacion === 'barras_mapa') await pintarBarrasMapa(data);
     else if(data.tipo_visualizacion === 'tortas_mapa') await pintarTortasMapa(data);
     else if(data.tipo_visualizacion === 'barras') await pintarBarras(data);
     else if(data.tipo_visualizacion === 'torta') await pintarTorta(data);
@@ -761,15 +811,35 @@ async function consultar(seleccion=null){
     document.getElementById('acciones-resultado').classList.add('visible');
     desvanecerEstadoExito();
   } catch(err){
+    if(
+      consultaCanceladaPorUsuarioV38
+      || err?.name === 'AbortError'
+    ){
+      document.getElementById('estado-titulo').textContent = 'Consulta cancelada';
+      mostrarAvance(
+        'Procesamiento cancelado. Se puede ingresar una nueva consulta.',
+        null,
+        false
+      );
+      seleccionAcumulada = {};
+      return;
+    }
     document.getElementById('estado-titulo').textContent = 'No se pudo completar la visualización';
     const detalle = err instanceof TypeError ? 'No se pudo conectar con el servidor local o se interrumpió la conexión.' : err.message;
     mostrarAvance(detalle || 'Ocurrió un error durante la consulta.', null, true);
     seleccionAcumulada = {};
     mostrarFallo(detalle);
   } finally {
+    const fueCanceladaV38 = consultaCanceladaPorUsuarioV38;
+    consultaAbortControllerV38 = null;
+    consultaQueryIdV38 = null;
+    consultaCanceladaPorUsuarioV38 = false;
     consultaEnCurso = false;
     bloquearConsulta(false);
     document.getElementById('estado-cerrar').hidden = false;
+    if(fueCanceladaV38){
+      document.getElementById('pregunta')?.focus();
+    }
   }
 }
 
@@ -1331,6 +1401,17 @@ async function pintarTorta(data){
 
 // Bloquea consultas simultáneas desde clic, Enter o botones de ejemplo.
 document.getElementById('btn-consultar').addEventListener('click', () => consultar());
+
+// V38: ESC cancela la consulta activa y devuelve el control al formulario.
+document.addEventListener('keydown', event => {
+  if(event.key === 'Escape' && consultaEnCurso){
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    cancelarConsultaActivaV38();
+  }
+}, true);
+
 document.getElementById('pregunta').addEventListener('keydown', e => {
   if(e.key === 'Enter'){ e.preventDefault(); consultar(); }
 });
@@ -2516,12 +2597,32 @@ function finalizarCambioVisualizacionV7(data){
     return Array.isArray(territorio?.distribucion) ? territorio.distribucion : [];
   }
 
+  function distribucionPiramideV38(territorio){
+    const auxiliar = territorio?.piramide_distribucion;
+    if(Array.isArray(auxiliar) && auxiliar.length) return auxiliar;
+    return distribucionCompletaV36(territorio);
+  }
+
   // Mantiene el criterio solicitado: 5 categorías principales + Otros.
   // Esta función también protege visualizaciones provenientes de cachés antiguas.
   function normalizarTortasTop5V36(data){
     if(!data || data.tipo_visualizacion !== 'tortas_mapa' || !Array.isArray(data.datos)){
       return data;
     }
+
+    // V41: V40 ya reagrupó la visualización por la primera dimensión escrita.
+    // No reconstruirla desde distribucion_completa, porque allí se conservan
+    // intencionalmente las combinaciones completas para Excel y pirámides.
+    const yaAgrupadaPrimeraDimension =
+      data?.torta_primera_dimension === true ||
+      (
+        Array.isArray(data?.dimensiones) && data.dimensiones.length > 1 &&
+        (data.datos || []).every(territorio => {
+          const d = Array.isArray(territorio?.distribucion) ? territorio.distribucion : [];
+          return d.length === 0 || d.every(item => !String(item?.codigo ?? '').includes('|'));
+        })
+      );
+    if(yaAgrupadaPrimeraDimension) return data;
 
     for(const territorio of data.datos){
       if(!Array.isArray(territorio.distribucion_completa) ||
@@ -2603,6 +2704,10 @@ function finalizarCambioVisualizacionV7(data){
 
   function esEdadSexoV36(data){
     if(!data || data.tipo_visualizacion !== 'tortas_mapa') return false;
+    if(
+      data?.piramide?.disponible
+      && data?.piramide?.fuente === 'edad_sexo_auxiliar_v38'
+    ) return true;
 
     const interp = data.interpretacion || {};
     const plan = interp.plan_cruce || {};
@@ -2662,7 +2767,7 @@ function finalizarCambioVisualizacionV7(data){
     }
 
     // Respaldo para una variable ya agrupada (edad quinquenal u otro rango).
-    m = etiqueta.match(/(\d{1,3})\s*(?:a|hasta|-|–)\s*(\d{1,3})\s*anos?/);
+    m = etiqueta.match(/(\d{1,3})\s*(?:a|hasta|-|–)\s*(\d{1,3})(?:\s*anos?)?/);
     if(m){
       const inicio = Number(m[1]);
       const fin = Number(m[2]);
@@ -2674,7 +2779,7 @@ function finalizarCambioVisualizacionV7(data){
       };
     }
 
-    m = etiqueta.match(/(\d{1,3})\s*anos?\s*(?:o\s*mas|\+)/);
+    m = etiqueta.match(/(\d{1,3})(?:\s*anos?)?\s*(?:o\s*mas|\+)/);
     if(m){
       const inicio = Number(m[1]);
       return {
@@ -2690,7 +2795,7 @@ function finalizarCambioVisualizacionV7(data){
 
   function datosPiramideV36(territorio){
     const grupos = new Map();
-    for(const item of distribucionCompletaV36(territorio)){
+    for(const item of distribucionPiramideV38(territorio)){
       const p = parsearEdadSexoV36(item);
       if(!p) continue;
       const clave = `${p.inicio}-${p.fin}`;
@@ -2711,7 +2816,7 @@ function finalizarCambioVisualizacionV7(data){
     const porEdad = new Map();
     let exacta = true;
 
-    for(const item of distribucionCompletaV36(territorio)){
+    for(const item of distribucionPiramideV38(territorio)){
       const p = parsearEdadSexoV36(item);
       if(!p || !(p.valor > 0)) continue;
 
@@ -3175,5 +3280,348 @@ function finalizarCambioVisualizacionV7(data){
 })();
 </script>
 
+
+<!-- v38-esc-y-piramide-simple -->
+
+
+<style id="v39-piramide-pestanas-style">
+/* V39: navegación Mapa | Pirámide, igual al patrón de la matriz OD. */
+#piramide-pestanas-v39{
+  display:none;
+  gap:4px;
+  margin:0;
+  padding:0 4px;
+  border-bottom:1px solid var(--linea,#d8d2c2);
+  background:#fffdf8;
+}
+#piramide-pestanas-v39.visible{display:flex;}
+#piramide-pestanas-v39 .piramide-pestana-v39{
+  appearance:none;
+  border:0;
+  border-bottom:3px solid transparent;
+  background:transparent;
+  color:#5a5245;
+  padding:8px 15px 9px;
+  margin-bottom:-1px;
+  font:inherit;
+  font-size:.86rem;
+  font-weight:600;
+  cursor:pointer;
+}
+#piramide-pestanas-v39 .piramide-pestana-v39:hover{
+  background:#f3f5f1;
+  color:var(--acento,#2f5d50);
+}
+#piramide-pestanas-v39 .piramide-pestana-v39[aria-selected="true"]{
+  color:var(--acento,#2f5d50);
+  border-bottom-color:var(--acento,#2f5d50);
+  background:#eef2ee;
+}
+#piramide-pestanas-v39 .piramide-pestana-v39:focus-visible{
+  outline:2px solid var(--cobre,#b5652c);
+  outline-offset:2px;
+}
+
+/* El disparador V36 se conserva solo internamente. */
+#btn-piramide,
+#btn-piramide-edad-v36{
+  display:none !important;
+}
+
+/* Neutraliza la capa heredada V33. */
+#piramide-edad{
+  display:none !important;
+}
+
+/* El antiguo modal V36 se convierte en una sección inline del resultado. */
+#modal-piramide-v36.v39-inline{
+  position:static !important;
+  inset:auto !important;
+  z-index:auto !important;
+  width:100% !important;
+  min-height:0 !important;
+  background:transparent !important;
+  padding:0 !important;
+  margin:0 !important;
+  overflow:visible !important;
+  place-items:stretch !important;
+}
+#modal-piramide-v36.v39-inline > div{
+  width:100% !important;
+  max-width:none !important;
+  max-height:none !important;
+  overflow:visible !important;
+  margin:0 !important;
+  padding:18px 22px 24px !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:#fffdf8 !important;
+  box-sizing:border-box !important;
+}
+#modal-piramide-v36.v39-inline #cerrar-piramide-v36,
+#modal-piramide-v36.v39-inline #descargar-piramide-v36{
+  display:none !important;
+}
+#modal-piramide-v36.v39-inline #piramide-svg-v36{
+  min-height:450px;
+  overflow:auto;
+}
+@media(max-width:720px){
+  #modal-piramide-v36.v39-inline > div{
+    padding:14px 12px 18px !important;
+  }
+}
+</style>
+
+<script id="v39-piramide-pestanas">
+(() => {
+  'use strict';
+  if(window.__piramidePestanasV39Instalada) return;
+  window.__piramidePestanasV39Instalada = true;
+
+  let ultimoResultadoV39 = null;
+
+  function resultadoV39(){
+    try{
+      if(typeof resultadoActual !== 'undefined' && resultadoActual){
+        return resultadoActual;
+      }
+    }catch(_error){}
+    return ultimoResultadoV39;
+  }
+
+  function botonPiramideV36V39(){
+    const acciones = document.getElementById('acciones-resultado');
+    if(!acciones) return null;
+    return (
+      acciones.querySelector('#btn-piramide-edad-v36')
+      || acciones.querySelector('#btn-piramide')
+      || [...acciones.querySelectorAll('button')].find(
+        b => String(b.textContent || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g,'')
+          .toLowerCase()
+          .includes('piramide')
+      )
+      || null
+    );
+  }
+
+  function tienePiramideV39(data){
+    if(!data) return false;
+    if(data?.piramide?.disponible) return true;
+    const boton = botonPiramideV36V39();
+    return Boolean(boton && !boton.hidden);
+  }
+
+  function crearPestanasV39(){
+    let nav = document.getElementById('piramide-pestanas-v39');
+    if(nav) return nav;
+
+    const main = document.querySelector('main');
+    const mapaEl = document.getElementById('mapa');
+    if(!main || !mapaEl) return null;
+
+    nav = document.createElement('nav');
+    nav.id = 'piramide-pestanas-v39';
+    nav.setAttribute('aria-label', 'Vistas del resultado de edad');
+    nav.innerHTML = `
+      <button type="button" id="piramide-tab-mapa-v39"
+        class="piramide-pestana-v39" role="tab"
+        aria-selected="true">Mapa</button>
+      <button type="button" id="piramide-tab-grafico-v39"
+        class="piramide-pestana-v39" role="tab"
+        aria-selected="false">Pirámide</button>
+    `;
+    main.insertBefore(nav, mapaEl);
+
+    document.getElementById('piramide-tab-mapa-v39')
+      ?.addEventListener('click', activarMapaV39);
+    document.getElementById('piramide-tab-grafico-v39')
+      ?.addEventListener('click', activarPiramideV39);
+
+    return nav;
+  }
+
+  function seleccionarV39(vista){
+    document.getElementById('piramide-tab-mapa-v39')
+      ?.setAttribute('aria-selected', vista === 'mapa' ? 'true' : 'false');
+    document.getElementById('piramide-tab-grafico-v39')
+      ?.setAttribute('aria-selected', vista === 'piramide' ? 'true' : 'false');
+  }
+
+  function adaptarPanelV39(){
+    const modal = document.getElementById('modal-piramide-v36');
+    if(!modal) return null;
+
+    const main = document.querySelector('main');
+    const mapaEl = document.getElementById('mapa');
+    const nav = document.getElementById('piramide-pestanas-v39');
+    if(!main || !mapaEl || !nav) return modal;
+
+    modal.classList.add('v39-inline');
+
+    // Queda justo entre las pestañas y el mapa.
+    if(modal.parentElement !== main || modal.previousElementSibling !== nav){
+      main.insertBefore(modal, mapaEl);
+    }
+
+    // El antiguo listener de fondo-modal ya no debe cerrar al hacer clic
+    // en el espacio vacío de esta sección inline.
+    if(!modal.dataset.v39ClickGuard){
+      modal.dataset.v39ClickGuard = '1';
+      modal.addEventListener('click', event => {
+        if(event.target === modal){
+          event.stopImmediatePropagation();
+        }
+      }, true);
+    }
+    return modal;
+  }
+
+  function mostrarMapaV39(){
+    const mapaEl = document.getElementById('mapa');
+    if(mapaEl){
+      mapaEl.classList.remove('oculto');
+      mapaEl.style.removeProperty('display');
+      mapaEl.style.visibility = 'visible';
+    }
+
+    const data = resultadoV39();
+    if(data?.tipo_visualizacion === 'tortas_mapa'){
+      document.getElementById('leyenda')?.classList.add('visible');
+    }
+
+    try{
+      if(typeof mapa !== 'undefined' && mapa?.invalidateSize){
+        setTimeout(() => mapa.invalidateSize(false), 0);
+      }
+    }catch(_error){}
+  }
+
+  function activarMapaV39(){
+    seleccionarV39('mapa');
+
+    const modal = document.getElementById('modal-piramide-v36');
+    if(modal) modal.style.display = 'none';
+
+    mostrarMapaV39();
+  }
+
+  function activarPiramideV39(){
+    const data = resultadoV39();
+    if(!tienePiramideV39(data)) return;
+    ultimoResultadoV39 = data;
+
+    const boton = botonPiramideV36V39();
+    if(!boton){
+      console.warn('[V39] No se encontró el disparador interno V36.');
+      return;
+    }
+
+    // Reutiliza la lógica V36 que ya dibuja hombres, mujeres, media y mediana.
+    boton.click();
+
+    const modal = adaptarPanelV39();
+    if(!modal){
+      console.warn('[V39] No se pudo crear el panel inline de pirámide.');
+      return;
+    }
+
+    document.getElementById('mapa')?.classList.add('oculto');
+    document.getElementById('leyenda')?.classList.remove('visible');
+    document.getElementById('grafico-torta')?.classList.remove('visible');
+    document.getElementById('grafico-barras')?.classList.remove('visible');
+
+    modal.style.display = 'block';
+    seleccionarV39('piramide');
+  }
+
+  function ocultarBotonAntiguoV39(){
+    const boton = botonPiramideV36V39();
+    if(boton){
+      boton.setAttribute('aria-hidden', 'true');
+      boton.tabIndex = -1;
+    }
+  }
+
+  function sincronizarV39(data){
+    if(data) ultimoResultadoV39 = data;
+    const actual = data || resultadoV39();
+    const nav = crearPestanasV39();
+    if(!nav) return;
+
+    const disponible = tienePiramideV39(actual);
+    nav.classList.toggle('visible', disponible);
+
+    // Toda consulta nueva parte en Mapa.
+    seleccionarV39('mapa');
+    const modal = document.getElementById('modal-piramide-v36');
+    if(modal) modal.style.display = 'none';
+
+    if(!disponible){
+      mostrarMapaV39();
+    }
+  }
+
+  crearPestanasV39();
+  ocultarBotonAntiguoV39();
+
+  // Se ejecuta después de V36, por lo que envuelve su versión ya corregida.
+  const pintarTortasPrevioV39 = window.pintarTortasMapa;
+  if(typeof pintarTortasPrevioV39 === 'function'){
+    window.pintarTortasMapa = async function(data){
+      ultimoResultadoV39 = data;
+      const salida = await pintarTortasPrevioV39(data);
+      ocultarBotonAntiguoV39();
+      sincronizarV39(data);
+      return salida;
+    };
+  }
+
+  // Al cambiar a otro tipo de resultado desaparecen las pestañas de pirámide.
+  const finalizarPrevioV39 = window.finalizarCambioVisualizacionV22;
+  if(typeof finalizarPrevioV39 === 'function'){
+    window.finalizarCambioVisualizacionV22 = function(data){
+      const salida = finalizarPrevioV39(data);
+      if(data?.tipo_visualizacion !== 'tortas_mapa'){
+        document.getElementById('piramide-pestanas-v39')
+          ?.classList.remove('visible');
+        const modal = document.getElementById('modal-piramide-v36');
+        if(modal) modal.style.display = 'none';
+      }
+      return salida;
+    };
+  }
+
+  // V36 puede volver a actualizar el botón cuando aparecen las acciones.
+  const acciones = document.getElementById('acciones-resultado');
+  if(acciones){
+    const observer = new MutationObserver(() => {
+      ocultarBotonAntiguoV39();
+      const actual = resultadoV39();
+      if(actual && acciones.classList.contains('visible')){
+        const nav = crearPestanasV39();
+        nav?.classList.toggle('visible', tienePiramideV39(actual));
+      }
+    });
+    observer.observe(acciones, {
+      attributes:true,
+      attributeFilter:['class'],
+      childList:true,
+      subtree:true
+    });
+  }
+
+  queueMicrotask(() => {
+    ocultarBotonAntiguoV39();
+    sincronizarV39(resultadoV39());
+  });
+})();
+</script>
+
+<script src="/v40-map-tools.js"></script>
+<script src="/v41-fixes.js"></script>
+<script src="/v42-fixes.js"></script>
 </body>
 </html>

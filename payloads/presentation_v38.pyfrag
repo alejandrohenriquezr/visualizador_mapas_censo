@@ -1,0 +1,29 @@
+# BEGIN V38 PRESENTACION MOVILIDAD REGIONAL
+_descripcion_movilidad_laboral_fase3_v37 = _descripcion_movilidad_laboral_fase3
+
+def _descripcion_movilidad_laboral_fase3(intencion):
+    """Descripción específica para la matriz OD laboral regional."""
+    if intencion.get("movilidad_nivel") != "region":
+        return _descripcion_movilidad_laboral_fase3_v37(intencion)
+
+    metrica = intencion.get("movilidad_metrica") or "cantidad"
+    base = {
+        "cantidad": "cantidad de personas ocupadas",
+        "porcentaje_origen": (
+            "porcentaje por región de residencia de personas ocupadas"
+        ),
+        "porcentaje_destino": (
+            "porcentaje por región de trabajo de personas ocupadas"
+        ),
+    }.get(metrica, "personas ocupadas")
+
+    diagonal = (
+        "incluyendo la misma región"
+        if intencion.get("movilidad_incluir_diagonal", False)
+        else "excluyendo la misma región"
+    )
+    return (
+        "Matriz de movilidad laboral entre región de residencia y región de "
+        f"trabajo: {base}, {diagonal}."
+    )
+# END V38 PRESENTACION MOVILIDAD REGIONAL

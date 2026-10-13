@@ -8,6 +8,7 @@ categorías se validan contra ``dictionary.py``.
 from __future__ import annotations
 
 import re
+from v40_general import ordenar_dimensiones_consulta_v40
 from copy import deepcopy
 
 from dictionary import VARIABLES, TABLAS_PARQUET, _norm, categorias_validas, detectar_operacion
@@ -699,7 +700,8 @@ def resolver_cruce(consulta, union_seleccion=None):
         clave = (d["tabla"], d["variable"])
         if clave not in vistos:
             unicas.append(d); vistos.add(clave)
-    dimensiones = unicas[:2]
+    # V40: la primera dimensión es la primera variable estadística escrita.
+    dimensiones = ordenar_dimensiones_consulta_v40(q, unicas)[:2]
 
     conceptos = set(detectadas)
     conceptos.update((f["tabla"], f["variable"]) for f in filtros)

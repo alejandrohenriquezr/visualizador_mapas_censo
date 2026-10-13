@@ -18,6 +18,10 @@ probadas para minimizar regresiones.
 from __future__ import annotations
 
 import re
+from v40_general import (
+    ordenar_dimensiones_consulta_v40,
+    recode_grandes_grupos_v40,
+)
 from copy import deepcopy
 
 from dictionary import VARIABLES, TABLAS_PARQUET, _norm, categorias_validas
@@ -382,6 +386,10 @@ def _aplicar_negacion(q, filtros):
 
 def _recode_edad(q):
     """Detecta una agrupación explícita de edad indicada por el usuario."""
+    # V40: los grandes grupos son una dimensión lógica derivada de edad simple.
+    grandes_v40 = recode_grandes_grupos_v40(q)
+    if grandes_v40:
+        return grandes_v40
     if not re.search(r"\b(?:edad|edades|grupos?\s+de\s+edad)\b", q):
         return None
     encontrados = []
@@ -658,6 +666,10 @@ def _dimension_items(q, detectadas, filtros):
     if recode:
         dims.append(recode)
         filtradas.add(("personas", "edad"))
+        # V40: evita que las variables de edad equivalentes reaparezcan como
+        # dimensiones paralelas cuando ya existe una recodificación explícita.
+        filtradas.add(("personas", "edad_quinquenal"))
+        filtradas.add(("personas", "edad_grandes_grupos"))
 
     # V33: edad simple y grupos quinquenales pueden ser dimensiones explícitas.
     edad_simple = bool(re.search(
@@ -719,7 +731,8 @@ def _dimension_items(q, detectadas, filtros):
         clave = (d.get("tabla"), d.get("variable"), d.get("tipo"))
         if clave not in vistos:
             vistos.add(clave); unicos.append(d)
-    return unicos
+    # V40: el orden del GROUP BY sigue el orden en que se escribió la consulta.
+    return ordenar_dimensiones_consulta_v40(q, unicos)
 
 
 def _hojas_filtro(nodo):

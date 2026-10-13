@@ -1,0 +1,36 @@
+/* V41: resumen textual y aislamiento real de la vista de pirámide. */
+#resumen-ambito-v40 .resumen-texto-v41{
+  margin:0;
+  font:500 .78rem/1.55 'Inter',sans-serif;
+  color:var(--tinta,#1b2430);
+}
+
+/* En la pestaña/modal de pirámide no deben sobrevivir capas del mapa. */
+body.v41-piramide-activa #resumen-ambito-v40,
+body.v41-piramide-activa #leyenda,
+body.v41-piramide-activa #map-tools-v40{
+  display:none !important;
+}
+body.v41-piramide-activa #mapa{
+  display:none !important;
+  visibility:hidden !important;
+}
+body.v41-piramide-activa main{
+  overflow:visible;
+  min-height:0;
+}
+body.v41-piramide-activa #piramide-edad.visible{
+  position:relative !important;
+  inset:auto !important;
+  z-index:900;
+  width:100%;
+  min-height:520px;
+  overflow:auto;
+}
+
+/* Evita que paneles de UI aparezcan en la captura PNG. */
+body.exportando-v41 #map-tools-v40,
+body.exportando-v41 #acciones-resultado,
+body.exportando-v41 #estado{
+  visibility:hidden !important;
+}

@@ -60,6 +60,10 @@ from internal_migration_resolver import resolver_migracion_interna
 from priority_indicator_resolver import resolver_prioritario_v24
 from census_indicator_resolver import resolver_indicador_censal_v27
 from denominator_resolver import resolver_denominador
+from v40_general import (
+    seleccionar_tipo_edad_v40, consulta_con_tipo_edad_v40,
+    aplicar_desagregaciones_indicador_v40,
+)
 from union_resolver import (
     resolver_ambiguedad_union,
     consulta_sin_union_territorial,
@@ -488,6 +492,10 @@ def _interpretar_consulta(consulta: str, tabla_seleccionada=None,
     nivel_defecto = detectar_nivel_geografico(consulta)
     operacion_defecto = detectar_operacion(consulta)
 
+    # V40: si edad es una dimensión y el tipo no está indicado, la selección
+    # se resuelve antes de ejecutar cualquier indicador o cruce.
+    seleccionar_tipo_edad_v40(consulta_original, variable_seleccionada)
+
     LOG.info("[tiempo] candidatos=%.3fs", perf_counter() - inicio)
     global _OLLAMA_REINTENTAR_DESDE
 
@@ -500,7 +508,7 @@ def _interpretar_consulta(consulta: str, tabla_seleccionada=None,
     # correcciones ortográficas del normalizador. Por eso aplicamos solo las
     # correcciones de tokens sobre el texto original, sin reemplazar su
     # puntuación por espacios.
-    consulta_avanzada = consulta_original
+    consulta_avanzada = consulta_con_tipo_edad_v40(consulta_original, variable_seleccionada)
     for corr in normalizacion.get("correcciones", []):
         original = str(corr.get("original") or "").strip()
         corregido = str(corr.get("corregido") or "").strip()
@@ -519,8 +527,10 @@ def _interpretar_consulta(consulta: str, tabla_seleccionada=None,
     # prioridad sobre cruces/distribuciones genéricas.
     if intencion is None:
         intencion = resolver_indicador_censal_v27(consulta_original)
+        intencion = aplicar_desagregaciones_indicador_v40(intencion, consulta_avanzada)
     if intencion is None:
         intencion = resolver_prioritario_v24(consulta_original)
+        intencion = aplicar_desagregaciones_indicador_v40(intencion, consulta_avanzada)
     if intencion is None:
         intencion = resolver_consulta_avanzada(
             consulta_avanzada, seleccion_operacion=operacion_seleccionada,
@@ -698,7 +708,7 @@ def _interpretar_consulta(consulta: str, tabla_seleccionada=None,
     if intencion.get("migracion_controla_geografia"):
         intencion["nivel_geografico"] = intencion.get("migracion_nivel") or "comuna"
     elif intencion.get("movilidad_controla_geografia"):
-        intencion["nivel_geografico"] = "comuna"
+        intencion["nivel_geografico"] = intencion.get("movilidad_nivel") or "comuna"
     else:
         intencion["nivel_geografico"] = (
             "region" if es_ambito_nacional(consulta)

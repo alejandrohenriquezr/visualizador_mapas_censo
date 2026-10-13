@@ -13,6 +13,7 @@
       "sexo",
       "edad",
       "edad_quinquenal",
+      "edad_grandes_grupos",
       "p23_est_civil",
       "p24_lug_resid5",
       "p24_lug_resid5_esp",
@@ -2277,6 +2278,17 @@
           "1": "Sí",
           "2": "No"
         }
+      },
+      "edad_grandes_grupos": {
+        "descripcion": "Edad en grandes grupos",
+        "categorias": {
+          "0": "0-14",
+          "1": "15-59",
+          "2": "60 o más"
+        },
+        "rango": "0-2",
+        "universo": "Todas las personas",
+        "derivada_de": "edad"
       }
     }
   },
