@@ -1,5 +1,7 @@
 # Visor Censo 2024
 
+Versión del proyecto: **32.3.1** (`VERSION`).
+
 Visor web para consultas en lenguaje natural sobre personas, hogares y viviendas del Censo 2024, con mapas temáticos, matrices de migración/movilidad, indicadores derivados y exportación Excel.
 
 ## Arquitectura
@@ -66,8 +68,8 @@ El repositorio no incluye una licencia por defecto. Defina la licencia instituci
 
 ## Operación segura
 
-La versión 32.1 incorpora respaldo PostgreSQL, actualización transaccional,
-rollback automático, migraciones SQL versionadas y salud detallada.
+La operación incluye respaldo PostgreSQL, actualización transaccional,
+rollback automático, migraciones SQL versionadas y controles de salud.
 
 Antes del primer arranque:
 
@@ -95,7 +97,7 @@ aplica antes de iniciar Uvicorn.
 
 ## Diagnóstico de rendimiento
 
-La v32.2 agrega métricas de tiempo por consulta y compresión cacheada de GeoJSON.
+El backend registra tiempos por consulta y usa compresión cacheada de GeoJSON.
 Para medir la transferencia cartográfica real:
 
 ```cmd
@@ -108,7 +110,7 @@ etapa; los endpoints HTTP agregan cabeceras de trazabilidad y `Server-Timing`.
 
 ### Benchmark de simplificación cartográfica
 
-La v32.3 permite evaluar tolerancias distintas para región, provincia y comuna
+El benchmark de simplificación permite evaluar tolerancias distintas para región, provincia y comuna
 sin modificar el código. Ejecute:
 
 ```cmd

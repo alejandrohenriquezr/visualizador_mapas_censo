@@ -28,9 +28,3 @@ body.v41-piramide-activa #piramide-edad.visible{
   overflow:auto;
 }
 
-/* Evita que paneles de UI aparezcan en la captura PNG. */
-body.exportando-v41 #map-tools-v40,
-body.exportando-v41 #acciones-resultado,
-body.exportando-v41 #estado{
-  visibility:hidden !important;
-}

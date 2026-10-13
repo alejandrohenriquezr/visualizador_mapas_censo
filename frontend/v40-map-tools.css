@@ -74,10 +74,6 @@ main:fullscreen #acciones-resultado{top:14px;right:66px;}
 main:fullscreen #map-tools-v40{top:14px;right:14px;}
 main:fullscreen .marcador-torta{display:none!important;}
 
-body.exportando-v40 #map-tools-v40,
-body.exportando-v40 #acciones-resultado,
-body.exportando-v40 #estado{visibility:hidden!important;}
-
 @media(max-width:650px){
   #map-tools-v40{top:58px;right:8px;}
   #resumen-ambito-v40{left:8px;bottom:14px;width:min(300px,calc(100% - 16px));max-height:34%;}

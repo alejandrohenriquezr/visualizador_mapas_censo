@@ -1,9 +1,0 @@
-/* V42: durante exportación sólo desaparecen controles de interfaz, no capas del mapa. */
-body.exportando-v42 #map-tools-v40,
-body.exportando-v42 #acciones-resultado,
-body.exportando-v42 #estado{
-  visibility:hidden !important;
-}
-.export-marker-overlay-v42 .leaflet-marker-icon{
-  pointer-events:none !important;
-}

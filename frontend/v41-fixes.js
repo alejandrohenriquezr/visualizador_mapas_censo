@@ -1,4 +1,4 @@
-/* V41: correcciones de cruces, resumen textual, pirámide, fullscreen y PNG. */
+/* V41: correcciones de cruces, resumen textual, pirámide y pantalla completa. */
 (function instalarCorreccionesV41(){
   'use strict';
   if(window.__visorV41Instalado) return;
@@ -192,95 +192,6 @@
       if(!document.fullscreenElement) renderResumenTextualV41(resultadoV41());
     },60);
   });
-
-  async function cargarHtml2CanvasV41(){
-    if(window.html2canvas) return window.html2canvas;
-    return new Promise((resolve,reject)=>{
-      const existente = document.querySelector('script[data-html2canvas-v41],script[data-html2canvas-v40]');
-      if(existente){
-        if(window.html2canvas){ resolve(window.html2canvas); return; }
-        existente.addEventListener('load',()=>resolve(window.html2canvas),{once:true});
-        existente.addEventListener('error',()=>reject(new Error('No se pudo cargar html2canvas.')),{once:true});
-        return;
-      }
-      const s=document.createElement('script');
-      s.dataset.html2canvasV41='1';
-      s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-      s.crossOrigin='anonymous';
-      s.onload=()=>window.html2canvas?resolve(window.html2canvas):reject(new Error('html2canvas no quedó disponible.'));
-      s.onerror=()=>reject(new Error('No se pudo cargar el componente de exportación PNG.'));
-      document.head.appendChild(s);
-    });
-  }
-
-  async function esperarTilesV41(timeoutMs=2500){
-    const inicio=Date.now();
-    while(Date.now()-inicio < timeoutMs){
-      const tiles=[...document.querySelectorAll('#mapa img.leaflet-tile')]
-        .filter(img=>getComputedStyle(img).visibility!=='hidden');
-      if(!tiles.length || tiles.every(img=>img.complete && img.naturalWidth>0)) return;
-      await new Promise(r=>setTimeout(r,80));
-    }
-  }
-
-  async function guardarPngV41(){
-    const main=document.querySelector('main');
-    if(!main) return;
-    const boton=document.getElementById('btn-save-png-v40');
-    if(boton) boton.disabled=true;
-    document.body.classList.add('exportando-v40','exportando-v41');
-    try{
-      if(document.body.classList.contains('v41-piramide-activa')){
-        throw new Error('Vuelve a la pestaña Mapa antes de guardar la imagen.');
-      }
-      try{ if(typeof mapa !== 'undefined') mapa.invalidateSize(false); }catch(_e){}
-      // La exportación siempre debe encuadrar el ámbito consultado, no conservar
-      // un zoom residual de una vista anterior o de la transición a fullscreen.
-      await ajustarMapaResultadoV41(resultadoV41(), document.fullscreenElement ? 48 : 34);
-      await esperarTilesV41();
-      await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-      const h2c=await cargarHtml2CanvasV41();
-      const rect=main.getBoundingClientRect();
-      const canvas=await h2c(main,{
-        useCORS:true,
-        allowTaint:false,
-        backgroundColor:'#f6f3ec',
-        scale:2,
-        logging:false,
-        width:Math.max(1,Math.round(rect.width)),
-        height:Math.max(1,Math.round(rect.height))
-      });
-      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
-      if(!blob) throw new Error('No fue posible construir el archivo PNG.');
-      const now=new Date();const pad=n=>String(n).padStart(2,'0');
-      const nombre=`mapa_censo_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.png`;
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');a.href=url;a.download=nombre;a.style.display='none';
-      document.body.appendChild(a);a.click();a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),1200);
-    }catch(e){
-      const msg='No se pudo exportar el mapa a PNG. '+(e?.message||'');
-      try{
-        if(typeof mostrarFallo==='function') mostrarFallo(msg); else window.alert(msg);
-      }catch(_e){ window.alert(msg); }
-    }finally{
-      document.body.classList.remove('exportando-v40','exportando-v41');
-      if(boton) boton.disabled=false;
-    }
-  }
-
-  // Sustituye únicamente el listener del botón de guardar; no toca el de fullscreen.
-  const guardarAnterior=document.getElementById('btn-save-png-v40');
-  if(guardarAnterior && guardarAnterior.dataset.v41!=='1'){
-    const clon=guardarAnterior.cloneNode(true);
-    clon.dataset.v41='1';
-    guardarAnterior.replaceWith(clon);
-    clon.addEventListener('click',event=>{
-      event.preventDefault();
-      event.stopPropagation();
-      guardarPngV41();
-    });
-  }
 
   // Al terminar de pintar una torta, deja el resumen textual sincronizado.
   const pintarAnterior = window.pintarTortasMapa;

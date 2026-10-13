@@ -1,9 +1,5 @@
 {
-  "version_estructura": "32.1",
-  "origen": "C:\\mapa_censo_interactivo",
-  "destino": "C:\\mapa_censo_interactivo_github",
-  "creado": "2026-09-29T14:08:52",
-  "gdb_detectada": "Cartografia_censo2024_Pais.gdb",
+  "version_estructura": "32.3.1",
   "servicios": [
     "frontend",
     "backend",
@@ -11,5 +7,32 @@
     "llm",
     "cartography"
   ],
-  "nota": "No se copiaron Parquet, FileGDB, cache, SQLite, entornos virtuales, dependencias vendorizadas, respaldos ni parches históricos."
+  "archivos_reproducibilidad": {
+    "composicion": "docker-compose.yml",
+    "variables_entorno": ".env.example",
+    "dependencias": [
+      "backend/requirements.txt",
+      "cartography/requirements.txt"
+    ],
+    "migraciones": "database/migrations/",
+    "validacion": "scripts/validate_repo.py"
+  },
+  "datos_externos_no_versionados": [
+    {
+      "tipo": "microdatos censales",
+      "formato": "Parquet"
+    },
+    {
+      "tipo": "cartografia censal",
+      "formato": "FileGDB"
+    }
+  ],
+  "estado_local_excluido": [
+    ".env",
+    "volumenes PostgreSQL y Ollama",
+    "cache cartografica",
+    "entornos virtuales",
+    "copias y paquetes de parches historicos"
+  ],
+  "nota": "El repositorio versiona el codigo vigente, la configuracion de ejemplo, las dependencias, las migraciones y las pruebas. Los microdatos y la cartografia se provisionan localmente."
 }
