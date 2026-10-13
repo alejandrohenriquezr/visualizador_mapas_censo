@@ -48,7 +48,7 @@ Desde la carpeta raíz del repositorio ejecuta:
 INSTALAR.cmd
 ```
 
-La primera ejecución crea `.env` a partir de `.env.example` y lo abre en el Bloc de notas. Cambia `POSTGRES_PASSWORD` por una clave propia, guarda el archivo y vuelve a ejecutar el instalador. El instalador verifica Docker, los tres Parquet y la FileGDB; luego crea volúmenes persistentes, inicia PostgreSQL, cartografía y Ollama, descarga el modelo indicado por `OLLAMA_MODEL`, construye backend/frontend y comprueba `/healthz`.
+La primera ejecución crea `.env` a partir de `.env.example` y lo abre en el Bloc de notas. Cambia `POSTGRES_PASSWORD` por una clave alfanumérica propia (para que la URL de conexión de PostgreSQL no se rompa), guarda el archivo y vuelve a ejecutar el instalador. El instalador verifica Docker, los tres Parquet y la FileGDB; luego crea volúmenes persistentes, inicia PostgreSQL, cartografía y Ollama, descarga el modelo indicado por `OLLAMA_MODEL`, construye backend/frontend y comprueba `/healthz`.
 
 La primera instalación puede tardar: Docker descarga imágenes, compila servicios, procesa geometrías y descarga el modelo. Requiere conexión a Internet. El instalador no acepta términos de terceros por ti ni descarga silenciosamente paquetes de datos oficiales.
 
